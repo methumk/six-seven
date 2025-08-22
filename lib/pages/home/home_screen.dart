@@ -17,7 +17,7 @@ class HomeScreenContainer extends StatelessWidget {
               children: [
                 // Title
                 Text(
-                  "My Game",
+                  "Six-Seven",
                   style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
