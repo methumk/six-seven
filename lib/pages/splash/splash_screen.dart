@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:six_seven/pages/home/home_screen.dart';
 
 // Splash Screen for logo
+// TODO: The logo can't be changed from Flame, change the provider
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -12,10 +13,10 @@ class SplashScreen extends StatelessWidget {
       body: FlameSplashScreen(
         theme: FlameSplashTheme.dark,
         showBefore: (BuildContext context) {
-          return Text("Before the logo");
+          return const CircularProgressIndicator(color: Colors.white);
         },
         showAfter: (BuildContext context) {
-          return Text("After the logo");
+          return Text("After the logo", style: TextStyle(color: Colors.white));
         },
         onFinish: (context) {
           Navigator.pushReplacement(
