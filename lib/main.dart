@@ -34,9 +34,10 @@ void main() async {
                 ),
               ),
             ),
-            child: const HomeScreenContainer(),
+            child: child!,
           );
         },
+        home: const HomeScreenContainer(),
         debugShowCheckedModeBanner: false,
       ),
     ),
