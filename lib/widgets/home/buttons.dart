@@ -25,15 +25,15 @@ class ElevatedHomeButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(100.r),
+          borderRadius: BorderRadius.circular(buttonRadius),
         ),
       ),
       child: Text(
         title,
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 15.sp, color: Colors.white),
+        style: TextStyle(fontSize: fontSize, color: textColor),
       ),
     );
   }
