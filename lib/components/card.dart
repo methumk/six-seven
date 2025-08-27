@@ -49,7 +49,7 @@ abstract class EventActionCard extends Card {
   EventActionCard() : super(cardType: CardType.eventActionCard);
 
   //executeOnEvent depends on the specific event action card
-  //like if  it's freeze, flip three, etc. Thus it is left to 
+  //like if  it's freeze, flip three, etc. Thus it is left to
   //the child class itself
 
   @override
@@ -59,42 +59,39 @@ abstract class EventActionCard extends Card {
   }
 }
 
-
-
 //Value Action Abstract Card:
-abstract class ValueActionCard extends Card{
+abstract class ValueActionCard extends Card {
   late final double _value;
-  ValueActionCard(double value):super(cardType: CardType.valueActionCard) {
+  ValueActionCard(double value) : super(cardType: CardType.valueActionCard) {
     _value = value;
   }
 
   double get value => _value;
 
-  @override   
-  void executeOnEvent(){}
-} 
+  @override
+  void executeOnEvent() {}
+}
 
-
-class PlusCard extends ValueActionCard{
+class PlusCard extends ValueActionCard {
   PlusCard(super.value);
 
-  @override  
-  double executeOnStay(double currentValue){
+  @override
+  double executeOnStay(double currentValue) {
     currentValue += _value;
     return currentValue;
   }
 
   @override
-  void description(){
+  void description() {
     print("${cardType.label} +$_value");
   }
 }
 
-class MultCard extends ValueActionCard{
+class MultCard extends ValueActionCard {
   MultCard(super.value);
 
-  @override 
-  double executeOnStay(double currentValue){
+  @override
+  double executeOnStay(double currentValue) {
     currentValue *= _value;
     return currentValue;
   }
@@ -105,40 +102,42 @@ class MultCard extends ValueActionCard{
   }
 }
 
-class MinusCard extends ValueActionCard{
+class MinusCard extends ValueActionCard {
   MinusCard(super.value);
 
-  @override  
-  double executeOnStay(double currentValue){
+  @override
+  double executeOnStay(double currentValue) {
     currentValue -= _value;
     return currentValue;
   }
 
   @override
-  void description(){
+  void description() {
     print("${cardType.label} -$_value");
   }
 }
 
-class FreezeCard extends EventActionCard{
+class FreezeCard extends EventActionCard {
   FreezeCard();
 
   //No special execute on stay function
-  @override  
+  @override
   double executeOnStay(double currentValue) {
     return currentValue;
   }
 
   //Freezes other player
-  @override   
-  void executeOnEvent(){
+  @override
+  void executeOnEvent() {
     //TO DO: Impleme
     return;
   }
 
-  @override  
-  void description(){
-    print("${cardType.label} the player that gets chosen will be frozen, forcing them to stay for the round");
+  @override
+  void description() {
+    print(
+      "${cardType.label} the player that gets chosen will be frozen, forcing them to stay for the round",
+    );
   }
 }
 

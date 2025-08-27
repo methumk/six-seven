@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:six_seven/pages/game/game_setup_screen.dart';
 import 'package:six_seven/widgets/home/buttons.dart';
 
 class HomeScreenContainer extends StatelessWidget {
@@ -33,7 +34,14 @@ class HomeScreenContainer extends StatelessWidget {
                         width: 100.w,
                         height: 100.h,
                         child: ElevatedHomeButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const GameSetupScreen(),
+                              ),
+                            );
+                          },
                           title: "Play",
                         ),
                       ),

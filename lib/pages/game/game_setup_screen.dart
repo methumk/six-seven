@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/notifiers/game_setup_setting_notifier.dart';
+import 'package:six_seven/pages/game/game_screen_container.dart';
 import 'package:six_seven/widgets/home/buttons.dart';
 import 'package:six_seven/widgets/settings/single_slider.dart';
 import 'package:six_seven/widgets/settings/switch.dart';
@@ -206,7 +207,14 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
             Padding(
               padding: const EdgeInsets.all(30),
               child: ElevatedHomeButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GameScreenContainer(config: data),
+                    ),
+                  );
+                },
                 title: "Start",
                 fontSize: 10.5.sp,
               ),
