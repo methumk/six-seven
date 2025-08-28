@@ -1,0 +1,30 @@
+import 'package:flame_splash_screen/flame_splash_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:six_seven/pages/home/home_screen.dart';
+
+// Splash Screen for logo
+// TODO: The logo can't be changed from Flame, change the provider
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FlameSplashScreen(
+        theme: FlameSplashTheme.dark,
+        showBefore: (BuildContext context) {
+          return const CircularProgressIndicator(color: Colors.white);
+        },
+        showAfter: (BuildContext context) {
+          return Text("After the logo", style: TextStyle(color: Colors.white));
+        },
+        onFinish: (context) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreenContainer()),
+          );
+        },
+      ),
+    );
+  }
+}
