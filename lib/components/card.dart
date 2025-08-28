@@ -470,14 +470,15 @@ class CardDeck {
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
     cardCeiling = 6;
     for (double i = 1.1; i <= 1.5; i += .1) {
-      for (double j = 1; j <= cardCeiling - i; j++) {
+      for (double j = 1; j <= cardCeiling - (i-1)*10; j++) {
         deckList.add(MultCard(value: i));
         cardsLeft[-1] = cardsLeft[-1]! + 1;
       }
     }
     //Add the single x2 card
-    deckList.add(MultCard(value: 2));
-    cardsLeft[-1] = cardsLeft[-1]! + 1;
+    //I think this is too op from actual game experience, remove for now
+    // deckList.add(MultCard(value: 2));
+    // cardsLeft[-1] = cardsLeft[-1]! + 1;
 
     for (int i = 0; i < 3; i++) {
       deckList.add(FreezeCard());
