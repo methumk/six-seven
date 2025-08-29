@@ -390,7 +390,7 @@ class SunkProphet extends EventActionCard {
 //Choice draw: User draws two cards, chooses one card to keep, discards other card
 class ChoiceDraw extends EventActionCard {
   ChoiceDraw();
-  
+
   @override
   double executeOnStay(double currentValue) {
     print("This function does nothing");
@@ -405,14 +405,19 @@ class ChoiceDraw extends EventActionCard {
 
   @override
   void description() {
-    print("${cardType.label} User draws two cards, and chooses one of the cards to keep while discarding the other!");
+    print(
+      "${cardType.label} User draws two cards, and chooses one of the cards to keep while discarding the other!",
+    );
   }
 }
+
 class CardDeck {
   late List<Card> deckList;
   late Map<int, int> cardsLeft;
+  late List<Card> discardPile;
   CardDeck() {
     deckList = [];
+    discardPile;
     cardsLeft = {
       0: 0,
       1: 0,
@@ -427,12 +432,16 @@ class CardDeck {
       10: 0,
       11: 0,
       12: 0,
+      //-1 is reserved for any card that is not a number card
       -1: 0,
     };
-    refill();
+    initNumberCards();
+    initValueActionCards();
+    initEventActionCards();
+    deckList.shuffle();
   }
 
-  void refill() {
+  void initNumberCards() {
     //Append a 0 number card
     deckList.add(NumberCard(value: 0));
     cardsLeft[0] = cardsLeft[0]! + 1;
@@ -449,6 +458,9 @@ class CardDeck {
         cardsLeft[-1] = cardsLeft[-1]! + 1;
       }
     }
+  }
+
+  void initValueActionCards() {
     //Add the +2's, +4's, ... +10 cards
     int cardCeiling = 10;
     for (int i = 2; i <= 10; i += 2) {
@@ -470,15 +482,18 @@ class CardDeck {
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
     cardCeiling = 6;
     for (double i = 1.1; i <= 1.5; i += .1) {
-      for (double j = 1; j <= cardCeiling - i; j++) {
+      for (double j = 1; j <= cardCeiling - (i - 1) * 10; j++) {
         deckList.add(MultCard(value: i));
         cardsLeft[-1] = cardsLeft[-1]! + 1;
       }
     }
     //Add the single x2 card
-    deckList.add(MultCard(value: 2));
-    cardsLeft[-1] = cardsLeft[-1]! + 1;
+    //I think this is too op from actual game experience, remove for now
+    // deckList.add(MultCard(value: 2));
+    // cardsLeft[-1] = cardsLeft[-1]! + 1;
+  }
 
+  void initEventActionCards() {
     for (int i = 0; i < 3; i++) {
       deckList.add(FreezeCard());
       deckList.add(FlipThreeCard());
@@ -492,109 +507,45 @@ class CardDeck {
       deckList.add(LuckySixSidedDieCard());
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
-      
-      cardsLeft[-1] = cardsLeft[-1]! + -699999999999;
+
+      cardsLeft[-1] = cardsLeft[-1]! + 12;
+    }
+  }
+
+  //Refilling the deck
+  void refill() {
+    int numDiscardedCards = discardPile.length;
+    for (int i = 0; i < numDiscardedCards; i++) {
+      Card discardedCard = discardPile.removeLast();
+      if (discardedCard is NumberCard) {
+        double value = discardedCard.value;
+        deckList.add(discardedCard);
+        cardsLeft[value.toInt()] = cardsLeft[value.toInt()]! + 1;
+      } else {
+        deckList.add(discardedCard);
+        cardsLeft[-1] = cardsLeft[-1]! + 1;
+      }
+    }
+    //After all cards from discard pile is added, reshuffle deck
+    deckList.shuffle();
+  }
+
+  //Method for drawing
+  void draw() {
+    //First, check if deck is empty. Then refill before drawing
+    if (deckList == []) {
+      refill();
     }
 
-    //             for j in range(i):
-    //                 self.deckList.append(NumberCard(i))
-    //                 self.cardsLeft[i] += 1
-    //         # Add the +2's, +4's, ... +10 cards
-    //         for i in range(2, 12, 2):
-    //             self.deckList.append(PlusCard(i))
-    //             self.cardsLeft['special'] += 1
-    //         # Official game only has a times 2 card, I just made that class for
-    //         # scalability
-    //         self.deckList.append(MultCard(2))
-    //         self.cardsLeft['special'] += 1
-    //         # Add three of each card: Freeze, flip three, double chance
-    //         for i in range(3):
-    //             self.deckList.append(FreezeCard())
-    //             self.deckList.append(FlipThreeCard())
-    //             self.deckList.append(DoubleChanceCard())
-    //             self.cardsLeft['special'] += 3
-    //         # shuffle deck
-    //         random.shuffle(self.deckList)
-
-    //     def draw(self):
-    //         if (self.deckList != []):
-    //             newCard = self.deckList.pop()
-    //             if (isinstance(newCard, NumberCard)):
-    //                 self.cardsLeft[newCard.value] -= 1
-    //             else:
-    //                 self.cardsLeft['special'] -= 1
-    //             newCard.description()
-    //             return newCard
-    //         else:
-    //             print("Deck ran out of cards. Refilling deck!")
-    //             self.refill()
-    //             newCard = self.deckList.pop()
-    //             newCard.description()
-    //             return newCard
+    //Draw a card
+    Card newCard = deckList.removeLast();
+    if (newCard is NumberCard) {
+      double value = newCard.value;
+      //Decrement cardsLeft
+      cardsLeft[value.toInt()] = cardsLeft[value.toInt()]! - 1;
+    } else {
+      //Else it's a value or event action card, so decrement -1
+      cardsLeft[-1] = cardsLeft[-1]! - 1;
+    }
   }
 }
-// class CardDeck:
-//     def __init__(self):
-//         # Actual deck of cards. Data structure is a lit to preserve order of
-//         # which cards are drawn, after shuffling
-//         self.deckList = []
-//         self.cardsLeft = {
-//             0: 0,
-//             1: 0,
-//             2: 0,
-//             3: 0,
-//             4: 0,
-//             5: 0,
-//             6: 0,
-//             7: 0,
-//             8: 0,
-//             9: 0,
-//             10: 0,
-//             11: 0,
-//             12: 0,
-//             'special': 0,
-//         }
-//         self.refill()
-
-//     def refill(self):
-//         # append 0 number card
-//         self.deckList.append(NumberCard(0))
-//         self.cardsLeft[0] += 1
-//         # Append rest of cards.
-//         # There should be n cards of value n.
-//         for i in range(1, 13):
-//             for j in range(i):
-//                 self.deckList.append(NumberCard(i))
-//                 self.cardsLeft[i] += 1
-//         # Add the +2's, +4's, ... +10 cards
-//         for i in range(2, 12, 2):
-//             self.deckList.append(PlusCard(i))
-//             self.cardsLeft['special'] += 1
-//         # Official game only has a times 2 card, I just made that class for
-//         # scalability
-//         self.deckList.append(MultCard(2))
-//         self.cardsLeft['special'] += 1
-//         # Add three of each card: Freeze, flip three, double chance
-//         for i in range(3):
-//             self.deckList.append(FreezeCard())
-//             self.deckList.append(FlipThreeCard())
-//             self.deckList.append(DoubleChanceCard())
-//             self.cardsLeft['special'] += 3
-//         # shuffle deck
-//         random.shuffle(self.deckList)
-
-//     def draw(self):
-//         if (self.deckList != []):
-//             newCard = self.deckList.pop()
-//             if (isinstance(newCard, NumberCard)):
-//                 self.cardsLeft[newCard.value] -= 1
-//             else:
-//                 self.cardsLeft['special'] -= 1
-//             newCard.description()
-//             return newCard
-//         else:
-//             print("Deck ran out of cards. Refilling deck!")
-//             self.refill()
-//             newCard = self.deckList.pop()
-//             newCard.description()
-//             return newCard
