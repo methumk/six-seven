@@ -1,19 +1,27 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-class NumberCardUI extends PositionComponent with DragCallbacks, TapCallbacks {
-  final _paint = Paint();
-  bool _isDragged = false;
+class NumberCardUI extends RectangleComponent with DragCallbacks, TapCallbacks {
+  late final Paint _paint;
 
-  NumberCardUI() : super(size: Vector2(60, 120));
+  NumberCardUI({required Vector2 pos})
+    : super(size: Vector2(60, 120), position: pos);
+
+  @override
+  FutureOr<void> onLoad() {
+    super.onLoad();
+    _paint = Paint()..color = Colors.white;
+    paint = _paint;
+  }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    _isDragged = true;
+    paint.color = Colors.red;
   }
 
   @override
@@ -25,20 +33,21 @@ class NumberCardUI extends PositionComponent with DragCallbacks, TapCallbacks {
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    _isDragged = false;
-  }
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    _paint.color = _isDragged ? Colors.red : Colors.white;
-    canvas.drawRect(size.toRect(), _paint);
+    paint.color = Colors.white;
   }
 
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
     print("Tapping down");
+  }
+
+  void onButtonTestClick() {
+    paint.color = Colors.green;
+  }
+
+  void onButtonTestUnClick() {
+    paint.color = Colors.white;
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'
     show ScreenUtil, SizeExtension;
+import 'package:six_seven/pages/game/game_setup_screen.dart';
 import 'package:six_seven/pages/home/home_screen.dart';
 
 void main() async {
@@ -37,7 +38,7 @@ void main() async {
             child: child!,
           );
         },
-        home: const HomeScreenContainer(),
+        home: const GameSetupScreen(),
         debugShowCheckedModeBanner: false,
       ),
     ),
