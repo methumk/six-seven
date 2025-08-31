@@ -1,4 +1,4 @@
-import 'dart:nativewrappers/_internal/vm/lib/math_patch.dart';
+import 'dart:math';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -417,7 +417,7 @@ class CardDeck {
   late List<Card> discardPile;
   CardDeck() {
     deckList = [];
-    discardPile;
+    discardPile = [];
     cardsLeft = {
       0: 0,
       1: 0,

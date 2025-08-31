@@ -5,14 +5,40 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
+import 'package:six_seven/components/card.dart';
+import 'package:six_seven/components/player.dart';
 import 'package:six_seven/components/ui/card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 class GameManager extends Component with HasGameReference<GameScreen> {
+  // Game Logic
+  CardDeck deck = CardDeck();
+  List<Player> players = [];
+  int aiPlayerCount;
+  int totalPlayerCount;
+  int currentPlayer = 0;
+
+  // Game UI
   final List<NumberCardUI> testNumbers = [];
   late final TopHud hud;
   int currentCard = 0;
+
+  GameManager({required this.totalPlayerCount, required this.aiPlayerCount}) {
+    for (int i = 1; i <= totalPlayerCount; ++i) {
+      if (i < aiPlayerCount) {
+        // Fill human players first
+        // players.add(HumanPlayer());
+      } else {
+        // Fill AI players last
+        // players.add(AIPlayer());
+      }
+    }
+  }
+
+  void gameRotation() {}
+
+  void showPlayerProbability() {}
 
   @override
   FutureOr<void> onLoad() async {

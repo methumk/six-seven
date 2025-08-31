@@ -12,7 +12,10 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   late final GameManager gameManager;
 
   GameScreen({required this.setupSettings}) {
-    gameManager = GameManager();
+    gameManager = GameManager(
+      totalPlayerCount: setupSettings.totalPlayerCount,
+      aiPlayerCount: setupSettings.aiPlayerCount,
+    );
   }
 
   @override
