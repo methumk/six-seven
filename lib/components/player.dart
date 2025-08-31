@@ -80,6 +80,14 @@ abstract class Player {
     currentValue = 0;
     doubleChance = false;
   }
+
+  //Method for hitting
+  void onHit(Card newCard){
+    if(newCard is NumberCard){
+      currentValue += newCard.value;
+      
+    }
+  }
 }
 
 //Human PLayer class
