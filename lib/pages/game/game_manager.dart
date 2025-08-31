@@ -6,10 +6,12 @@ import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
 import 'package:six_seven/components/ui/card_ui.dart';
+import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   final List<NumberCardUI> testNumbers = [];
+  late final TopHud hud;
   int currentCard = 0;
 
   @override
@@ -37,6 +39,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final button = SpriteButtonComponent(
       button: Sprite(upButtonImg, srcSize: Vector2(60, 18)),
       buttonDown: Sprite(downButtonImg, srcSize: Vector2(60, 20)),
+      position: Vector2(0, 900),
       size: Vector2(120, 36),
       onPressed: () {
         testNumbers[currentCard].onButtonTestUnClick();
@@ -46,12 +49,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       },
     );
 
-    // For HUD look at maybe adding it to camera.viewport instead of just add
-    game.camera.viewport.add(
-      HudMarginComponent(
-        margin: EdgeInsets.only(bottom: 5, left: 7, top: 5, right: 7),
-        children: [button],
-      ),
+    hud = TopHud(
+      hudAnchor: Anchor.bottomCenter,
+      hudMargin: EdgeInsets.only(bottom: 5, left: 7, top: 5, right: 7),
+      hudItems: [
+        button,
+        TextComponent(text: 'Score: 0', position: Vector2(0, 0)),
+      ],
     );
+
+    // For HUD look at maybe adding it to camera.viewport instead of just add
+    game.camera.viewport.add(hud);
   }
 }
