@@ -1,4 +1,3 @@
-
 import 'dart:math';
 
 enum CardType {

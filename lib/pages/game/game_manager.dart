@@ -1,18 +1,100 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
+import 'package:six_seven/components/card.dart';
+import 'package:six_seven/components/player.dart';
 import 'package:six_seven/components/ui/card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 class GameManager extends Component with HasGameReference<GameScreen> {
+  // Game Logic
+  CardDeck deck = CardDeck();
+  List<Player> players = [];
+  int aiPlayerCount;
+  int totalPlayerCount;
+  int currentPlayer = 0;
+  double winningThreshold;
+
+  // Game Logic
+  bool tableSpinCCW = true;
+  late final SplayTreeSet<Player> endGameLeaderBoard;
+  late final SplayTreeSet<Player> currentLeaderBoard;
+
+  // Game UI
   final List<NumberCardUI> testNumbers = [];
   late final TopHud hud;
   int currentCard = 0;
+
+  GameManager({
+    required this.totalPlayerCount,
+    required this.aiPlayerCount,
+    required this.winningThreshold,
+  }) {
+    endGameLeaderBoard = SplayTreeSet<Player>((a, b) {
+      // order by score descending, break ties by id
+      final cmp = b.totalValue.compareTo(a.totalValue);
+      return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
+    });
+
+    currentLeaderBoard = SplayTreeSet<Player>((a, b) {
+      // order by score descending, break ties by id
+      final cmp = b.currentValue.compareTo(a.currentValue);
+      return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
+    });
+
+    for (int i = 1; i <= totalPlayerCount; ++i) {
+      if (i < aiPlayerCount) {
+        // Fill human players first
+        // players.add(HumanPlayer());
+      } else {
+        // Fill AI players last
+        // players.add(AIPlayer());
+      }
+
+      // Add the users to the board
+      // endGameLeaderBoard.add();
+      // currentLeaderBoard.add();
+    }
+  }
+
+  int getNextPlayer() {
+    int nextPlayer = currentPlayer;
+    if (tableSpinCCW) {
+      nextPlayer = (nextPlayer + 1) % totalPlayerCount;
+    } else {
+      if (nextPlayer == 0) {
+        nextPlayer = totalPlayerCount - 1;
+      } else {
+        nextPlayer--;
+      }
+    }
+
+    return nextPlayer;
+  }
+
+  bool isGameOver() {
+    bool gameOver = false;
+    for (int i = 0; i < totalPlayerCount; ++i) {
+      if (players[i].totalValue >= winningThreshold) {
+        gameOver = true;
+        break;
+      }
+    }
+
+    return gameOver;
+  }
+
+  void calculateLeaderBoard() {}
+
+  void gameRotation() {}
+
+  void showPlayerProbability() {}
 
   @override
   FutureOr<void> onLoad() async {
