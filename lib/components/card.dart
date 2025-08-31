@@ -1,4 +1,5 @@
-import 'dart:nativewrappers/_internal/vm/lib/math_patch.dart';
+
+import 'dart:math';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -411,13 +412,36 @@ class ChoiceDraw extends EventActionCard {
   }
 }
 
+//Reverses turn order
+class ReverseTurn extends EventActionCard {
+    ReverseTurn();
+
+  @override
+  double executeOnStay(double currentValue) {
+    print("This function does nothing");
+    return currentValue;
+  }
+
+  @override
+  void executeOnEvent() {
+    //To do: implement
+    return;
+  }
+
+  @override
+  void description() {
+    print(
+      "${cardType.label} Reverses turn order!",
+    );
+  }
+}
 class CardDeck {
   late List<Card> deckList;
   late Map<int, int> cardsLeft;
   late List<Card> discardPile;
   CardDeck() {
     deckList = [];
-    discardPile;
+    discardPile = [];
     cardsLeft = {
       0: 0,
       1: 0,
@@ -507,8 +531,8 @@ class CardDeck {
       deckList.add(LuckySixSidedDieCard());
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
-
-      cardsLeft[-1] = cardsLeft[-1]! + 12;
+      deckList.add(ReverseTurn());
+      cardsLeft[-1] = cardsLeft[-1]! + 13;
     }
   }
 
