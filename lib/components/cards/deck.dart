@@ -1,5 +1,8 @@
 import 'dart:math';
 
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
+import 'package:flame/flame.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
@@ -18,10 +21,14 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/place_card.dart';
 
-class CardDeck {
+class CardDeck extends PositionComponent with TapCallbacks {
   late List<Card> deckList;
   late Map<int, int> cardsLeft;
   late List<Card> discardPile;
+
+  late final SpriteComponent deckComponent;
+  late final SpriteComponent discardComponent;
+
   CardDeck() {
     deckList = [];
     discardPile = [];
@@ -155,4 +162,40 @@ class CardDeck {
       cardsLeft[-1] = cardsLeft[-1]! - 1;
     }
   }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+    print("Tap up");
+  }
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    final faceDownCardImage = await Flame.images.load(
+      "game_ui/card_face_down.jpg",
+    );
+
+    deckComponent = SpriteComponent(
+      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+      size: Card.cardSizeFirstPerson,
+      position: Vector2(
+        position.x - (Card.cardSizeFirstPerson.x * 1.15),
+        position.y - Card.cardSizeFirstPerson.y,
+      ),
+    );
+    discardComponent = SpriteComponent(
+      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+      size: Card.cardSizeFirstPerson,
+      position: Vector2(
+        position.x + (Card.cardSizeFirstPerson.x * .15),
+        position.y - Card.cardSizeFirstPerson.y,
+      ),
+    );
+
+    addAll([deckComponent, discardComponent]);
+  }
+
+  @override
+  bool get debugMode => true;
 }
