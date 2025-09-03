@@ -19,6 +19,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   int totalPlayerCount;
   int currentPlayer = 0;
   double winningThreshold;
+  //Int for which player starts the next turn. Usually increments by 1 each round, but the reverse special effect causes it to
+  // decrement by 1 each round
+  late int turnStarterPlayerNum;
+  //Int for which player's turn it is. Usually increments by 1 after a turn, but reverse special effect causes it to
+  // decrement by 1 each round
+  late int turnPlayerNum;
 
   // Game Logic
   bool tableSpinCCW = true;
@@ -64,6 +70,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // endGameLeaderBoard.add();
       // currentLeaderBoard.add();
     }
+
+    //Start the turn starter and player turn index to be 1
+    turnStarterPlayerNum = 1;
+    turnPlayerNum = 1;
   }
 
   int getNextPlayer() {
