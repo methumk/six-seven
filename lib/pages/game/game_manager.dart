@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
@@ -11,6 +9,7 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/ui/card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/leaderboard.dart';
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
@@ -23,8 +22,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Game Logic
   bool tableSpinCCW = true;
-  late final SplayTreeSet<Player> endGameLeaderBoard;
-  late final SplayTreeSet<Player> currentLeaderBoard;
+  late final Leaderboard<Player> endGameLeaderBoard;
+  late final Leaderboard<Player> currentLeaderBoard;
 
   // Game UI
   final List<NumberCardUI> testNumbers = [];
@@ -36,17 +35,21 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     required this.aiPlayerCount,
     required this.winningThreshold,
   }) {
-    endGameLeaderBoard = SplayTreeSet<Player>((a, b) {
-      // order by score descending, break ties by id
-      final cmp = b.totalValue.compareTo(a.totalValue);
-      return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
-    });
+    endGameLeaderBoard = Leaderboard<Player>(
+      compare: (a, b) {
+        // order by score descending, break ties by id
+        final cmp = b.totalValue.compareTo(a.totalValue);
+        return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
+      },
+    );
 
-    currentLeaderBoard = SplayTreeSet<Player>((a, b) {
-      // order by score descending, break ties by id
-      final cmp = b.currentValue.compareTo(a.currentValue);
-      return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
-    });
+    currentLeaderBoard = Leaderboard<Player>(
+      compare: (a, b) {
+        // order by score descending, break ties by id
+        final cmp = b.currentValue.compareTo(a.currentValue);
+        return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
+      },
+    );
 
     for (int i = 1; i <= totalPlayerCount; ++i) {
       if (i < aiPlayerCount) {

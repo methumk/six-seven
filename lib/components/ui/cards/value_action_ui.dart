@@ -4,12 +4,16 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card.dart';
 
-class NumberCardUI extends RectangleComponent with DragCallbacks, TapCallbacks {
+class ValueActionCardUI extends RectangleComponent
+    with DragCallbacks, TapCallbacks {
   late final Paint _paint;
+  late final ValueActionCard _valueCard;
 
-  NumberCardUI({required Vector2 pos})
-    : super(size: Vector2(60, 120), position: pos);
+  ValueActionCardUI({required Vector2 pos, required ValueActionCard valueCard})
+    : _valueCard = valueCard,
+      super(size: Vector2(60, 120), position: pos);
 
   @override
   FutureOr<void> onLoad() {
