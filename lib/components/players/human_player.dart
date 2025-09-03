@@ -1,4 +1,3 @@
-
 //Human PLayer class
 import 'package:six_seven/components/players/player.dart';
 
