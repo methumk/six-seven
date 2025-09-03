@@ -136,4 +136,6 @@ abstract class Player {
       }
     }
   }
+  // Must be overriden
+  bool isCpu();
 }
