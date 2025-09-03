@@ -7,7 +7,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
 import 'package:six_seven/components/card.dart';
-import 'package:six_seven/components/player.dart';
+import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/ui/card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
