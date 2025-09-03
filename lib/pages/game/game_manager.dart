@@ -4,9 +4,9 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
-import 'package:six_seven/components/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/players/player.dart';
-import 'package:six_seven/components/ui/card_ui.dart';
+import 'package:six_seven/components/ui/cards/number_card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
@@ -107,13 +107,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final count = game.setupSettings.totalPlayerCount;
     for (int i = 0; i < count; ++i) {
       if (i == 0)
-        testNumbers.add(NumberCardUI(pos: Vector2(200, 0)));
+        testNumbers.add(NumberCardUI(pos: Vector2(200, 0), numberValue: 6.0));
       else if (i == 1)
-        testNumbers.add(NumberCardUI(pos: Vector2(0, 200)));
+        testNumbers.add(NumberCardUI(pos: Vector2(0, 200), numberValue: 7.0));
       else if (i == 2)
-        testNumbers.add(NumberCardUI(pos: Vector2(-200, 0)));
+        testNumbers.add(NumberCardUI(pos: Vector2(-200, 0), numberValue: 6.7));
       else if (i == 3)
-        testNumbers.add(NumberCardUI(pos: Vector2(0, -200)));
+        testNumbers.add(NumberCardUI(pos: Vector2(0, -200), numberValue: 67.0));
     }
 
     final downButtonImg = await Flame.images.load("game_ui/button_down.png");
