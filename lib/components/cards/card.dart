@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:flutter/material.dart';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -12,8 +15,12 @@ enum CardType {
 }
 
 //Base card class
-abstract class Card {
+abstract class Card extends RectangleComponent
+    with DragCallbacks, TapCallbacks {
   late CardType cardType;
+  static final double borderRadius = 8.0;
+  static final Vector2 cardSizeThirdPerson = Vector2(60, 120);
+  static final Vector2 cardSizeFirstPerson = Vector2(80, 140);
 
   Card({required this.cardType});
 
@@ -47,6 +54,39 @@ class NumberCard extends Card {
     currentValue += _value;
     return currentValue;
   }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    paint = Paint()..color = Colors.white;
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    paint.color = Colors.red;
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    position += event.canvasDelta;
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    paint.color = Colors.white;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    print("Tapping down");
+  }
+
+  @override
+  bool get debugMode => true;
 }
 
 //Event Action Card Class
@@ -62,6 +102,9 @@ abstract class EventActionCard extends Card {
     print("Check which event action cards have executions on player stay");
     return currentValue;
   }
+
+  @override
+  bool get debugMode => true;
 }
 
 //Value Action Abstract Card:
@@ -76,4 +119,37 @@ abstract class ValueActionCard extends Card {
 
   @override
   void executeOnEvent() {}
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    paint = Paint()..color = Colors.green;
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    paint.color = Colors.red;
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    position += event.canvasDelta;
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    paint.color = Colors.white;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    print("Tapping down");
+  }
+
+  @override
+  bool get debugMode => true;
 }

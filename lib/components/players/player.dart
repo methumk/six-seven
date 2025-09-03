@@ -1,11 +1,14 @@
 // import 'package:six_seven/components/cards/card.dart';
-
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/place_card.dart';
+import 'package:six_seven/pages/game/game_screen.dart';
 
-abstract class Player {
+abstract class Player extends PositionComponent
+    with HasGameReference<GameScreen>, TapCallbacks {
   double totalValue = 0;
   double currentValue = 0;
   bool isDone = false;

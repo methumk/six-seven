@@ -142,6 +142,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final upButtonImg = await Flame.images.load("game_ui/button_up.png");
 
     game.world.addAll(testNumbers);
+    game.world.add(deck);
 
     final button = SpriteButtonComponent(
       button: Sprite(upButtonImg, srcSize: Vector2(60, 18)),
