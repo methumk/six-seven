@@ -17,17 +17,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   List<Player> players = [];
   int aiPlayerCount;
   int totalPlayerCount;
-  int currentPlayer = 0;
   double winningThreshold;
   //Int for which player starts the next turn. Usually increments by 1 each round, but the reverse special effect causes it to
   // decrement by 1 each round
-  late int turnStarterPlayerNum;
+  late int turnStarterPlayer;
   //Int for which player's turn it is. Usually increments by 1 after a turn, but reverse special effect causes it to
   // decrement by 1 each round
-  late int turnPlayerNum;
-
+  late int currentPlayer;
+  //set of players that are done for the round
+  Set<Player> donePlayers = Set();
   // Game Logic
+  //When there's no reverse, players increment in CCW manner.
+  //So if player 0 (call them main player) is in the bottom, then player 1 is right, player 2 is up, player 3 is left, etc
   bool tableSpinCCW = true;
+  //Bool to check if game ends, if so break the game rotation loop
+  bool gameEnd = false;
+
   late final Leaderboard<Player> endGameLeaderBoard;
   late final Leaderboard<Player> currentLeaderBoard;
 
@@ -71,24 +76,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // currentLeaderBoard.add();
     }
 
-    //Start the turn starter and player turn index to be 1
-    turnStarterPlayerNum = 1;
-    turnPlayerNum = 1;
+    //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
+    turnStarterPlayer = -1;
+    currentPlayer = -1;
   }
 
-  int getNextPlayer() {
-    int nextPlayer = currentPlayer;
+  int getNextPlayer(int player) {
     if (tableSpinCCW) {
-      nextPlayer = (nextPlayer + 1) % totalPlayerCount;
+      player = (player + 1) % totalPlayerCount;
     } else {
-      if (nextPlayer == 0) {
-        nextPlayer = totalPlayerCount - 1;
+      if (player == 0) {
+        player = totalPlayerCount - 1;
       } else {
-        nextPlayer--;
+        player--;
       }
     }
-
-    return nextPlayer;
+    return player;
   }
 
   bool isGameOver() {
@@ -105,7 +108,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void calculateLeaderBoard() {}
 
-  void gameRotation() {}
+  void gameRotation() {
+    while (!gameEnd) {
+      turnStarterPlayer = getNextPlayer(turnStarterPlayer);
+      currentPlayer = turnStarterPlayer;
+      donePlayers = Set();
+      while (donePlayers.length < totalPlayerCount) {
+        //TO DO: Handle this, will be different from python because has non-human players as well
+      }
+    }
+  }
 
   void showPlayerProbability() {}
 
