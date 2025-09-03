@@ -1,6 +1,7 @@
 // import 'package:six_seven/components/cards/card.dart';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/place_card.dart';
 
@@ -15,7 +16,7 @@ abstract class Player {
   //by a minus card of same value.
   //To have fast checks, we instead need a hashmap
   Map<double, int> minusHand = {};
-  
+
   bool doubleChance = false;
   late int playerNum;
   Player({required this.playerNum});
@@ -26,7 +27,7 @@ abstract class Player {
     for (double numberValue in numHand) {
       print("Number card of value: ${numberValue}");
     }
-    for (var minusValue in minusHand.entries){      
+    for (var minusValue in minusHand.entries) {
       print("Number card of value: ${minusValue.key}");
     }
     for (PlusCard addCard in addHand) {
@@ -53,9 +54,9 @@ abstract class Player {
     for (PlusCard addCard in addHand) {
       currentValue = addCard.executeOnStay(currentValue);
     }
-    for (var minusValue in minusHand.entries){
-      for(int i = 1; i <= minusValue.value; i++){
-        currentValue -=  minusValue.key; 
+    for (var minusValue in minusHand.entries) {
+      for (int i = 1; i <= minusValue.value; i++) {
+        currentValue -= minusValue.key;
       }
     }
     //If player flipped 6 cards, get bonus 6.7 points (multiplier not included)
@@ -67,6 +68,7 @@ abstract class Player {
       currentValue += 42;
     }
   }
+
   //Method for resetting certain attributes
   void reset() {
     numHand.clear();
@@ -84,6 +86,8 @@ abstract class Player {
     newCard.description();
     if (newCard is NumberCard) {
       hitNumberCard(newCard.value);
+    } else if (newCard is ValueActionCard) {
+      hitValueActionCard(newCard);
     }
   }
 
@@ -92,6 +96,7 @@ abstract class Player {
     print("Bust!");
     isDone = true;
   }
+
   //Grant player a double chance status
   void grantDoubleChance() {
     doubleChance = true;
@@ -100,11 +105,12 @@ abstract class Player {
   //sub-method for hitting a number card
   void hitNumberCard(double numberValue) {
     if (numHand.contains(numberValue)) {
-      if(minusHand.containsKey(numberValue) && minusHand[numberValue] !>=1){
-        print("You got a duplicate card, but you also have a minus card of the same value in magnitude! Hence that minus card cancels out the duplicate!");
-        minusHand[numberValue] = minusHand[numberValue] !- 1;
-      }
-      else if (doubleChance) {
+      if (minusHand.containsKey(numberValue) && minusHand[numberValue]! >= 1) {
+        print(
+          "You got a duplicate card, but you also have a minus card of the same value in magnitude! Hence that minus card cancels out the duplicate!",
+        );
+        minusHand[numberValue] = minusHand[numberValue]! - 1;
+      } else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
       } else {
@@ -112,6 +118,22 @@ abstract class Player {
       }
     } else {
       numHand.add(numberValue);
+    }
+  }
+
+  //Sub-method for hitting a value action card
+  void hitValueActionCard(ValueActionCard newCard) {
+    if (newCard is PlusCard) {
+      addHand.add(newCard);
+    } else if (newCard is MultCard) {
+      multHand.add(newCard);
+    } else if (newCard is MinusCard) {
+      double minusValue = newCard.value;
+      if (minusHand.containsKey(minusValue)) {
+        minusHand[minusValue] = minusHand[minusValue]! + 1;
+      } else {
+        minusHand[minusValue] = 1;
+      }
     }
   }
 }
