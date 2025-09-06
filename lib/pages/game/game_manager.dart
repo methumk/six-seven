@@ -5,6 +5,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
 import 'package:six_seven/components/cards/deck.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/ui/cards/number_card_ui.dart';
 import 'package:six_seven/components/ui/top_hud.dart';
@@ -20,10 +21,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   double winningThreshold;
   //Int for which player starts the next turn. Usually increments by 1 each round, but the reverse special effect causes it to
   // decrement by 1 each round
-  late int turnStarterPlayer;
+  late int turnStarterPlayerIndex;
   //Int for which player's turn it is. Usually increments by 1 after a turn, but reverse special effect causes it to
   // decrement by 1 each round
-  late int currentPlayer;
+  late int currentPlayerIndex;
   //set of players that are done for the round
   Set<Player> donePlayers = Set();
   // Game Logic
@@ -77,8 +78,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
-    turnStarterPlayer = -1;
-    currentPlayer = -1;
+    turnStarterPlayerIndex = -1;
+    currentPlayerIndex = -1;
   }
 
   int getNextPlayer(int player) {
@@ -110,16 +111,41 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void gameRotation() {
     while (!gameEnd) {
-      turnStarterPlayer = getNextPlayer(turnStarterPlayer);
-      currentPlayer = turnStarterPlayer;
+      turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
+      currentPlayerIndex = turnStarterPlayerIndex;
       donePlayers = Set();
       while (donePlayers.length < totalPlayerCount) {
         //TO DO: Handle this, will be different from python because has non-human players as well
+        print("Player ${currentPlayerIndex}'s turn!");
+        Player currentPlayer = players[currentPlayerIndex];
+        if (currentPlayer.isDone) {
+          print(
+            "Player ${currentPlayerIndex} is already done! Going to next player!",
+          );
+        } else if (currentPlayer is CpuPlayer) {
+          if (currentPlayer.difficulty == Difficulty.easy) {}
+        } else {}
+
+        currentPlayerIndex = getNextPlayer(currentPlayerIndex);
       }
     }
   }
 
-  void showPlayerProbability() {}
+  //Show deck distribution
+  void showDeckDistribution() {
+    int numCardLeft = deck.deckList.length;
+    for (int i = 0; i <= 12; i++) {
+      print(
+        "There are ${deck.cardsLeft[i]} number cards of value ${i} left out of a total of ${numCardLeft} cards.",
+      );
+    }
+    print(
+      "There are a total of ${deck.cardsLeft[-1]} action cards left out of a total of ${numCardLeft} cards",
+    );
+  }
+
+  //Calculate player's chance of busting, and expected value should they choose another hit
+  void calculatePlayerProbabilityEV() {}
 
   @override
   FutureOr<void> onLoad() async {
