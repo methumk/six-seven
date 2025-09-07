@@ -11,6 +11,7 @@ import 'package:six_seven/pages/game/game_manager.dart';
 class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   late final GameSetupSettings setupSettings;
   late final GameManager gameManager;
+  late final Vector2 gameResolution;
 
   GameScreen({required this.setupSettings}) {
     gameManager = GameManager(
@@ -18,13 +19,14 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
       aiPlayerCount: setupSettings.aiPlayerCount,
       winningThreshold: setupSettings.winningScore,
     );
+    gameResolution = Vector2(1280, 720);
   }
 
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
     // causes letter boxing
-    camera.viewport = FixedResolutionViewport(resolution: Vector2(1280, 720));
+    camera.viewport = FixedResolutionViewport(resolution: gameResolution);
     add(gameManager);
   }
 }

@@ -42,6 +42,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final TopHud hud;
   int currentCard = 0;
 
+  // Calculate the CENTER positions of where the players should go
+  static final Vector2 topPlayerPosPercent = Vector2(.5, .25);
+  static final Vector2 bottomPlayerPosPercent = Vector2(.5, .94);
+  static final Vector2 leftPlayerPosPercent = Vector2(.06, .6);
+  static final Vector2 rightPlayerPosPercent = Vector2(.94, .6);
+  late final Vector2 topPlayerPos;
+  late final Vector2 bottomPlayerPos;
+  late final Vector2 leftPlayerPos;
+  late final Vector2 rightPlayerPos;
+
   GameManager({
     required this.totalPlayerCount,
     required this.aiPlayerCount,
@@ -151,17 +161,45 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
+    // Set 4 game player positions
+    double gameResX = game.gameResolution.x, gameResY = game.gameResolution.y;
+    Vector2 halfGameRes = game.gameResolution / 2;
+    topPlayerPos =
+        Vector2(
+          topPlayerPosPercent.x * gameResX,
+          topPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    bottomPlayerPos =
+        Vector2(
+          bottomPlayerPosPercent.x * gameResX,
+          bottomPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    leftPlayerPos =
+        Vector2(
+          leftPlayerPosPercent.x * gameResX,
+          leftPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    rightPlayerPos =
+        Vector2(
+          rightPlayerPosPercent.x * gameResX,
+          rightPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+
     // NOTE: these don't resize when game screen size changes
     final count = game.setupSettings.totalPlayerCount;
     for (int i = 0; i < count; ++i) {
       if (i == 0) {
-        testNumbers.add(NumberCard(value: 5)..position = Vector2(200, 0));
+        testNumbers.add(NumberCard(value: 5)..position = bottomPlayerPos);
       } else if (i == 1) {
-        testNumbers.add(NumberCard(value: 10.2)..position = Vector2(0, 200));
+        testNumbers.add(NumberCard(value: 10.2)..position = leftPlayerPos);
       } else if (i == 2) {
-        testNumbers.add(NumberCard(value: 0)..position = Vector2(-200, 0));
+        testNumbers.add(NumberCard(value: 0)..position = topPlayerPos);
       } else if (i == 3) {
-        testNumbers.add(NumberCard(value: 12)..position = Vector2(0, -200));
+        testNumbers.add(NumberCard(value: 12)..position = rightPlayerPos);
       }
     }
 
