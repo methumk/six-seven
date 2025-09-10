@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import 'package:six_seven/components/players/player.dart';
 
 enum Difficulty {
@@ -18,5 +21,26 @@ class CpuPlayer extends Player {
   @override
   bool isCpu() {
     return true;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+
+    TextPaint textRender = TextPaint(
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    playerName = TextComponent(
+      text: "Player ${playerNum}",
+      position: Vector2.all(0),
+      anchor: Anchor.center,
+      textRenderer: textRender,
+    );
+
+    add(playerName);
   }
 }

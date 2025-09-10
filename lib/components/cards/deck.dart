@@ -172,28 +172,28 @@ class CardDeck extends PositionComponent with TapCallbacks {
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    final faceDownCardImage = await Flame.images.load(
-      "game_ui/card_face_down.jpg",
-    );
+    // final faceDownCardImage = await Flame.images.load(
+    //   "game_ui/card_face_down.jpg",
+    // );
 
-    deckComponent = SpriteComponent(
-      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-      size: Card.cardSizeFirstPerson,
-      position: Vector2(
-        position.x - (Card.cardSizeFirstPerson.x * 1.15),
-        position.y - Card.cardSizeFirstPerson.y,
-      ),
-    );
-    discardComponent = SpriteComponent(
-      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-      size: Card.cardSizeFirstPerson,
-      position: Vector2(
-        position.x + (Card.cardSizeFirstPerson.x * .15),
-        position.y - Card.cardSizeFirstPerson.y,
-      ),
-    );
+    // deckComponent = SpriteComponent(
+    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+    //   size: Card.cardSizeFirstPerson,
+    //   position: Vector2(
+    //     position.x - (Card.cardSizeFirstPerson.x * 1.15),
+    //     position.y - Card.cardSizeFirstPerson.y,
+    //   ),
+    // );
+    // discardComponent = SpriteComponent(
+    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+    //   size: Card.cardSizeFirstPerson,
+    //   position: Vector2(
+    //     position.x + (Card.cardSizeFirstPerson.x * .15),
+    //     position.y - Card.cardSizeFirstPerson.y,
+    //   ),
+    // );
 
-    addAll([deckComponent, discardComponent]);
+    // addAll([deckComponent, discardComponent]);
   }
 
   @override

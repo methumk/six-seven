@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/pages/game/game_manager.dart';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -19,9 +20,7 @@ abstract class Card extends RectangleComponent
     with DragCallbacks, TapCallbacks {
   late CardType cardType;
   static final double borderRadius = 8.0;
-  static final Vector2 cardSizeThirdPerson = Vector2(60, 120);
-  static final Vector2 cardSizeFirstPerson = Vector2(80, 140);
-
+  static final Vector2 cardSize = Vector2(80, 140);
   Card({required this.cardType});
 
   //TO DO: Add players as param inputs for executeOnEvent
@@ -39,6 +38,7 @@ class NumberCard extends Card {
 
   NumberCard({required double value}) : super(cardType: CardType.numberCard) {
     _value = value;
+    anchor = Anchor.bottomCenter;
   }
 
   double get value => _value;
@@ -56,12 +56,6 @@ class NumberCard extends Card {
     required bool firstPersonView,
     required bool faceUp,
   }) {
-    if (firstPersonView) {
-      size = Card.cardSizeFirstPerson;
-    } else {
-      size = Card.cardSizeThirdPerson;
-    }
-
     _removeText();
 
     TextPaint small = TextPaint(
@@ -90,44 +84,55 @@ class NumberCard extends Card {
 
       _tlText = TextComponent(
         text: textvalue,
-        position: Vector2(size.x * .15, size.y * .1),
-        size: Vector2(size.x * .2, size.x * .2),
+        position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .1),
+        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
         anchor: Anchor.center,
         angle: angle,
         textRenderer: small,
       );
       _trText = TextComponent(
         text: textvalue,
-        position: Vector2(size.x * .85, size.y * .1),
-        size: Vector2(size.x * .2, size.x * .2),
+        position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .1),
+        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
         anchor: Anchor.center,
         angle: angle,
         textRenderer: small,
       );
       _blText = TextComponent(
         text: textvalue,
-        position: Vector2(size.x * .15, size.y * .9),
-        size: Vector2(size.x * .2, size.x * .2),
+        position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .9),
+        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
         anchor: Anchor.center,
         angle: math.pi,
         textRenderer: small,
       );
       _brText = TextComponent(
         text: textvalue,
-        position: Vector2(size.x * .85, size.y * .9),
-        size: Vector2(size.x * .2, size.x * .2),
+        position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .9),
+        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
         anchor: Anchor.center,
         angle: math.pi,
         textRenderer: small,
       );
       _cText = TextComponent(
         text: textvalue,
-        position: Vector2(size.x * .5, size.y * .5),
-        size: Vector2(size.x * .4, size.y * .4),
+        position: Vector2(Card.cardSize.x * .5, Card.cardSize.y * .5),
+        size: Vector2(Card.cardSize.x * .4, Card.cardSize.y * .4),
         anchor: Anchor.center,
         angle: 0,
         textRenderer: big,
       );
+
+      size = Card.cardSize;
+
+      if (!firstPersonView) {
+        size *= GameManager.thirdPersonScale.x;
+        _tlText.scale.setFrom(GameManager.thirdPersonScale);
+        _trText.scale.setFrom(GameManager.thirdPersonScale);
+        _blText.scale.setFrom(GameManager.thirdPersonScale);
+        _brText.scale.setFrom(GameManager.thirdPersonScale);
+        _cText.scale.setFrom(GameManager.thirdPersonScale);
+      }
 
       componentInitialized = true;
       addAll([_tlText, _trText, _blText, _brText, _cText]);
