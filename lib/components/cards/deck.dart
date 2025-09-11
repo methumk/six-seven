@@ -29,7 +29,7 @@ enum EventCardEnum {
   Forecaster("Forcaster Card"),
   Freeze("Freeze Card"),
   IncomeTax("Income Tax Card"),
-  LuckyDie("Lucky  Die Card"),
+  LuckySixSidedDie("Lucky  Die Card"),
   MagnifyingGlass("Magnifying Glass Card"),
   ReverseTurn("Reverse Turn Card"),
   SalesTax("Sales Tax Card"),
@@ -120,7 +120,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.Forecaster: 0,
       EventCardEnum.Freeze: 0,
       EventCardEnum.IncomeTax: 0,
-      EventCardEnum.LuckyDie: 0,
+      EventCardEnum.LuckySixSidedDie: 0,
       EventCardEnum.MagnifyingGlass: 0,
       EventCardEnum.ReverseTurn: 0,
       EventCardEnum.SalesTax: 0,
@@ -210,7 +210,33 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(ChoiceDraw());
       deckList.add(ReverseTurn());
 
-      //Add to
+      //Add to eventCardsLeft
+      eventCardsLeft[EventCardEnum.Freeze] =
+          eventCardsLeft[EventCardEnum.Freeze]! + 1;
+      eventCardsLeft[EventCardEnum.FlipThree] =
+          eventCardsLeft[EventCardEnum.FlipThree]! + 1;
+      eventCardsLeft[EventCardEnum.DoubleChance] =
+          eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
+      eventCardsLeft[EventCardEnum.MagnifyingGlass] =
+          eventCardsLeft[EventCardEnum.MagnifyingGlass]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.Cribber] =
+          eventCardsLeft[EventCardEnum.Cribber]! + 1;
+      eventCardsLeft[EventCardEnum.Forecaster] =
+          eventCardsLeft[EventCardEnum.Forecaster]! + 1;
+      eventCardsLeft[EventCardEnum.IncomeTax] =
+          eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
+      eventCardsLeft[EventCardEnum.SalesTax] =
+          eventCardsLeft[EventCardEnum.SalesTax]! + 1;
+      eventCardsLeft[EventCardEnum.LuckySixSidedDie] =
+          eventCardsLeft[EventCardEnum.LuckySixSidedDie]! + 1;
+      eventCardsLeft[EventCardEnum.SunkProphet] =
+          eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.ReverseTurn] =
+          eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
     }
   }
 
