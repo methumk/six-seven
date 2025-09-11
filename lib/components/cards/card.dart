@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -34,12 +34,105 @@ abstract class Card extends RectangleComponent
 //Base Number Card Class
 class NumberCard extends Card {
   late final double _value;
+  late final TextComponent _tlText, _trText, _blText, _brText, _cText;
+  bool componentInitialized = false;
+
   NumberCard({required double value}) : super(cardType: CardType.numberCard) {
     _value = value;
   }
 
   double get value => _value;
   set value(double value) => _value = value;
+
+  void _removeText() {
+    if (componentInitialized) {
+      removeAll([_tlText, _trText, _blText, _brText, _cText]);
+      componentInitialized = false;
+    }
+  }
+
+  // NOTE: render manually not on load
+  void _loadCardComponent({
+    required bool firstPersonView,
+    required bool faceUp,
+  }) {
+    if (firstPersonView) {
+      size = Card.cardSizeFirstPerson;
+    } else {
+      size = Card.cardSizeThirdPerson;
+    }
+
+    _removeText();
+
+    TextPaint small = TextPaint(
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 15,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    TextPaint big = TextPaint(
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+
+    if (faceUp) {
+      bool isInt = _value % 1 == 0;
+      String textvalue;
+      if (isInt) {
+        textvalue = _value.toInt().toString();
+      } else {
+        textvalue = _value.toString();
+      }
+
+      _tlText = TextComponent(
+        text: textvalue,
+        position: Vector2(size.x * .15, size.y * .1),
+        size: Vector2(size.x * .2, size.x * .2),
+        anchor: Anchor.center,
+        angle: angle,
+        textRenderer: small,
+      );
+      _trText = TextComponent(
+        text: textvalue,
+        position: Vector2(size.x * .85, size.y * .1),
+        size: Vector2(size.x * .2, size.x * .2),
+        anchor: Anchor.center,
+        angle: angle,
+        textRenderer: small,
+      );
+      _blText = TextComponent(
+        text: textvalue,
+        position: Vector2(size.x * .15, size.y * .9),
+        size: Vector2(size.x * .2, size.x * .2),
+        anchor: Anchor.center,
+        angle: math.pi,
+        textRenderer: small,
+      );
+      _brText = TextComponent(
+        text: textvalue,
+        position: Vector2(size.x * .85, size.y * .9),
+        size: Vector2(size.x * .2, size.x * .2),
+        anchor: Anchor.center,
+        angle: math.pi,
+        textRenderer: small,
+      );
+      _cText = TextComponent(
+        text: textvalue,
+        position: Vector2(size.x * .5, size.y * .5),
+        size: Vector2(size.x * .4, size.y * .4),
+        anchor: Anchor.center,
+        angle: 0,
+        textRenderer: big,
+      );
+
+      componentInitialized = true;
+      addAll([_tlText, _trText, _blText, _brText, _cText]);
+    }
+  }
 
   @override
   void executeOnEvent() {}
@@ -59,6 +152,7 @@ class NumberCard extends Card {
   FutureOr<void> onLoad() async {
     super.onLoad();
     paint = Paint()..color = Colors.white;
+    _loadCardComponent(faceUp: true, firstPersonView: true);
   }
 
   @override

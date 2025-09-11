@@ -4,7 +4,7 @@ import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
-import 'package:six_seven/components/cards/value_action_cards/place_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 abstract class Player extends PositionComponent
@@ -139,6 +139,7 @@ abstract class Player extends PositionComponent
       }
     }
   }
+
   // Must be overriden
   bool isCpu();
 }

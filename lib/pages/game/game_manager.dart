@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/widgets.dart';
+import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
-import 'package:six_seven/components/ui/cards/number_card_ui.dart';
-import 'package:six_seven/components/ui/top_hud.dart';
+import 'package:six_seven/components/top_hud.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 
@@ -38,9 +37,19 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final Leaderboard<Player> currentLeaderBoard;
 
   // Game UI
-  final List<NumberCardUI> testNumbers = [];
+  final List<NumberCard> testNumbers = [];
   late final TopHud hud;
   int currentCard = 0;
+
+  // Calculate the CENTER positions of where the players should go
+  static final Vector2 topPlayerPosPercent = Vector2(.5, .25);
+  static final Vector2 bottomPlayerPosPercent = Vector2(.5, .94);
+  static final Vector2 leftPlayerPosPercent = Vector2(.06, .6);
+  static final Vector2 rightPlayerPosPercent = Vector2(.94, .6);
+  late final Vector2 topPlayerPos;
+  late final Vector2 bottomPlayerPos;
+  late final Vector2 leftPlayerPos;
+  late final Vector2 rightPlayerPos;
 
   GameManager({
     required this.totalPlayerCount,
@@ -164,24 +173,53 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
+    // Set 4 game player positions
+    double gameResX = game.gameResolution.x, gameResY = game.gameResolution.y;
+    Vector2 halfGameRes = game.gameResolution / 2;
+    topPlayerPos =
+        Vector2(
+          topPlayerPosPercent.x * gameResX,
+          topPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    bottomPlayerPos =
+        Vector2(
+          bottomPlayerPosPercent.x * gameResX,
+          bottomPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    leftPlayerPos =
+        Vector2(
+          leftPlayerPosPercent.x * gameResX,
+          leftPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+    rightPlayerPos =
+        Vector2(
+          rightPlayerPosPercent.x * gameResX,
+          rightPlayerPosPercent.y * gameResY,
+        ) -
+        halfGameRes;
+
     // NOTE: these don't resize when game screen size changes
     final count = game.setupSettings.totalPlayerCount;
     for (int i = 0; i < count; ++i) {
-      if (i == 0)
-        testNumbers.add(NumberCardUI(pos: Vector2(200, 0), numberValue: 6.0));
-      else if (i == 1)
-        testNumbers.add(NumberCardUI(pos: Vector2(0, 200), numberValue: 7.0));
-      else if (i == 2)
-        testNumbers.add(NumberCardUI(pos: Vector2(-200, 0), numberValue: 6.7));
-      else if (i == 3)
-        testNumbers.add(NumberCardUI(pos: Vector2(0, -200), numberValue: 67.0));
+      if (i == 0) {
+        testNumbers.add(NumberCard(value: 5)..position = bottomPlayerPos);
+      } else if (i == 1) {
+        testNumbers.add(NumberCard(value: 10.2)..position = leftPlayerPos);
+      } else if (i == 2) {
+        testNumbers.add(NumberCard(value: 0)..position = topPlayerPos);
+      } else if (i == 3) {
+        testNumbers.add(NumberCard(value: 12)..position = rightPlayerPos);
+      }
     }
 
     final downButtonImg = await Flame.images.load("game_ui/button_down.png");
     final upButtonImg = await Flame.images.load("game_ui/button_up.png");
 
     game.world.addAll(testNumbers);
-    game.world.add(deck);
+    // game.world.add(deck);
 
     final button = SpriteButtonComponent(
       button: Sprite(upButtonImg, srcSize: Vector2(60, 18)),
@@ -189,10 +227,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       position: Vector2(0, 900),
       size: Vector2(120, 36),
       onPressed: () {
-        testNumbers[currentCard].onButtonTestUnClick();
-        currentCard = ++currentCard % testNumbers.length;
-        print("Button pressed! $currentCard");
-        testNumbers[currentCard].onButtonTestClick();
+        // testNumbers[currentCard].onButtonTestUnClick();
+        // currentCard = ++currentCard % testNumbers.length;
+        // print("Button pressed! $currentCard");
+        // testNumbers[currentCard].onButtonTestClick();
       },
     );
 

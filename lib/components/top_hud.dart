@@ -4,7 +4,6 @@ import 'package:flame/input.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
 
-@immutable
 class TopHud extends HudMarginComponent {
   Iterable<Component>? hudItems;
   EdgeInsets? hudMargin;
