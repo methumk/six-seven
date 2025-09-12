@@ -29,7 +29,7 @@ class CpuPlayer extends Player {
 
     TextPaint textRender = TextPaint(
       style: TextStyle(
-        color: Colors.white,
+        color: Colors.green,
         fontSize: 15,
         fontWeight: FontWeight.bold,
       ),

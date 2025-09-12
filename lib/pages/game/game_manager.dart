@@ -11,6 +11,7 @@ import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/top_hud.dart';
+import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/player_positions.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
@@ -20,6 +21,7 @@ import 'package:six_seven/utils/vector_helpers.dart';
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   CardDeck deck = CardDeck();
+  // Index doesn't match position, but 0-Total count goes in clock wise direction, 0 at center initially then everything goes clock wise as index increases
   List<Player> players = [];
   int aiPlayerCount;
   int totalPlayerCount;
@@ -27,9 +29,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Int for which player starts the next turn. Usually increments by 1 each round, but the reverse special effect causes it to
   // decrement by 1 each round
   late int turnStarterPlayerIndex;
-  //Int for which player's turn it is. Usually increments by 1 after a turn, but reverse special effect causes it to
-  // decrement by 1 each round
-  late int currentPlayerIndex;
+  // The current index in players Array that is at bottom (their turn to play)
+  int currentPlayerIndex = 0;
   //set of players that are done for the round
   Set<Player> donePlayers = Set();
   // Game Logic
@@ -68,6 +69,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Animation rotation
   PlayerRotation rotationDirection = PlayerRotation.counterClockWise;
   bool animatePlayerRotation = false;
+  // We don't push AI's to bottom screen, so this keeps track of offset to rotate user to the bottom after AI players
+  int rotationPlayerOffset = 0;
   // Radians/Second for one rotation; 90 degree turn in 1.3 seconds
   double speedPerRotation = (math.pi / 2) / 1.3;
   late final Vector2 rotationCenter; // center of rotation
@@ -100,7 +103,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
     turnStarterPlayerIndex = -1;
-    currentPlayerIndex = -1;
   }
 
   int getNextPlayer(int player) {
@@ -297,28 +299,42 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
     game.world.add(rc);
     game.world.addAll([tcc, bcc, lcc, rcc, ccc]);
+    print(
+      "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
+    );
+  }
+
+  // NOTE: This should only be used for initializing players array
+  // playerIndex represents where the player is in the player array
+  // Returns based on playercount and where the index is, gives the index that maps to bottom:0, left: 1, top: 2, right: 3
+  int _getSetUpPosIndex(int playerIndex) {
+    PlayerCountConfiguration pcc = PlayerCountConfiguration.fromPlayerCount(
+      totalPlayerCount,
+    );
+
+    return pcc.label[playerIndex % totalPlayerCount];
   }
 
   // Maps the index to the given player position
-  Vector2? _getPlayerPosbyIndex(int index) {
-    if (index < 0 || index > 3) {
+  Vector2? _getPlayerPosbyPosIndex(int posIndex) {
+    if (posIndex < 0 || posIndex > 3) {
       return null;
     }
 
-    if (index == 0) {
+    if (posIndex == 0) {
       return bottomPlayerPos;
-    } else if (index == 1) {
+    } else if (posIndex == 1) {
       return leftPlayerPos;
-    } else if (index == 2) {
+    } else if (posIndex == 2) {
       return topPlayerPos;
-    } else if (index == 3) {
+    } else if (posIndex == 3) {
       return rightPlayerPos;
     }
 
     return null;
   }
 
-  int? _getIndexbyPlayerPos(Vector2 v) {
+  int? _getPosIndexbyPosVector(Vector2 v) {
     if (v == bottomPlayerPos) {
       return 0;
     } else if (v == leftPlayerPos) {
@@ -329,6 +345,52 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return 3;
     }
     return null;
+  }
+
+  // Returns the next player pos index from the current player pos index
+  // currPosIndex is the current players position index
+  // ExtraRotationStep is how many extra steps we want to take
+  // e.g. clock-wise with 3 players; pos 1 to next position 3 takes 2 rotations, but if you add one extra step it goes from pos 1 to 4 so 3 rotations
+  int _getNextPosIndex(
+    int currPosIndex, {
+    PlayerRotation rotDirection = PlayerRotation.clockWise,
+    int extraRotationStep = 0,
+  }) {
+    PlayerCountConfiguration pcc = PlayerCountConfiguration.fromPlayerCount(
+      totalPlayerCount,
+    );
+    int rotSteps = 1 + extraRotationStep;
+    int currArrayIndex = 0;
+    for (int i = 0; i < pcc.label.length; ++i) {
+      if (pcc.label[i] == currPosIndex) {
+        currArrayIndex = i;
+        break;
+      }
+    }
+    int toIndexRot =
+        rotDirection == PlayerRotation.clockWise
+            ? currArrayIndex + rotSteps
+            : currArrayIndex - rotSteps;
+    int toIndex = pcc.label[toIndexRot % totalPlayerCount];
+    print(
+      "From index: ${currArrayIndex} to index value: ${toIndex} from indexRot of ${toIndexRot}",
+    );
+    return toIndex;
+  }
+
+  // Returns the index in the player array, of the next player to become the bottom player (active player)
+  int _getNextBottomPlayerIndex(
+    int currPlayerIndex,
+    int playerCount, {
+    PlayerRotation rotation = PlayerRotation.clockWise,
+  }) {
+    int nextBottomPlayerIndex = 0;
+    if (rotation == PlayerRotation.clockWise) {
+      nextBottomPlayerIndex = (currPlayerIndex - 1) % playerCount;
+    } else {
+      nextBottomPlayerIndex = (currPlayerIndex + 1) % playerCount;
+    }
+    return nextBottomPlayerIndex;
   }
 
   double? _getAngleByVectorPos(Vector2 vectorPos) {
@@ -347,15 +409,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Initialize players at position
   void _initPlayerList() {
     int humanCount = 0;
-
+    int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
     for (int i = 0; i < totalPlayerCount; ++i) {
       // NOTE: change get set up position, to not use player count configuration
-      int index = getSetUpPosition(totalPlayerCount, i);
-      Vector2? pos = _getPlayerPosbyIndex(index);
+      int index = _getSetUpPosIndex(i);
+      Vector2? pos = _getPlayerPosbyPosIndex(index);
       print("Setting Player $index");
 
       Player p;
-      if (humanCount < (totalPlayerCount - game.setupSettings.aiPlayerCount)) {
+      if (humanCount < totalHumans) {
         p = HumanPlayer(playerNum: i)..position = pos!;
         humanCount++;
       } else {
@@ -371,22 +433,25 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // The number of 90 degree rotations need to go from currPos to the next Pos based on rotation (taking 1 step rotation)
-  int _getNextNumRotations(Vector2 currPos, PlayerRotation rotation) {
-    switch (totalPlayerCount) {
-      case 2:
-        return 2;
-      case 3:
-        if (rotation == PlayerRotation.clockWise && currPos == leftPlayerPos) {
-          return 2;
-        } else if (rotation == PlayerRotation.counterClockWise &&
-            currPos == rightPlayerPos) {
-          return 2;
-        }
-        return 1;
-      case 4:
-        return 1;
-    }
-    return 0;
+  // Extra rotation is how many more steps we have to do (essentially, more than 1 step rotation) to get to next pos
+  int _getNextNumRotations(
+    Vector2 currPos,
+    PlayerRotation rotation, {
+    int extraRotation = 0,
+  }) {
+    int normalizedExtraRotation = extraRotation % totalPlayerCount;
+    int currPosIndex = _getPosIndexbyPosVector(currPos)!;
+    int rotationDirection = rotation == PlayerRotation.clockWise ? 1 : -1;
+    int toPosIndex = _getNextPosIndex(
+      currPosIndex,
+      rotDirection: rotation,
+      extraRotationStep: normalizedExtraRotation,
+    );
+    print(
+      "Rotating player clockwise? ${rotationDirection == 1} from $currPosIndex to $toPosIndex",
+    );
+    return ((toPosIndex - currPosIndex) * rotationDirection) %
+        GameSetupSettingsConstants.totalPlayerCountMax;
   }
 
   // Gets the next position from the current position based on the number on rotations to take and the rotation orientiation
@@ -396,14 +461,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int numRotations,
     PlayerRotation rotation,
   ) {
-    int currIndex = _getIndexbyPlayerPos(currPos)!;
+    int currIndex = _getPosIndexbyPosVector(currPos)!;
     int nextIndex = 0;
     if (rotation == PlayerRotation.clockWise) {
       nextIndex = (currIndex + numRotations) % 4;
     } else {
       nextIndex = (currIndex - numRotations) % 4;
     }
-    return _getPlayerPosbyIndex(nextIndex);
+    return _getPlayerPosbyPosIndex(nextIndex);
   }
 
   // Set up player rotation
@@ -413,16 +478,45 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return;
     }
 
+    // Determine next bottom index from the players array
+    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+      currentPlayerIndex,
+      totalPlayerCount,
+      rotation: rotationDirection,
+    );
+
+    // Do not rotate if next player is CPU
+    if (players[nextPlayerBottomIndex] is CpuPlayer) {
+      print(
+        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
+      );
+      rotationPlayerOffset++;
+      currentPlayerIndex = nextPlayerBottomIndex;
+      return;
+    } else {
+      currentPlayerIndex = nextPlayerBottomIndex;
+    }
+
+    print("UPDATING with extra rotation value $rotationPlayerOffset");
     for (int i = 0; i < totalPlayerCount; ++i) {
       Player p = players[i];
-      p.rotateNum = _getNextNumRotations(p.position, rotationDirection);
-      p.isRotating = true;
+      p.rotateNum = _getNextNumRotations(
+        p.position,
+        rotationDirection,
+        extraRotation: rotationPlayerOffset,
+      );
       p.moveTo = _getNextRotationPos(
         p.position,
         p.rotateNum,
         rotationDirection,
       );
+      print(
+        "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+      );
+      p.isRotating = true;
     }
+    // If human player we don't have offset so reset
+    rotationPlayerOffset = 0;
     animatePlayerRotation = true;
   }
 

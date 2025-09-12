@@ -1,29 +1,27 @@
 // Maps index when looping to the index
-enum PlayerCountConfiguration {
-  Zero(""),
-  One(""),
-  Two("02.."),
-  Three("013."),
-  Four("0123");
+// Default is clock wise starting from bottom player (index 0)
+import 'package:six_seven/data/enums/player_rotation.dart';
 
-  final String label;
+enum PlayerPositions {
+  bottom,
+  left,
+  top,
+  right;
+
+  static PlayerPositions fromPlayerIndex(int index) =>
+      PlayerPositions.values.firstWhere((e) => e.index == index);
+}
+
+enum PlayerCountConfiguration {
+  Zero([]),
+  One([]),
+  Two([0, 2]),
+  Three([0, 1, 3]),
+  Four([0, 1, 2, 3]);
+
+  final List<int> label;
   const PlayerCountConfiguration(this.label);
 
   static PlayerCountConfiguration fromPlayerCount(int count) =>
       PlayerCountConfiguration.values.firstWhere((e) => e.index == count);
-}
-
-// Index is of a for loop 0-3 (max players), playercount is total player count
-// Returns the current index in the array the player should go to depending on player count
-int getSetUpPosition(int playerCount, int index) {
-  if (playerCount <= 1 && playerCount > 4 && index < 0 && index > 3) {
-    return -1;
-  }
-
-  PlayerCountConfiguration pcc = PlayerCountConfiguration.fromPlayerCount(
-    playerCount,
-  );
-
-  int? number = int.tryParse(pcc.label[index]);
-  return number ?? -1;
 }
