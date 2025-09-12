@@ -9,11 +9,11 @@ enum PlayerSlot {
 }
 
 enum PlayerCountSlotConfig {
-  Zero([]),
-  One([]),
-  Two([PlayerSlot.bottom, PlayerSlot.top]),
-  Three([PlayerSlot.bottom, PlayerSlot.left, PlayerSlot.right]),
-  Four([PlayerSlot.bottom, PlayerSlot.left, PlayerSlot.top, PlayerSlot.right]);
+  zero([]),
+  one([]),
+  two([PlayerSlot.bottom, PlayerSlot.top]),
+  three([PlayerSlot.bottom, PlayerSlot.left, PlayerSlot.right]),
+  four([PlayerSlot.bottom, PlayerSlot.left, PlayerSlot.top, PlayerSlot.right]);
 
   final List<PlayerSlot> label;
   const PlayerCountSlotConfig(this.label);
