@@ -4,15 +4,13 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/top_hud.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
-import 'package:six_seven/data/enums/player_positions.dart';
+import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
@@ -307,8 +305,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // NOTE: This should only be used for initializing players array
   // playerIndex represents where the player is in the player array
   // Returns based on playercount and where the index is, gives the index that maps to bottom:0, left: 1, top: 2, right: 3
-  int _getSetUpPosIndex(int playerIndex) {
-    PlayerCountConfiguration pcc = PlayerCountConfiguration.fromPlayerCount(
+  PlayerSlot _getSetUpPosIndex(int playerIndex) {
+    PlayerCountSlotConfig pcc = PlayerCountSlotConfig.fromPlayerCount(
       totalPlayerCount,
     );
 
@@ -316,33 +314,29 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // Maps the index to the given player position
-  Vector2? _getPlayerPosbyPosIndex(int posIndex) {
-    if (posIndex < 0 || posIndex > 3) {
-      return null;
+  Vector2 _getPlayerPosbyPosIndex(PlayerSlot pos) {
+    switch (pos) {
+      case PlayerSlot.bottom:
+        return bottomPlayerPos!;
+      case PlayerSlot.left:
+        return leftPlayerPos!;
+      case PlayerSlot.top:
+        return topPlayerPos!;
+      case PlayerSlot.right:
+        return rightPlayerPos!;
     }
-
-    if (posIndex == 0) {
-      return bottomPlayerPos;
-    } else if (posIndex == 1) {
-      return leftPlayerPos;
-    } else if (posIndex == 2) {
-      return topPlayerPos;
-    } else if (posIndex == 3) {
-      return rightPlayerPos;
-    }
-
-    return null;
   }
 
-  int? _getPosIndexbyPosVector(Vector2 v) {
+  // Maps vector position to player position
+  PlayerSlot? _getPosIndexbyPosVector(Vector2 v) {
     if (v == bottomPlayerPos) {
-      return 0;
+      return PlayerSlot.bottom;
     } else if (v == leftPlayerPos) {
-      return 1;
+      return PlayerSlot.left;
     } else if (v == topPlayerPos) {
-      return 2;
+      return PlayerSlot.top;
     } else if (v == rightPlayerPos) {
-      return 3;
+      return PlayerSlot.right;
     }
     return null;
   }
@@ -352,17 +346,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // ExtraRotationStep is how many extra steps we want to take
   // e.g. clock-wise with 3 players; pos 1 to next position 3 takes 2 rotations, but if you add one extra step it goes from pos 1 to 4 so 3 rotations
   int _getNextPosIndex(
-    int currPosIndex, {
+    PlayerSlot currSlot, {
     PlayerRotation rotDirection = PlayerRotation.clockWise,
     int extraRotationStep = 0,
   }) {
-    PlayerCountConfiguration pcc = PlayerCountConfiguration.fromPlayerCount(
+    PlayerCountSlotConfig pcc = PlayerCountSlotConfig.fromPlayerCount(
       totalPlayerCount,
     );
     int rotSteps = 1 + extraRotationStep;
     int currArrayIndex = 0;
     for (int i = 0; i < pcc.label.length; ++i) {
-      if (pcc.label[i] == currPosIndex) {
+      if (pcc.label[i] == currSlot) {
         currArrayIndex = i;
         break;
       }
@@ -371,7 +365,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         rotDirection == PlayerRotation.clockWise
             ? currArrayIndex + rotSteps
             : currArrayIndex - rotSteps;
-    int toIndex = pcc.label[toIndexRot % totalPlayerCount];
+    int toIndex = pcc.label[toIndexRot % totalPlayerCount].index;
     print(
       "From index: ${currArrayIndex} to index value: ${toIndex} from indexRot of ${toIndexRot}",
     );
@@ -412,9 +406,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
     for (int i = 0; i < totalPlayerCount; ++i) {
       // NOTE: change get set up position, to not use player count configuration
-      int index = _getSetUpPosIndex(i);
-      Vector2? pos = _getPlayerPosbyPosIndex(index);
-      print("Setting Player $index");
+      PlayerSlot currSlot = _getSetUpPosIndex(i);
+      Vector2 pos = _getPlayerPosbyPosIndex(currSlot);
+      print("Setting Player $currSlot");
 
       Player p;
       if (humanCount < totalHumans) {
@@ -422,7 +416,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         humanCount++;
       } else {
         p = CpuPlayer(playerNum: i, difficulty: Difficulty.easy)
-          ..position = pos!;
+          ..position = pos;
       }
 
       p.currAngle = _getAngleByVectorPos(pos)!;
@@ -440,17 +434,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int extraRotation = 0,
   }) {
     int normalizedExtraRotation = extraRotation % totalPlayerCount;
-    int currPosIndex = _getPosIndexbyPosVector(currPos)!;
+    PlayerSlot fromSlot = _getPosIndexbyPosVector(currPos)!;
     int rotationDirection = rotation == PlayerRotation.clockWise ? 1 : -1;
     int toPosIndex = _getNextPosIndex(
-      currPosIndex,
+      fromSlot,
       rotDirection: rotation,
       extraRotationStep: normalizedExtraRotation,
     );
     print(
-      "Rotating player clockwise? ${rotationDirection == 1} from $currPosIndex to $toPosIndex",
+      "Rotating player clockwise? ${rotationDirection == 1} from ${fromSlot.index} to $toPosIndex",
     );
-    return ((toPosIndex - currPosIndex) * rotationDirection) %
+    return ((toPosIndex - fromSlot.index) * rotationDirection) %
         GameSetupSettingsConstants.totalPlayerCountMax;
   }
 
@@ -461,14 +455,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int numRotations,
     PlayerRotation rotation,
   ) {
-    int currIndex = _getPosIndexbyPosVector(currPos)!;
+    PlayerSlot fromSlot = _getPosIndexbyPosVector(currPos)!;
     int nextIndex = 0;
     if (rotation == PlayerRotation.clockWise) {
-      nextIndex = (currIndex + numRotations) % 4;
+      nextIndex = (fromSlot.index + numRotations) % 4;
     } else {
-      nextIndex = (currIndex - numRotations) % 4;
+      nextIndex = (fromSlot.index - numRotations) % 4;
     }
-    return _getPlayerPosbyPosIndex(nextIndex);
+    PlayerSlot nextSlot = PlayerSlot.fromPlayerIndex(nextIndex);
+    return _getPlayerPosbyPosIndex(nextSlot);
   }
 
   // Set up player rotation
