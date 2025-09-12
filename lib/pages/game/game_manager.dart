@@ -155,14 +155,27 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Show deck distribution
   void showDeckDistribution() {
     int numCardLeft = deck.deckList.length;
-    for (int i = 0; i <= 12; i++) {
+    for (int i in deck.numberCardsLeft.keys) {
       print(
-        "There are ${deck.cardsLeft[i]} number cards of value ${i} left out of a total of ${numCardLeft} cards.",
+        "There are ${deck.numberCardsLeft[i]} number cards of value ${i} left.",
       );
     }
-    print(
-      "There are a total of ${deck.cardsLeft[-1]} action cards left out of a total of ${numCardLeft} cards",
-    );
+    for (int i in deck.plusMinusCardsLeft.keys) {
+      print(
+        "There are a total of ${deck.numberCardsLeft[i]} plus/minus value action cards of value ${i} left.",
+      );
+    }
+    for (double j in deck.multCardsLeft.keys) {
+      print(
+        "There are a total of ${deck.multCardsLeft[j]} multiplication value action cards of value: X${j} left ",
+      );
+    }
+    for (EventCardEnum eventCard in deck.eventCardsLeft.keys) {
+      print(
+        "There are ${deck.eventCardsLeft[eventCard]} event cards left of event action: ${eventCard.label} left",
+      );
+    }
+    print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
   //Calculate player's chance of busting, and expected value should they choose another hit
