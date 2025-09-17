@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:six_seven/pages/game/game_screen.dart';
 
 class TextButton extends SpriteButtonComponent {
   late final Vector2 pos;
