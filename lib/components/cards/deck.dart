@@ -170,7 +170,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
     //It currently starts at 0, so there's a x0 card lmfao.
     for (double i = 0; i <= 1.0; i += .25) {
       deckList.add(MultCard(value: i));
-      multCardsLeft[i] = multCardsLeft[i]! + 1;
+      int? mcl = multCardsLeft[i];
+      if (mcl != null) {
+        multCardsLeft[i] = mcl + 1;
+      } else {
+        print("mult card left at ${i} dne");
+      }
     }
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
     cardCeiling = 7;
@@ -183,7 +188,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //Hence when the loop increaments by .1, the number of cards for that value decrements by 2 cards
       for (double j = 1; j <= max(1, cardCeiling - (i - 1) * 2 * 10); j++) {
         deckList.add(MultCard(value: i));
-        multCardsLeft[i] = multCardsLeft[i]! + 1;
+        int? mcl = multCardsLeft[i];
+        if (mcl != null) {
+          multCardsLeft[i] = mcl + 1;
+        } else {
+          print("Double mult card left at ${i} dne");
+        }
       }
     }
     //Add the single x2 card

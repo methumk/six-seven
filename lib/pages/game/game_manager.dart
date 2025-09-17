@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/deck.dart';
+import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
-import 'package:six_seven/components/top_hud.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
@@ -43,7 +41,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Game UI
   static final Vector2 thirdPersonScale = Vector2.all(.7);
-  late final TopHud hud;
+  late final Hud hud;
+  // late final TopHud hud;
+  // late final BottomHud bHud;
   int currentCard = 0;
 
   // Calculate the CENTER positions of where the players should go
@@ -233,29 +233,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _initPlayerList();
     game.world.addAll(players);
 
-    // Set up Buttons
-    final downButtonImg = await Flame.images.load("game_ui/button_down.png");
-    final upButtonImg = await Flame.images.load("game_ui/button_up.png");
-    final button = SpriteButtonComponent(
-      button: Sprite(upButtonImg, srcSize: Vector2(60, 18)),
-      buttonDown: Sprite(downButtonImg, srcSize: Vector2(60, 20)),
-      position: Vector2(0, 900),
-      size: Vector2(120, 36),
-      onPressed: () {
-        _startPlayerMove();
-      },
+    // Set up Hud
+    hud = Hud(
+      hitPressed: () => _startPlayerMove(),
+      stayPressed: () => print("Stay Pressed"),
+      enableProbability: game.setupSettings.showDeckDistribution,
     );
-
-    hud = TopHud(
-      hudAnchor: Anchor.bottomCenter,
-      hudMargin: EdgeInsets.only(bottom: 5, left: 7, top: 5, right: 7),
-      hudItems: [
-        button,
-        TextComponent(text: 'Score: 0', position: Vector2(0, 0)),
-      ],
-    );
-
-    // // For HUD look at maybe adding it to camera.viewport instead of just add
     game.camera.viewport.add(hud);
 
     // TESTING
