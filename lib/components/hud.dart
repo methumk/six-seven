@@ -16,9 +16,11 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
 
   late void Function() stayPressed;
   late void Function() hitPressed;
+  late void Function() backPressed;
   Hud({
     required this.hitPressed,
     required this.stayPressed,
+    required this.backPressed,
     required this.enableProbability,
   });
 
@@ -65,6 +67,7 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
       position: Vector2(game.size.x * .05, game.size.y * .05),
       anchor: Anchor.topLeft,
       size: Vector2(36, 36),
+      onPressed: backPressed,
     );
 
     _settingBtn = SpriteButtonComponent(
