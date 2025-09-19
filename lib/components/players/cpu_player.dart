@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:six_seven/components/highlightable_text.dart';
+import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/player.dart';
 
 enum Difficulty {
