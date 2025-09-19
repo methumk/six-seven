@@ -33,7 +33,11 @@ class GlowableText extends TextComponent {
     super.onLoad();
 
     textRenderer = TextPaint(
-      style: TextStyle(color: smallColor, fontSize: smallTextSize),
+      style: TextStyle(
+        color: smallColor,
+        fontSize: smallTextSize,
+        fontWeight: FontWeight.bold,
+      ),
     );
     // highlightText = TextComponent(
     //   text: text,
