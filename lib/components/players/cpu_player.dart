@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/highlightable_text.dart';
 import 'package:six_seven/components/players/player.dart';
 
 enum Difficulty {
@@ -27,18 +28,11 @@ class CpuPlayer extends Player {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
-    TextPaint textRender = TextPaint(
-      style: TextStyle(
-        color: Colors.green,
-        fontSize: 15,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    playerName = TextComponent(
-      text: "Player ${playerNum}",
+    playerName = GlowableText(
+      smallTextSize: 15,
+      smallColor: Colors.green,
+      text: "Player $playerNum",
       position: Vector2.all(0),
-      anchor: Anchor.center,
-      textRenderer: textRender,
     );
 
     add(playerName);

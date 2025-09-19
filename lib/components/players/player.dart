@@ -7,6 +7,7 @@ import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
+import 'package:six_seven/components/highlightable_text.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 abstract class Player extends PositionComponent
@@ -34,7 +35,7 @@ abstract class Player extends PositionComponent
   bool isRotating = false;
 
   // UI Fields
-  late final TextComponent playerName;
+  late final GlowableText playerName;
 
   Player({required this.playerNum}) : super(anchor: Anchor.bottomCenter);
 
