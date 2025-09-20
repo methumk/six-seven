@@ -497,6 +497,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // If human player we don't have offset so reset
     rotationPlayerOffset = 0;
     animatePlayerRotation = true;
+    hud.disableHitAndStayBtns();
+  }
+
+  void _onRotationFinished(double dt) {
+    animatePlayerRotation = false;
+    hud.enableHitAndStayBtns();
   }
 
   // Handle player rotation on update
@@ -552,7 +558,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
         // Check if all rotations finished
         if (playersFinished == totalPlayerCount) {
-          animatePlayerRotation = false;
+          _onRotationFinished(dt);
         }
       }
     }

@@ -53,4 +53,18 @@ class TextButton extends SpriteButtonComponent {
 
     add(textComponent);
   }
+
+  void changeImage(
+    ui.Image buttonUpImage,
+    ui.Image buttonDownImage,
+    Vector2 srcSizeUpImg,
+    Vector2 srcSizeDownImg,
+  ) {
+    button = Sprite(buttonUpImage, srcSize: srcSizeUpImg);
+    buttonDown = Sprite(buttonDownImage, srcSize: srcSizeDownImg);
+  }
+
+  void changeText(String text) {
+    textComponent.text = text;
+  }
 }
