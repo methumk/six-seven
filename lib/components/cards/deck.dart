@@ -168,22 +168,31 @@ class CardDeck extends PositionComponent with TapCallbacks {
     //We first add the mult cards that actually hurt your score. These should be rarer
     //because of their negative effects.
     //It currently starts at 0, so there's a x0 card lmfao.
-    for (double i = 0; i <= 1.0; i += .25) {
-      deckList.add(MultCard(value: i));
-      multCardsLeft[i] = multCardsLeft[i]! + 1;
+
+    //Because of precision error, use int i be multiplier value times 100,
+    //and then the mult value would be divided by 100. This is because iteerating as a double
+    //will cause precision errors :(
+    for (int i = 0; i <= 100; i += 25) {
+      double multiplierValue = i / 100;
+      deckList.add(MultCard(value: multiplierValue));
+      multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
     }
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
-    cardCeiling = 7;
-    for (double i = 1.05; i <= 1.3; i += .05) {
+    cardCeiling = 70;
+    for (int i = 105; i <= 130; i += 5) {
+      double multiplierValue = i / 100;
       //For each mult card, the number of those cards depend on the formula
       // max(1,cardCeiling - (i - 1)*2 * 10) . For example, for X1.1,
       //we have max(1,cardCeiling (1.1-1)i* 1- ) . If cardCeiling = 8, this is
       //max(1,8 - (.1) * 2 * 10) = 6
-
       //Hence when the loop increaments by .1, the number of cards for that value decrements by 2 cards
-      for (double j = 1; j <= max(1, cardCeiling - (i - 1) * 2 * 10); j++) {
-        deckList.add(MultCard(value: i));
-        multCardsLeft[i] = multCardsLeft[i]! + 1;
+      for (
+        double j = 1;
+        j <= (max(10, cardCeiling - (i - 100) * 2)) / 10;
+        j++
+      ) {
+        deckList.add(MultCard(value: multiplierValue));
+        multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
       }
     }
     //Add the single x2 card
@@ -192,8 +201,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
     // cardsLeft[-1] = cardsLeft[-1]! + 1;
   }
 
-  //The "positive effect for everyone" even action cards should be more plentiful
-  //the other
   void initEventActionCards() {
     for (int i = 1; i <= 3; i++) {
       deckList.add(FreezeCard());
