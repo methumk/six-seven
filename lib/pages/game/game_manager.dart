@@ -166,8 +166,46 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
-  //Calculate player's chance of busting, and expected value should they choose another hit
-  void calculatePlayerProbabilityEV() {}
+  //Calculate player's chance of busting
+  double calculateFailureProbability(int playerNum) {
+    Player currentPlayer = players[playerNum];
+    int outcomeCardinality =
+        0; //the total number of cards in deck that can bust you
+
+    for (double number in currentPlayer.numHand) {
+      int currentNumberCardinality = deck.numberCardsLeft[number]!;
+
+      print(
+        "You have a number card of: ${number.toInt()}, and there are ${currentNumberCardinality} cards of the same value.",
+      );
+      outcomeCardinality = outcomeCardinality + currentNumberCardinality;
+    }
+
+    int numCardsLeft = deck.deckList.length;
+    print("Total number of cards left in the deck: ${numCardsLeft}");
+    double failureProb = outcomeCardinality / numCardsLeft;
+    print("Your probability of failing is: ${failureProb}");
+    return failureProb;
+  }
+
+  //Expected value of multiplier
+  double calculateEVMultCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+    //Total amount of mult cards left in deck
+    int totalMultCards = 0;
+    //Expected value of multiplation cards effects in next hit
+    double evMultCard = 0;
+    for (double multiplier in deck.multCardsLeft.keys) {
+      int amountOfMultiplierInDeck = deck.multCardsLeft[multiplier]!;
+      evMultCard += multiplier * (amountOfMultiplierInDeck / numCardsLeft);
+      totalMultCards += amountOfMultiplierInDeck;
+    }
+
+    //Include event that the card drawn was not a mult value card
+    evMultCard += 1 * (numCardsLeft - totalMultCards) / numCardsLeft;
+    return evMultCard;
+  }
 
   @override
   FutureOr<void> onLoad() async {
