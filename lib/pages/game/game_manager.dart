@@ -188,7 +188,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return failureProb;
   }
 
-  //Expected value of multiplier
+  //Expected value of multiplier for mult cards
   double calculateEVMultCards() {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
@@ -205,6 +205,30 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //Include event that the card drawn was not a mult value card
     evMultCard += 1 * (numCardsLeft - totalMultCards) / numCardsLeft;
     return evMultCard;
+  }
+
+  //Expected value of number card
+  double calculateEVNumberCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    //Total amount of number cards left in deck
+    //Not needed, unlike mult card ev calculation, so left commented here
+    //for semantic reasons
+    // int totalNumberCards = 0;
+    //Expected Value of number cards on next hit
+    double evNumberCard = 0;
+
+    for (int number in deck.numberCardsLeft.keys) {
+      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
+      evNumberCard +=
+          number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
+      // totalNumberCards += amountOfSpecificNumberCardInDeck;
+    }
+    //The event that the card drawn was not a number card has a numeric value
+    //of "0" so is commented here for semantic reasons
+    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
+    return evNumberCard;
   }
 
   @override
