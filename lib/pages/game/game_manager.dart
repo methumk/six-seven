@@ -212,11 +212,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
 
-    //Total amount of number cards left in deck
-    //Not needed, unlike mult card ev calculation, so left commented here
-    //for semantic reasons
+    ///Total amount of number cards left in deck
+    ///(not needed for number cards)
     // int totalNumberCards = 0;
-    //Expected Value of number cards on next hit
+
+    ///Expected Value of number cards on next hit
     double evNumberCard = 0;
 
     for (int number in deck.numberCardsLeft.keys) {
@@ -229,6 +229,29 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //of "0" so is commented here for semantic reasons
     //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
     return evNumberCard;
+  }
+
+  //Expected Value for value action cards
+  double calculateEVPlusMinusValueCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    ///Total amount of number cards left in deck
+    ///(not needed for number cards)
+    // int totalValueCards = 0;
+    double evPlusMinusValueCard = 0;
+
+    for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
+      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
+      evPlusMinusValueCard +=
+          plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
+      // totalNumberCards += amountOfSpecificNumberCardInDeck;
+    }
+
+    //The event that the card drawn was not a number card has a numeric value
+    //of "0" so is commented here for semantic reasons
+    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
+    return evPlusMinusValueCard;
   }
 
   @override
