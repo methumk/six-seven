@@ -1,4 +1,4 @@
-//Regressive Income Tax Card
+//Regressive Income Tax Card, probably a super harsh one of -15
 import 'package:six_seven/components/cards/card.dart';
 
 class SalesTax extends EventActionCard {
