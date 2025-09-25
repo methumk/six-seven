@@ -1,10 +1,13 @@
 // import 'package:six_seven/components/cards/card.dart';
+import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
+import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 abstract class Player extends PositionComponent
@@ -13,16 +16,28 @@ abstract class Player extends PositionComponent
   double currentValue = 0;
   bool isDone = false;
   Set<double> numHand = Set();
+  List<NumberCard> numberHand = [];
   List<PlusCard> addHand = [];
   List<MultCard> multHand = [];
+  List<MinusCard> minusHand = [];
   //Minus hands are special in that positive duplicates can be canceled
   //by a minus card of same value.
   //To have fast checks, we instead need a hashmap
-  Map<double, int> minusHand = {};
+  Map<double, int> minusHandMap = {};
 
   bool doubleChance = false;
   late int playerNum;
-  Player({required this.playerNum});
+
+  // Animation rotation
+  Vector2? moveTo;
+  double currAngle = 0;
+  int rotateNum = 0;
+  bool isRotating = false;
+
+  // UI Fields
+  late final GlowableText playerName;
+
+  Player({required this.playerNum}) : super(anchor: Anchor.bottomCenter);
 
   //method for seeing own hand of cards
   void showHand() {
@@ -30,7 +45,7 @@ abstract class Player extends PositionComponent
     for (double numberValue in numHand) {
       print("Number card of value: ${numberValue}");
     }
-    for (var minusValue in minusHand.entries) {
+    for (var minusValue in minusHandMap.entries) {
       print("Number card of value: ${minusValue.key}");
     }
     for (PlusCard addCard in addHand) {
@@ -57,7 +72,7 @@ abstract class Player extends PositionComponent
     for (PlusCard addCard in addHand) {
       currentValue = addCard.executeOnStay(currentValue);
     }
-    for (var minusValue in minusHand.entries) {
+    for (var minusValue in minusHandMap.entries) {
       for (int i = 1; i <= minusValue.value; i++) {
         currentValue -= minusValue.key;
       }
@@ -78,6 +93,7 @@ abstract class Player extends PositionComponent
     addHand.clear();
     multHand.clear();
     minusHand.clear();
+    minusHandMap.clear();
     isDone = false;
     currentValue = 0;
     doubleChance = false;
@@ -108,11 +124,12 @@ abstract class Player extends PositionComponent
   //sub-method for hitting a number card
   void hitNumberCard(double numberValue) {
     if (numHand.contains(numberValue)) {
-      if (minusHand.containsKey(numberValue) && minusHand[numberValue]! >= 1) {
+      if (minusHandMap.containsKey(numberValue) &&
+          minusHandMap[numberValue]! >= 1) {
         print(
           "You got a duplicate card, but you also have a minus card of the same value in magnitude! Hence that minus card cancels out the duplicate!",
         );
-        minusHand[numberValue] = minusHand[numberValue]! - 1;
+        minusHandMap[numberValue] = minusHandMap[numberValue]! - 1;
       } else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
@@ -132,14 +149,37 @@ abstract class Player extends PositionComponent
       multHand.add(newCard);
     } else if (newCard is MinusCard) {
       double minusValue = newCard.value;
-      if (minusHand.containsKey(minusValue)) {
-        minusHand[minusValue] = minusHand[minusValue]! + 1;
+      if (minusHandMap.containsKey(minusValue)) {
+        minusHandMap[minusValue] = minusHandMap[minusValue]! + 1;
       } else {
-        minusHand[minusValue] = 1;
+        minusHandMap[minusValue] = 1;
       }
+    }
+  }
+
+  // Each rotation represents 1/4 of a circle (note this circle is tilted though)
+  void rotate(int numberRotations) {
+    rotateNum = numberRotations;
+    // isRotating = true;
+  }
+
+  void _handleRotate(double dt) {
+    if (isRotating) {
+      // isRotating = false;
     }
   }
 
   // Must be overriden
   bool isCpu();
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _handleRotate(dt);
+  }
 }

@@ -190,25 +190,40 @@ class CardDeck extends PositionComponent with TapCallbacks {
     //will cause precision errors :(
     for (int i = 0; i <= 100; i += 25) {
       double multiplierValue = i / 100;
-      deckList.add(MultCard(value: multiplierValue));
-      multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
+      int? mcl = multCardsLeft[multiplierValue];
+      if (mcl != null) {
+        deckList.add(MultCard(value: multiplierValue));
+        multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
+      } else {
+        print(
+          "Null value encountered for multiplier value of ${multiplierValue}",
+        );
+      }
     }
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
     cardCeiling = 70;
     for (int i = 105; i <= 130; i += 5) {
       double multiplierValue = i / 100;
+      int? mcl = multCardsLeft[multiplierValue];
+
       //For each mult card, the number of those cards depend on the formula
       // max(1,cardCeiling - (i - 1)*2 * 10) . For example, for X1.1,
       //we have max(1,cardCeiling (1.1-1)i* 1- ) . If cardCeiling = 8, this is
       //max(1,8 - (.1) * 2 * 10) = 6
       //Hence when the loop increaments by .1, the number of cards for that value decrements by 2 cards
-      for (
-        double j = 1;
-        j <= (max(10, cardCeiling - (i - 100) * 2)) / 10;
-        j++
-      ) {
-        deckList.add(MultCard(value: multiplierValue));
-        multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
+      if (mcl != null) {
+        for (
+          double j = 1;
+          j <= (max(10, cardCeiling - (i - 100) * 2)) / 10;
+          j++
+        ) {
+          deckList.add(MultCard(value: multiplierValue));
+          multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
+        }
+      } else {
+        print(
+          "Null value encountered for multiplier value: ${multiplierValue}",
+        );
       }
     }
     //Add the single x2 card
@@ -331,28 +346,28 @@ class CardDeck extends PositionComponent with TapCallbacks {
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    final faceDownCardImage = await Flame.images.load(
-      "game_ui/card_face_down.jpg",
-    );
+    // final faceDownCardImage = await Flame.images.load(
+    //   "game_ui/card_face_down.jpg",
+    // );
 
-    deckComponent = SpriteComponent(
-      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-      size: Card.cardSizeFirstPerson,
-      position: Vector2(
-        position.x - (Card.cardSizeFirstPerson.x * 1.15),
-        position.y - Card.cardSizeFirstPerson.y,
-      ),
-    );
-    discardComponent = SpriteComponent(
-      sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-      size: Card.cardSizeFirstPerson,
-      position: Vector2(
-        position.x + (Card.cardSizeFirstPerson.x * .15),
-        position.y - Card.cardSizeFirstPerson.y,
-      ),
-    );
+    // deckComponent = SpriteComponent(
+    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+    //   size: Card.cardSizeFirstPerson,
+    //   position: Vector2(
+    //     position.x - (Card.cardSizeFirstPerson.x * 1.15),
+    //     position.y - Card.cardSizeFirstPerson.y,
+    //   ),
+    // );
+    // discardComponent = SpriteComponent(
+    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
+    //   size: Card.cardSizeFirstPerson,
+    //   position: Vector2(
+    //     position.x + (Card.cardSizeFirstPerson.x * .15),
+    //     position.y - Card.cardSizeFirstPerson.y,
+    //   ),
+    // );
 
-    addAll([deckComponent, discardComponent]);
+    // addAll([deckComponent, discardComponent]);
   }
 
   @override

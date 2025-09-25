@@ -12,27 +12,27 @@ class GameScreenContainer extends StatefulWidget {
 }
 
 class _TestingRangeContainerState extends State<GameScreenContainer> {
-  late GameScreen sixSevenGame;
+  // late GameScreen sixSevenGame;
 
-  @override
-  void initState() {
-    super.initState();
+  // @override
+  // void initState() {
+  //   super.initState();
 
-    sixSevenGame = GameScreen(setupSettings: widget.config);
-  }
+  //   sixSevenGame = GameScreen(setupSettings: widget.config, context: );
+  // }
 
-  @override
-  void dispose() {
-    print("game disposed");
-    sixSevenGame.onRemove(); // Explicitly dispose of game
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   print("game disposed");
+  //   sixSevenGame.onRemove(); // Explicitly dispose of game
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GameWidget(
-        game: sixSevenGame,
+        game: GameScreen(setupSettings: widget.config, context: context),
         // TODO: add overlay for settings, end game state, card probabilities
         // overlayBuilderMap: {
         //   'GoodGameOver': (_, __) => GoodGameOver(game: sixSevenGame),
