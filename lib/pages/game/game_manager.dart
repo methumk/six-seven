@@ -254,6 +254,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evPlusMinusValueCard;
   }
 
+  double calculateEVEventCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    double evEventCard = 0;
+
+    //TO DO: implement for each case
+    return evEventCard;
+  }
+
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
