@@ -140,12 +140,13 @@ class CardDeck extends PositionComponent with TapCallbacks {
     };
 
     eventNumericalEVAlone = {
-      //TO DO: imple ent
+      //TO DO: implement
     };
 
     initNumberCards();
     initValueActionCards();
-    initEventActionCards();
+    //TO DO: Uncomment once event cards are implemented
+    // initEventActionCards();
     deckList.shuffle();
   }
 
