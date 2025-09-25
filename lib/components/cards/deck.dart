@@ -13,6 +13,8 @@ import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/magnifying_glass_card.dart';
+import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer.dart';
 import 'package:six_seven/components/cards/event_cards/reverse_turn.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_Card.dart';
@@ -34,7 +36,9 @@ enum EventCardEnum {
   ReverseTurn("Reverse Turn Card"),
   SalesTax("Sales Tax Card"),
   SunkProphet("Sunk Prophet Card"),
-  Thief("Thief Card");
+  Thief("Thief Card"),
+  Polarizer("Polarizer Card"),
+  Redeemer("Redeemer Card");
 
   final String label;
   const EventCardEnum(this.label);
@@ -45,6 +49,11 @@ class CardDeck extends PositionComponent with TapCallbacks {
   late Map<int, int> numberCardsLeft;
   late List<Card> discardPile;
   late Map<int, int> plusMinusCardsLeft;
+  //Hash map of Numerical values assigned to each event card for EV calculation
+  //case when you are only player left in round
+  late Map<EventCardEnum, double> eventNumericalEVAlone;
+  //case when other players still in round
+  late Map<EventCardEnum, double> eventNumericalEVNotAlone;
   late Map<double, int> multCardsLeft;
   late Map<EventCardEnum, int> eventCardsLeft;
   late final SpriteComponent deckComponent;
@@ -126,6 +135,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
       EventCardEnum.Thief: 0,
+      EventCardEnum.Polarizer: 0,
+      EventCardEnum.Redeemer: 0,
+    };
+
+    eventNumericalEVAlone = {
+      //TO DO: imple ent
     };
 
     initNumberCards();
@@ -216,7 +231,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
       deckList.add(ReverseTurn());
-
+      deckList.add(Polarizer());
+      deckList.add(Redeemer());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
           eventCardsLeft[EventCardEnum.Freeze]! + 1;
@@ -244,6 +260,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       eventCardsLeft[EventCardEnum.ReverseTurn] =
           eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
+      eventCardsLeft[EventCardEnum.Polarizer] =
+          eventCardsLeft[EventCardEnum.Polarizer]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 
