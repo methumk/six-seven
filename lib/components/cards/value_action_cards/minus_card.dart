@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
-
-import 'package:flame/components.dart';
 import 'package:six_seven/components/cards/card.dart';
 
 class MinusCard extends ValueActionCard {
