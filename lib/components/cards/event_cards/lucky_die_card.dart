@@ -1,4 +1,4 @@
-//Lucky Six Dice Card: Roll a seven sided die. If it is 1-5, gain 6 points.
+//Lucky Six Dice Card: Roll a seven sided die. If it is 1-5, gain 3.67 points.
 //Else, lose 7 points. Can choose to roll up to 7 times.
 import 'package:six_seven/components/cards/card.dart';
 
@@ -20,7 +20,7 @@ class LuckySixSidedDieCard extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} player of choice gets to roll a lucky seven sided die! A roll that is between 1 and 5 earns you 6 points, while a roll of 6 or 7 makes you lose 7 points!",
+      "${cardType.label} player of choice gets to roll a lucky seven sided die! A roll that is between 1 and 5 earns you 3.67 points, while a roll of 6 or 7 makes you lose 7 points!",
     );
   }
 }

@@ -1,5 +1,7 @@
-//Sunk Prophet: Chosen player gets effect: Roll a 7 sided die. If you get 1-5, you lose
-//7 points. Else, a 6 or 7 earns you 13 points. Do this seven times.
+//Sunk Prophet: User must receive the following effect:
+//Roll a 7 sided die. If you get a number of six or seven, gain 7.
+//Else, lose 13 points. You must keep rolling until you roll a six or seven,
+//or you lose 7 times in a row, in which your loss is capped at -30 lmfao :)
 import 'package:six_seven/components/cards/card.dart';
 
 class SunkProphet extends EventActionCard {

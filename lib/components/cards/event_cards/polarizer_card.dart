@@ -1,8 +1,9 @@
-//Regressive Income Tax Card, probably a super harsh one of -15
+//Choice draw: User can choose to reverse the polarity for any of the value action cards in their hand
 import 'package:six_seven/components/cards/card.dart';
 
-class SalesTax extends EventActionCard {
-  SalesTax();
+class Polarizer extends EventActionCard {
+  Polarizer();
+
   @override
   double executeOnStay(double currentValue) {
     print("This function does nothing");
@@ -18,7 +19,7 @@ class SalesTax extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} player gets to enforce a sales tax on their player of choice!",
+      "${cardType.label} User can choose to reverse the polarity for any of the value action cards in their hand.",
     );
   }
 }

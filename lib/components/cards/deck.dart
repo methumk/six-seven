@@ -13,6 +13,8 @@ import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/magnifying_glass_card.dart';
+import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer.dart';
 import 'package:six_seven/components/cards/event_cards/reverse_turn.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_Card.dart';
@@ -34,7 +36,9 @@ enum EventCardEnum {
   ReverseTurn("Reverse Turn Card"),
   SalesTax("Sales Tax Card"),
   SunkProphet("Sunk Prophet Card"),
-  Thief("Thief Card");
+  Thief("Thief Card"),
+  Polarizer("Polarizer Card"),
+  Redeemer("Redeemer Card");
 
   final String label;
   const EventCardEnum(this.label);
@@ -45,6 +49,11 @@ class CardDeck extends PositionComponent with TapCallbacks {
   late Map<int, int> numberCardsLeft;
   late List<Card> discardPile;
   late Map<int, int> plusMinusCardsLeft;
+  //Hash map of Numerical values assigned to each event card for EV calculation
+  //case when you are only player left in round
+  late Map<EventCardEnum, double> eventNumericalEVAlone;
+  //case when other players still in round
+  late Map<EventCardEnum, double> eventNumericalEVNotAlone;
   late Map<double, int> multCardsLeft;
   late Map<EventCardEnum, int> eventCardsLeft;
   late final SpriteComponent deckComponent;
@@ -126,11 +135,18 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
       EventCardEnum.Thief: 0,
+      EventCardEnum.Polarizer: 0,
+      EventCardEnum.Redeemer: 0,
+    };
+
+    eventNumericalEVAlone = {
+      //TO DO: implement
     };
 
     initNumberCards();
     initValueActionCards();
-    initEventActionCards();
+    //TO DO: Uncomment once event cards are implemented
+    // initEventActionCards();
     deckList.shuffle();
   }
 
@@ -168,32 +184,46 @@ class CardDeck extends PositionComponent with TapCallbacks {
     //We first add the mult cards that actually hurt your score. These should be rarer
     //because of their negative effects.
     //It currently starts at 0, so there's a x0 card lmfao.
-    for (double i = 0; i <= 1.0; i += .25) {
-      deckList.add(MultCard(value: i));
-      int? mcl = multCardsLeft[i];
+
+    //Because of precision error, use int i be multiplier value times 100,
+    //and then the mult value would be divided by 100. This is because iteerating as a double
+    //will cause precision errors :(
+    for (int i = 0; i <= 100; i += 25) {
+      double multiplierValue = i / 100;
+      int? mcl = multCardsLeft[multiplierValue];
       if (mcl != null) {
-        multCardsLeft[i] = mcl + 1;
+        deckList.add(MultCard(value: multiplierValue));
+        multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
       } else {
-        print("mult card left at ${i} dne");
+        print(
+          "Null value encountered for multiplier value of ${multiplierValue}",
+        );
       }
     }
     //For the good mult cards, we add a lot of cards from x1.1-1.5, then have only one x2
-    cardCeiling = 7;
-    for (double i = 1.05; i <= 1.3; i += .05) {
+    cardCeiling = 70;
+    for (int i = 105; i <= 130; i += 5) {
+      double multiplierValue = i / 100;
+      int? mcl = multCardsLeft[multiplierValue];
+
       //For each mult card, the number of those cards depend on the formula
       // max(1,cardCeiling - (i - 1)*2 * 10) . For example, for X1.1,
       //we have max(1,cardCeiling (1.1-1)i* 1- ) . If cardCeiling = 8, this is
       //max(1,8 - (.1) * 2 * 10) = 6
-
       //Hence when the loop increaments by .1, the number of cards for that value decrements by 2 cards
-      for (double j = 1; j <= max(1, cardCeiling - (i - 1) * 2 * 10); j++) {
-        deckList.add(MultCard(value: i));
-        int? mcl = multCardsLeft[i];
-        if (mcl != null) {
-          multCardsLeft[i] = mcl + 1;
-        } else {
-          print("Double mult card left at ${i} dne");
+      if (mcl != null) {
+        for (
+          double j = 1;
+          j <= (max(10, cardCeiling - (i - 100) * 2)) / 10;
+          j++
+        ) {
+          deckList.add(MultCard(value: multiplierValue));
+          multCardsLeft[multiplierValue] = multCardsLeft[multiplierValue]! + 1;
         }
+      } else {
+        print(
+          "Null value encountered for multiplier value: ${multiplierValue}",
+        );
       }
     }
     //Add the single x2 card
@@ -202,8 +232,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
     // cardsLeft[-1] = cardsLeft[-1]! + 1;
   }
 
-  //The "positive effect for everyone" even action cards should be more plentiful
-  //the other
   void initEventActionCards() {
     for (int i = 1; i <= 3; i++) {
       deckList.add(FreezeCard());
@@ -219,7 +247,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
       deckList.add(ReverseTurn());
-
+      deckList.add(Polarizer());
+      deckList.add(Redeemer());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
           eventCardsLeft[EventCardEnum.Freeze]! + 1;
@@ -247,6 +276,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       eventCardsLeft[EventCardEnum.ReverseTurn] =
           eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
+      eventCardsLeft[EventCardEnum.Polarizer] =
+          eventCardsLeft[EventCardEnum.Polarizer]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 
