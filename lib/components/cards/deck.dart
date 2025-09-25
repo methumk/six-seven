@@ -279,7 +279,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   //Method for drawing
-  void draw() {
+  Card draw() {
     //First, check if deck is empty. Then refill before drawing
     if (deckList == []) {
       refill();
@@ -302,6 +302,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     } else {
       //Potential data structure for event action cards, multiplication cards
     }
+    return newCard;
   }
 
   @override

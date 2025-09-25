@@ -4,6 +4,9 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/value_action_text.dart';
+import 'package:six_seven/components/rounded_border_component.dart';
+import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 
 enum CardType {
@@ -15,13 +18,41 @@ enum CardType {
   const CardType(this.label);
 }
 
+double truncateToDecimals(double value, int fractionalDigits) {
+  double mod = math.pow(10.0, fractionalDigits).toDouble();
+  return (value * mod).truncate() / mod;
+}
+
+// Will truncate a given double value  to the number of decimal places needed and return the number of digits in the double
+int numDigitsInDouble(double value, {int truncateNumDecimals = 0}) {
+  double truncated = truncateToDecimals(value, truncateNumDecimals);
+  String str = truncated.toString();
+  List<String> parts = str.split('.');
+
+  int beforeDecimal = parts[0].length;
+  int afterDecimal = parts.length > 1 ? parts[1].length : 0;
+
+  return beforeDecimal + afterDecimal;
+}
+
+int numCharsInDouble(double value, {int truncateNumDecimals = 0}) {
+  double truncated = truncateToDecimals(value, truncateNumDecimals);
+  return truncated.toString().length;
+}
+
+// This will round to the safeZone place, so ensure this value doesn't effect your number
+String doubleToStringNoTrailingZeros(double value, int safeZone) {
+  // Use fixed precision, then strip trailing zeros and decimal if unnecessary
+  return value.toStringAsFixed(safeZone).replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
 //Base card class
-abstract class Card extends RectangleComponent
+abstract class Card extends RoundedBorderComponent
     with DragCallbacks, TapCallbacks {
   late CardType cardType;
-  static final double borderRadius = 8.0;
   static final Vector2 cardSize = Vector2(80, 140);
-  Card({required this.cardType});
+  Card({required this.cardType})
+    : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0);
 
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
@@ -156,14 +187,16 @@ class NumberCard extends Card {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    paint = Paint()..color = Colors.white;
+    // paint = Paint()..color = Colors.white;
+    fillColor = Colors.white;
     _loadCardComponent(faceUp: true, firstPersonView: true);
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    paint.color = Colors.red;
+    // paint.color = Colors.red;
+    fillColor = Colors.red;
   }
 
   @override
@@ -175,7 +208,8 @@ class NumberCard extends Card {
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    paint.color = Colors.white;
+    // paint.color = Colors.white;
+    fillColor = Colors.white;
   }
 
   @override
@@ -209,12 +243,73 @@ abstract class EventActionCard extends Card {
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {
   late final double _value;
+  late final WrappingTextBox _descrip;
+  late final TextComponent _descripTitle; // Description box
+  late final ValueActionTitleText _titleText;
+  late final RoundedBorderComponent _bodyDescriptionBorder;
+
+  late final Vector2 _halfCard;
+  late final Vector2 _bodyDescripPos;
+  late final Vector2 _bodyDescripSize;
+  late final Vector2 _bodyDescripPadding;
+
   ValueActionCard({required double value})
     : super(cardType: CardType.valueActionCard) {
     _value = value;
+    _halfCard = Card.cardSize / 2;
+    _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .5);
+    _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .47);
+    // x is top and bottom padding y is left, right
+    _bodyDescripPadding = Vector2(7, 5);
   }
 
   double get value => _value;
+
+  void initDescriptionText({
+    String descriptionTitle = "",
+    String description = "",
+  }) {
+    _descripTitle = TextComponent(
+      text: descriptionTitle,
+      position: Vector2(_halfCard.x, _halfCard.y + _bodyDescripPadding.x),
+      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 7.6,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    _descrip = WrappingTextBox(
+      text: description,
+      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+      boxSize: Vector2(
+        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+        Card.cardSize.y * .45 - _descripTitle.size.y,
+      ),
+      position: Vector2(
+        _halfCard.x,
+        _descripTitle.position.y + _descripTitle.size.y + .5,
+      ),
+      anchor: Anchor.topCenter,
+    );
+
+    addAll([_descripTitle, _descrip]);
+  }
+
+  void initTitleText(String valueAction) {
+    String valueString = doubleToStringNoTrailingZeros(_value, 5);
+    _titleText = ValueActionTitleText(
+      valueTypeText: valueAction,
+      numberTitleText: valueString,
+    );
+    add(_titleText);
+    final center = _titleText.getCenterSize();
+    _titleText.position = Vector2(_halfCard.x, Card.cardSize.y * .3) - center;
+  }
 
   @override
   void executeOnEvent() {}
@@ -222,13 +317,22 @@ abstract class ValueActionCard extends Card {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    paint = Paint()..color = Colors.green;
+    size = Card.cardSize;
+    fillColor = Colors.white;
+    _bodyDescriptionBorder = RoundedBorderComponent(
+      position: _bodyDescripPos,
+      size: _bodyDescripSize,
+      borderWidth: 1.5,
+      borderColor: Colors.black,
+      borderRadius: 5.0,
+    );
+    add(_bodyDescriptionBorder);
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    paint.color = Colors.red;
+    fillColor = Colors.red;
   }
 
   @override
@@ -240,7 +344,7 @@ abstract class ValueActionCard extends Card {
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    paint.color = Colors.white;
+    fillColor = Colors.white;
   }
 
   @override
@@ -248,7 +352,4 @@ abstract class ValueActionCard extends Card {
     super.onTapDown(event);
     print("Tapping down");
   }
-
-  @override
-  bool get debugMode => true;
 }

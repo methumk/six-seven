@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -18,14 +19,12 @@ class MinusCard extends ValueActionCard {
   }
 
   @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-
-    final rect = size.toRect();
-    final rrect = RRect.fromRectAndRadius(
-      rect,
-      Radius.circular(Card.borderRadius),
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    initTitleText("-");
+    initDescriptionText(
+      descriptionTitle: "Subtract Value",
+      description: "Current value gets decreased by $value",
     );
-    canvas.drawRRect(rrect, paint);
   }
 }
