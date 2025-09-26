@@ -1,11 +1,12 @@
-//Reverses turn order
+//Magnifying Glass: Can see the next card in the deck before making decision
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class ReverseTurn extends EventActionCard {
-  ReverseTurn();
+class TopPeekCard extends EventActionCard {
+  TopPeekCard();
 
+  //No special execute on stay
   @override
   double executeOnStay(double currentValue) {
     print("This function does nothing");
@@ -17,8 +18,9 @@ class ReverseTurn extends EventActionCard {
     super.onLoad();
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
-      description: "Reverses turn order!",
-      descriptionTitle: "Reverse Turn",
+      description:
+          "The player that gets chosen is allowed to take a peek at the next card in the deck!",
+      descriptionTitle: "Top Peek",
     );
   }
 
@@ -30,6 +32,8 @@ class ReverseTurn extends EventActionCard {
 
   @override
   void description() {
-    print("${cardType.label} Reverses turn order!");
+    print(
+      "${cardType.label} the player that gets chosen is allowed to take a peek at the next card in the deck!",
+    );
   }
 }

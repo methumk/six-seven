@@ -21,7 +21,7 @@ class SunkProphet extends EventActionCard {
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
       description:
-          "Player of choice is forced to roll a 13-sided die! A roll that is not a 6 or 7 loses them 7 points, while a roll of 6 or 7 gains them 13 points! They must continue to roll until they roll a 6 or 7!",
+          "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
       descriptionTitle: "Sunk Prophet",
     );
   }

@@ -3,8 +3,8 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class Polarizer extends EventActionCard {
-  Polarizer();
+class PolarizerCard extends EventActionCard {
+  PolarizerCard();
 
   @override
   double executeOnStay(double currentValue) {
@@ -19,7 +19,7 @@ class Polarizer extends EventActionCard {
     initDescriptionText(
       description:
           "User can choose to reverse the polarity for any of the value action cards in their hand.",
-      descriptionTitle: "Polarizer",
+      descriptionTitle: "PolarizerCard",
     );
   }
 

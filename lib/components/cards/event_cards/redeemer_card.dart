@@ -3,8 +3,8 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class Redeemer extends EventActionCard {
-  Redeemer();
+class RedeemerCard extends EventActionCard {
+  RedeemerCard();
 
   @override
   double executeOnStay(double currentValue) {

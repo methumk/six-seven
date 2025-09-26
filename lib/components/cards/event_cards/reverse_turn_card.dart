@@ -1,12 +1,11 @@
-//Magnifying Glass: Can see the next card in the deck before making decision
+//Reverses turn order
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class MagnifyingGlassCard extends EventActionCard {
-  MagnifyingGlassCard();
+class ReverseTurnCard extends EventActionCard {
+  ReverseTurnCard();
 
-  //No special execute on stay
   @override
   double executeOnStay(double currentValue) {
     print("This function does nothing");
@@ -18,9 +17,8 @@ class MagnifyingGlassCard extends EventActionCard {
     super.onLoad();
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
-      description:
-          "The player that gets chosen is allowed to take a peek at the next card in the deck!",
-      descriptionTitle: "Magnifying Glass",
+      description: "Reverses turn order!",
+      descriptionTitle: "Reverse Turn",
     );
   }
 
@@ -32,8 +30,6 @@ class MagnifyingGlassCard extends EventActionCard {
 
   @override
   void description() {
-    print(
-      "${cardType.label} the player that gets chosen is allowed to take a peek at the next card in the deck!",
-    );
+    print("${cardType.label} Reverses turn order!");
   }
 }

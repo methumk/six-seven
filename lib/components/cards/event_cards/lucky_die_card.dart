@@ -19,7 +19,7 @@ class LuckySixSidedDieCard extends EventActionCard {
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
       description:
-          "Player of choice gets to roll a lucky seven sided die! A roll that is between 1 and 5 earns you 3.67 points, while a roll of 6 or 7 makes you lose 7 points!",
+          "Roll a 7 sided die. Getting 6 or 7 loses 7 points. Otherwise, win 3.67 points. Max roll 7 times!",
       descriptionTitle: "Lucky Die",
     );
   }

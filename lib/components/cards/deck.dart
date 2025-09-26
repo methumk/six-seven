@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flame/flame.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
@@ -12,10 +11,10 @@ import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
 import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
-import 'package:six_seven/components/cards/event_cards/magnifying_glass_card.dart';
+import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
 import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
-import 'package:six_seven/components/cards/event_cards/redeemer.dart';
-import 'package:six_seven/components/cards/event_cards/reverse_turn.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
+import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_Card.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
@@ -237,7 +236,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(FreezeCard());
       deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
-      deckList.add(MagnifyingGlassCard());
+      deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
       deckList.add(CribberCard());
       deckList.add(ForecasterCard());
@@ -246,9 +245,9 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(LuckySixSidedDieCard());
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
-      deckList.add(ReverseTurn());
-      deckList.add(Polarizer());
-      deckList.add(Redeemer());
+      deckList.add(ReverseTurnCard());
+      deckList.add(PolarizerCard());
+      deckList.add(RedeemerCard());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
           eventCardsLeft[EventCardEnum.Freeze]! + 1;
