@@ -1,4 +1,6 @@
 //Reverses turn order
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class ReverseTurn extends EventActionCard {
@@ -8,6 +10,16 @@ class ReverseTurn extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description: "Reverses turn order!",
+      descriptionTitle: "Reverse Turn",
+    );
   }
 
   @override

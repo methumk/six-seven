@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class DoubleChanceCard extends EventActionCard {
@@ -8,6 +10,16 @@ class DoubleChanceCard extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description: "The player that gets chosen is granted double chance!",
+      descriptionTitle: "Double Chance",
+    );
   }
 
   //Grants double chance

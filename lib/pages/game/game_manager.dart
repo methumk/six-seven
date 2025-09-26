@@ -3,6 +3,24 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/deck.dart';
+import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
+import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
+import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
+import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
+import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
+import 'package:six_seven/components/cards/event_cards/magnifying_glass_card.dart';
+import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer.dart';
+import 'package:six_seven/components/cards/event_cards/reverse_turn.dart';
+import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
+import 'package:six_seven/components/cards/event_cards/thief_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
@@ -178,103 +196,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
-  //Calculate player's chance of busting
-  double calculateFailureProbability(int playerNum) {
-    Player currentPlayer = players[playerNum];
-    int outcomeCardinality =
-        0; //the total number of cards in deck that can bust you
-
-    for (double number in currentPlayer.numHand) {
-      int currentNumberCardinality = deck.numberCardsLeft[number]!;
-
-      print(
-        "You have a number card of: ${number.toInt()}, and there are ${currentNumberCardinality} cards of the same value.",
-      );
-      outcomeCardinality = outcomeCardinality + currentNumberCardinality;
-    }
-
-    int numCardsLeft = deck.deckList.length;
-    print("Total number of cards left in the deck: ${numCardsLeft}");
-    double failureProb = outcomeCardinality / numCardsLeft;
-    print("Your probability of failing is: ${failureProb}");
-    return failureProb;
-  }
-
-  //Expected value of multiplier for mult cards
-  double calculateEVMultCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-    //Total amount of mult cards left in deck
-    int totalMultCards = 0;
-    //Expected value of multiplation cards effects in next hit
-    double evMultCard = 0;
-    for (double multiplier in deck.multCardsLeft.keys) {
-      int amountOfMultiplierInDeck = deck.multCardsLeft[multiplier]!;
-      evMultCard += multiplier * (amountOfMultiplierInDeck / numCardsLeft);
-      totalMultCards += amountOfMultiplierInDeck;
-    }
-
-    //Include event that the card drawn was not a mult value card
-    evMultCard += 1 * (numCardsLeft - totalMultCards) / numCardsLeft;
-    return evMultCard;
-  }
-
-  //Expected value of number card
-  double calculateEVNumberCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    ///Total amount of number cards left in deck
-    ///(not needed for number cards)
-    // int totalNumberCards = 0;
-
-    ///Expected Value of number cards on next hit
-    double evNumberCard = 0;
-
-    for (int number in deck.numberCardsLeft.keys) {
-      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
-      evNumberCard +=
-          number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
-      // totalNumberCards += amountOfSpecificNumberCardInDeck;
-    }
-    //The event that the card drawn was not a number card has a numeric value
-    //of "0" so is commented here for semantic reasons
-    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
-    return evNumberCard;
-  }
-
-  //Expected Value for value action cards
-  double calculateEVPlusMinusValueCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    ///Total amount of number cards left in deck
-    ///(not needed for number cards)
-    // int totalValueCards = 0;
-    double evPlusMinusValueCard = 0;
-
-    for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
-      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
-      evPlusMinusValueCard +=
-          plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
-      // totalNumberCards += amountOfSpecificNumberCardInDeck;
-    }
-
-    //The event that the card drawn was not a number card has a numeric value
-    //of "0" so is commented here for semantic reasons
-    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
-    return evPlusMinusValueCard;
-  }
-
-  double calculateEVEventCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    double evEventCard = 0;
-
-    //TO DO: implement for each case
-    return evEventCard;
-  }
+  //Calculate player's chance of busting, and expected value should they choose another hit
+  void calculatePlayerProbabilityEV() {}
 
   @override
   FutureOr<void> onLoad() async {
@@ -336,6 +259,68 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       enableProbability: game.setupSettings.showDeckDistribution,
     );
     game.camera.viewport.add(hud);
+
+    // final MinusCard mc1 = MinusCard(value: 8);
+    // final MinusCard mc2 = MinusCard(value: 1.25);
+    // final MinusCard mc3 = MinusCard(value: 12);
+    // final MinusCard mc4 = MinusCard(value: 1.3);
+    // final PlusCard pc1 = PlusCard(value: 8);
+    // final PlusCard pc2 = PlusCard(value: 1.25);
+    // final PlusCard pc3 = PlusCard(value: 12);
+    // final PlusCard pc4 = PlusCard(value: 1.3);
+    // final MultCard m1 = MultCard(value: 8);
+    // final MultCard m2 = MultCard(value: 1.25);
+    // final MultCard m3 = MultCard(value: 12);
+    // final MultCard m4 = MultCard(value: 1.3);
+    // final MultCard mtc = MultCard(value: 1.15);
+    // final PlusCard pc = PlusCard(value: 11);
+
+    final ChoiceDraw cd = ChoiceDraw();
+    final CribberCard cc = CribberCard();
+    final DoubleChanceCard dcd = DoubleChanceCard();
+    final FlipThreeCard ftc = FlipThreeCard();
+    final ForecasterCard fc = ForecasterCard();
+    final FreezeCard fzc = FreezeCard();
+    final IncomeTax it = IncomeTax();
+    final LuckySixSidedDieCard ld = LuckySixSidedDieCard();
+    final MagnifyingGlassCard mgc = MagnifyingGlassCard();
+    final Polarizer p = Polarizer();
+    final Redeemer r = Redeemer();
+    final ReverseTurn rt = ReverseTurn();
+    final SalesTax st = SalesTax();
+    final SunkProphet sp = SunkProphet();
+    final ThiefCard tc = ThiefCard();
+    game.world.addAll([
+      cd,
+      cc,
+      dcd,
+      ftc,
+      fc,
+      fzc,
+      it,
+      ld,
+      mgc,
+      p,
+      r,
+      rt,
+      st,
+      sp,
+      tc,
+      // mc1,
+      // mc2,
+      // mc3,
+      // mc4,
+      // pc1,
+      // pc2,
+      // pc3,
+      // pc4,
+      // m1,
+      // m2,
+      // m3,
+      // m4,
+      // mtc,
+      // pc,
+    ]);
 
     // TESTING
     final tcc = CircleComponent(
