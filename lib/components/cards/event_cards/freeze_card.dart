@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class FreezeCard extends EventActionCard {
@@ -10,6 +12,17 @@ class FreezeCard extends EventActionCard {
     return currentValue;
   }
 
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description:
+          "The player that gets chosen will be frozen, forcing them to stay for the round!",
+      descriptionTitle: "Freeze",
+    );
+  }
+
   //Freezes other player
   @override
   void executeOnEvent() {
@@ -20,7 +33,7 @@ class FreezeCard extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} the player that gets chosen will be frozen, forcing them to stay for the round",
+      "${cardType.label} the player that gets chosen will be frozen, forcing them to stay for the round!",
     );
   }
 }

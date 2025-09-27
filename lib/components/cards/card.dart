@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/value_action_text.dart';
+import 'package:six_seven/components/circular_image_component.dart';
 import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
@@ -51,6 +52,7 @@ abstract class Card extends RoundedBorderComponent
     with DragCallbacks, TapCallbacks {
   late CardType cardType;
   static final Vector2 cardSize = Vector2(80, 140);
+  static final Vector2 halfCardSize = cardSize / 2;
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0);
 
@@ -224,46 +226,21 @@ class NumberCard extends Card {
 
 //Event Action Card Class
 abstract class EventActionCard extends Card {
-  EventActionCard() : super(cardType: CardType.eventActionCard);
-
-  //executeOnEvent depends on the specific event action card
-  //like if  it's freeze, flip three, etc. Thus it is left to
-  //the child class itself
-
-  @override
-  double executeOnStay(double currentValue) {
-    print("Check which event action cards have executions on player stay");
-    return currentValue;
-  }
-
-  @override
-  bool get debugMode => true;
-}
-
-//Value Action Abstract Card:
-abstract class ValueActionCard extends Card {
-  late final double _value;
-  late final WrappingTextBox _descrip;
-  late final TextComponent _descripTitle; // Description box
-  late final ValueActionTitleText _titleText;
+  late final CircularImageComponent _eventIcon;
   late final RoundedBorderComponent _bodyDescriptionBorder;
+  late final WrappingTextBox _descrip;
+  late final TextComponent _descripTitle;
 
-  late final Vector2 _halfCard;
   late final Vector2 _bodyDescripPos;
   late final Vector2 _bodyDescripSize;
   late final Vector2 _bodyDescripPadding;
 
-  ValueActionCard({required double value})
-    : super(cardType: CardType.valueActionCard) {
-    _value = value;
-    _halfCard = Card.cardSize / 2;
-    _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .5);
-    _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .47);
+  EventActionCard() : super(cardType: CardType.eventActionCard) {
+    _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
+    _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .60);
     // x is top and bottom padding y is left, right
     _bodyDescripPadding = Vector2(7, 5);
   }
-
-  double get value => _value;
 
   void initDescriptionText({
     String descriptionTitle = "",
@@ -271,7 +248,10 @@ abstract class ValueActionCard extends Card {
   }) {
     _descripTitle = TextComponent(
       text: descriptionTitle,
-      position: Vector2(_halfCard.x, _halfCard.y + _bodyDescripPadding.x),
+      position: Vector2(
+        Card.halfCardSize.x,
+        _bodyDescripPos.y + _bodyDescripPadding.x,
+      ),
       size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -291,7 +271,127 @@ abstract class ValueActionCard extends Card {
         Card.cardSize.y * .45 - _descripTitle.size.y,
       ),
       position: Vector2(
-        _halfCard.x,
+        Card.halfCardSize.x,
+        _descripTitle.position.y + _descripTitle.size.y + .5,
+      ),
+      anchor: Anchor.topCenter,
+    );
+
+    addAll([_descripTitle, _descrip]);
+  }
+
+  Future<void> initCardIcon(String imagePath) async {
+    _eventIcon = CircularImageComponent(
+      imagePath: imagePath,
+      radius: Card.cardSize.x * .25,
+      borderColor: Colors.black,
+      borderWidth: 2.0,
+    )..position = Vector2(Card.halfCardSize.x, Card.cardSize.y * .17);
+    await add(_eventIcon);
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    size = Card.cardSize;
+    fillColor = Colors.white;
+    _bodyDescriptionBorder = RoundedBorderComponent(
+      position: _bodyDescripPos,
+      size: _bodyDescripSize,
+      borderWidth: 1.5,
+      borderColor: Colors.black,
+      borderRadius: 5.0,
+    );
+    add(_bodyDescriptionBorder);
+  }
+
+  @override
+  double executeOnStay(double currentValue) {
+    print("Check which event action cards have executions on player stay");
+    return currentValue;
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    fillColor = Colors.red;
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    position += event.canvasDelta;
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    fillColor = Colors.white;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    print("Tapping down");
+  }
+
+  // @override
+  // bool get debugMode => true;
+}
+
+//Value Action Abstract Card:
+abstract class ValueActionCard extends Card {
+  late final double _value;
+  late final WrappingTextBox _descrip;
+  late final TextComponent _descripTitle; // Description box
+  late final ValueActionTitleText _titleText;
+  late final RoundedBorderComponent _bodyDescriptionBorder;
+
+  late final Vector2 _bodyDescripPos;
+  late final Vector2 _bodyDescripSize;
+  late final Vector2 _bodyDescripPadding;
+
+  ValueActionCard({required double value})
+    : super(cardType: CardType.valueActionCard) {
+    _value = value;
+    _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .5);
+    _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .47);
+    // x is top and bottom padding y is left, right
+    _bodyDescripPadding = Vector2(7, 5);
+  }
+
+  double get value => _value;
+
+  void initDescriptionText({
+    String descriptionTitle = "",
+    String description = "",
+  }) {
+    _descripTitle = TextComponent(
+      text: descriptionTitle,
+      position: Vector2(
+        Card.halfCardSize.x,
+        _bodyDescripPos.y + _bodyDescripPadding.x,
+      ),
+      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 7.6,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    _descrip = WrappingTextBox(
+      text: description,
+      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+      boxSize: Vector2(
+        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+        Card.cardSize.y * .45 - _descripTitle.size.y,
+      ),
+      position: Vector2(
+        Card.halfCardSize.x,
         _descripTitle.position.y + _descripTitle.size.y + .5,
       ),
       anchor: Anchor.topCenter,
@@ -308,7 +408,8 @@ abstract class ValueActionCard extends Card {
     );
     add(_titleText);
     final center = _titleText.getCenterSize();
-    _titleText.position = Vector2(_halfCard.x, Card.cardSize.y * .3) - center;
+    _titleText.position =
+        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
   }
 
   @override

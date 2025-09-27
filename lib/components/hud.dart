@@ -21,9 +21,9 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
   late final Image? _disableDownBtnImg;
   late final Image? _disableUpBtnImg;
 
-  late void Function() stayPressed;
-  late void Function() hitPressed;
-  late void Function() backPressed;
+  late Future<void> Function() stayPressed;
+  late Future<void> Function() hitPressed;
+  late Future<void> Function() backPressed;
 
   Hud({
     required this.hitPressed,

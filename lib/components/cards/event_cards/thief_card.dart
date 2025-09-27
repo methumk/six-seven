@@ -1,4 +1,6 @@
 //Thief: lets you choose a player and then steal all of their value action cards
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class ThiefCard extends EventActionCard {
@@ -8,6 +10,17 @@ class ThiefCard extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description:
+          "You get to choose a player to steal all their value action cards!",
+      descriptionTitle: "Thief",
+    );
   }
 
   @override

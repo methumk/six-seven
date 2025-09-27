@@ -2,6 +2,8 @@
 //Roll a 7 sided die. If you get a number of six or seven, gain 7.
 //Else, lose 13 points. You must keep rolling until you roll a six or seven,
 //or you lose 7 times in a row, in which your loss is capped at -30 lmfao :)
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class SunkProphet extends EventActionCard {
@@ -11,6 +13,17 @@ class SunkProphet extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description:
+          "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
+      descriptionTitle: "Sunk Prophet",
+    );
   }
 
   @override

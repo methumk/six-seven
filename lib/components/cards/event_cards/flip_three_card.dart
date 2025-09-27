@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:six_seven/components/cards/card.dart';
 
 class FlipThreeCard extends EventActionCard {
@@ -8,6 +10,16 @@ class FlipThreeCard extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
+  }
+
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    await initCardIcon("game_ui/test.png");
+    initDescriptionText(
+      description: "The player that gets chosen must flip 3 cards!",
+      descriptionTitle: "Flip Three",
+    );
   }
 
   //Forces player to flip 3 cards

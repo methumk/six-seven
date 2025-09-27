@@ -3,6 +3,21 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/deck.dart';
+import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
+import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
+import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
+import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
+import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
+import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
+import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
+import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
+import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
+import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
@@ -75,8 +90,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final double rx; // horizontal radius
   late final double ty; // ellipse top radius from rotation center
   late final double by; // ellipse bottom radius from rotation center
-
-  late final RectangleComponent rc;
 
   GameManager({
     required this.totalPlayerCount,
@@ -181,103 +194,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
-  //Calculate player's chance of busting
-  double calculateFailureProbability(int playerNum) {
-    Player currentPlayer = players[playerNum];
-    int outcomeCardinality =
-        0; //the total number of cards in deck that can bust you
-
-    for (double number in currentPlayer.numHand) {
-      int currentNumberCardinality = deck.numberCardsLeft[number]!;
-
-      print(
-        "You have a number card of: ${number.toInt()}, and there are ${currentNumberCardinality} cards of the same value.",
-      );
-      outcomeCardinality = outcomeCardinality + currentNumberCardinality;
-    }
-
-    int numCardsLeft = deck.deckList.length;
-    print("Total number of cards left in the deck: ${numCardsLeft}");
-    double failureProb = outcomeCardinality / numCardsLeft;
-    print("Your probability of failing is: ${failureProb}");
-    return failureProb;
-  }
-
-  //Expected value of multiplier for mult cards
-  double calculateEVMultCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-    //Total amount of mult cards left in deck
-    int totalMultCards = 0;
-    //Expected value of multiplation cards effects in next hit
-    double evMultCard = 0;
-    for (double multiplier in deck.multCardsLeft.keys) {
-      int amountOfMultiplierInDeck = deck.multCardsLeft[multiplier]!;
-      evMultCard += multiplier * (amountOfMultiplierInDeck / numCardsLeft);
-      totalMultCards += amountOfMultiplierInDeck;
-    }
-
-    //Include event that the card drawn was not a mult value card
-    evMultCard += 1 * (numCardsLeft - totalMultCards) / numCardsLeft;
-    return evMultCard;
-  }
-
-  //Expected value of number card
-  double calculateEVNumberCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    ///Total amount of number cards left in deck
-    ///(not needed for number cards)
-    // int totalNumberCards = 0;
-
-    ///Expected Value of number cards on next hit
-    double evNumberCard = 0;
-
-    for (int number in deck.numberCardsLeft.keys) {
-      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
-      evNumberCard +=
-          number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
-      // totalNumberCards += amountOfSpecificNumberCardInDeck;
-    }
-    //The event that the card drawn was not a number card has a numeric value
-    //of "0" so is commented here for semantic reasons
-    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
-    return evNumberCard;
-  }
-
-  //Expected Value for value action cards
-  double calculateEVPlusMinusValueCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    ///Total amount of number cards left in deck
-    ///(not needed for number cards)
-    // int totalValueCards = 0;
-    double evPlusMinusValueCard = 0;
-
-    for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
-      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
-      evPlusMinusValueCard +=
-          plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
-      // totalNumberCards += amountOfSpecificNumberCardInDeck;
-    }
-
-    //The event that the card drawn was not a number card has a numeric value
-    //of "0" so is commented here for semantic reasons
-    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
-    return evPlusMinusValueCard;
-  }
-
-  double calculateEVEventCards() {
-    //Current amount of cards left in deck
-    int numCardsLeft = deck.deckList.length;
-
-    double evEventCard = 0;
-
-    //TO DO: implement for each case
-    return evEventCard;
-  }
+  //Calculate player's chance of busting, and expected value should they choose another hit
+  void calculatePlayerProbabilityEV() {}
 
   @override
   FutureOr<void> onLoad() async {
@@ -333,12 +251,74 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Set up Hud
     hud = Hud(
-      hitPressed: _startPlayerMove,
-      stayPressed: () => print("Stay Pressed"),
+      hitPressed: _onHitPressed,
+      stayPressed: _onStayPressed,
       backPressed: game.showExitDialog,
       enableProbability: game.setupSettings.showDeckDistribution,
     );
     game.camera.viewport.add(hud);
+
+    // final MinusCard mc1 = MinusCard(value: 8);
+    // final MinusCard mc2 = MinusCard(value: 1.25);
+    // final MinusCard mc3 = MinusCard(value: 12);
+    // final MinusCard mc4 = MinusCard(value: 1.3);
+    // final PlusCard pc1 = PlusCard(value: 8);
+    // final PlusCard pc2 = PlusCard(value: 1.25);
+    // final PlusCard pc3 = PlusCard(value: 12);
+    // final PlusCard pc4 = PlusCard(value: 1.3);
+    // final MultCard m1 = MultCard(value: 8);
+    // final MultCard m2 = MultCard(value: 1.25);
+    // final MultCard m3 = MultCard(value: 12);
+    // final MultCard m4 = MultCard(value: 1.3);
+    // final MultCard mtc = MultCard(value: 1.15);
+    // final PlusCard pc = PlusCard(value: 11);
+
+    final ChoiceDraw cd = ChoiceDraw();
+    final CribberCard cc = CribberCard();
+    final DoubleChanceCard dcd = DoubleChanceCard();
+    final FlipThreeCard ftc = FlipThreeCard();
+    final ForecasterCard fc = ForecasterCard();
+    final FreezeCard fzc = FreezeCard();
+    final IncomeTax it = IncomeTax();
+    final LuckySixSidedDieCard ld = LuckySixSidedDieCard();
+    final TopPeekCard mgc = TopPeekCard();
+    final PolarizerCard p = PolarizerCard();
+    final RedeemerCard r = RedeemerCard();
+    final ReverseTurnCard rt = ReverseTurnCard();
+    final SalesTax st = SalesTax();
+    final SunkProphet sp = SunkProphet();
+    final ThiefCard tc = ThiefCard();
+    game.world.addAll([
+      cd,
+      cc,
+      dcd,
+      ftc,
+      fc,
+      fzc,
+      it,
+      ld,
+      mgc,
+      p,
+      r,
+      rt,
+      st,
+      sp,
+      tc,
+      // mc1,
+      // mc2,
+      // mc3,
+      // mc4,
+      // pc1,
+      // pc2,
+      // pc3,
+      // pc4,
+      // m1,
+      // m2,
+      // m3,
+      // m4,
+      // mtc,
+      // pc,
+    ]);
 
     // TESTING
     final tcc = CircleComponent(
@@ -371,17 +351,72 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       paint: Paint()..color = Colors.red,
       radius: 5,
     );
-    rc = RectangleComponent(
-      position: Vector2.all(0),
-      size: Vector2(50, 80),
-      paint: Paint()..color = Colors.white,
-      anchor: Anchor.bottomCenter,
-    );
-    game.world.add(rc);
     game.world.addAll([tcc, bcc, lcc, rcc, ccc]);
     print(
       "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
     );
+  }
+
+  // Set up on stay pressed handler
+  Future<void> _onStayPressed() async {
+    print("Stay Pressed");
+  }
+
+  // Set up on hit pressed handler
+  // Handles rotation, and other functionality
+  Future<void> _onHitPressed() async {
+    if (animatePlayerRotation) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+      return;
+    }
+
+    // Rotate the players and disable hit/stay when running
+    _rotatePlayers();
+  }
+
+  void _rotatePlayers() {
+    // Determine next bottom index from the players array
+    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+      currentPlayerIndex,
+      totalPlayerCount,
+      rotation: rotationDirection,
+    );
+
+    // Do not rotate if next player is CPU
+    if (players[nextPlayerBottomIndex] is CpuPlayer) {
+      print(
+        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
+      );
+      rotationPlayerOffset++;
+      currentPlayerIndex = nextPlayerBottomIndex;
+    } else {
+      currentPlayerIndex = nextPlayerBottomIndex;
+      print("UPDATING with extra rotation value $rotationPlayerOffset");
+
+      for (int i = 0; i < totalPlayerCount; ++i) {
+        Player p = players[i];
+        p.rotateNum = _getNextNumRotations(
+          p.position,
+          rotationDirection,
+          extraRotation: rotationPlayerOffset,
+        );
+        p.moveTo = _getNextRotationPos(
+          p.position,
+          p.rotateNum,
+          rotationDirection,
+        );
+        print(
+          "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+        );
+        p.isRotating = true;
+      }
+
+      // If human player we don't have offset so reset
+      rotationPlayerOffset = 0;
+      // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
+      animatePlayerRotation = true;
+      hud.disableHitAndStayBtns();
+    }
   }
 
   // NOTE: This should only be used for initializing players array
@@ -548,57 +583,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return _getPlayerPosbyPosIndex(nextSlot);
   }
 
-  // Set up player rotation
-  void _startPlayerMove() {
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
-      return;
-    }
-
-    // Determine next bottom index from the players array
-    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-      currentPlayerIndex,
-      totalPlayerCount,
-      rotation: rotationDirection,
-    );
-
-    // Do not rotate if next player is CPU
-    if (players[nextPlayerBottomIndex] is CpuPlayer) {
-      print(
-        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
-      );
-      rotationPlayerOffset++;
-      currentPlayerIndex = nextPlayerBottomIndex;
-      return;
-    } else {
-      currentPlayerIndex = nextPlayerBottomIndex;
-    }
-
-    print("UPDATING with extra rotation value $rotationPlayerOffset");
-    for (int i = 0; i < totalPlayerCount; ++i) {
-      Player p = players[i];
-      p.rotateNum = _getNextNumRotations(
-        p.position,
-        rotationDirection,
-        extraRotation: rotationPlayerOffset,
-      );
-      p.moveTo = _getNextRotationPos(
-        p.position,
-        p.rotateNum,
-        rotationDirection,
-      );
-      print(
-        "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
-      );
-      p.isRotating = true;
-    }
-    // If human player we don't have offset so reset
-    rotationPlayerOffset = 0;
-    animatePlayerRotation = true;
-    hud.disableHitAndStayBtns();
-  }
-
-  void _onRotationFinished(double dt) {
+  void _onRotationFinished() {
     animatePlayerRotation = false;
     hud.enableHitAndStayBtns();
   }
@@ -656,7 +641,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
         // Check if all rotations finished
         if (playersFinished == totalPlayerCount) {
-          _onRotationFinished(dt);
+          _onRotationFinished();
         }
       }
     }
