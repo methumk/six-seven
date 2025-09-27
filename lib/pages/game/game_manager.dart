@@ -130,10 +130,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void calculateLeaderBoard() {}
 
+  void roundStart() {
+    turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
+    currentPlayerIndex = turnStarterPlayerIndex;
+  }
+
   void gameRotation() {
     while (!gameEnd) {
-      turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
-      currentPlayerIndex = turnStarterPlayerIndex;
       donePlayers = Set();
       while (donePlayers.length < totalPlayerCount) {
         //TO DO: Handle this, will be different from python because has non-human players as well
