@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
-import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
@@ -151,14 +150,30 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     for (int i = 0; i < totalPlayerCount; i++) {
       //At round start, players are forced to hit, so _onHitPressed() might be automatically called
       // _onHitPressed();
-      Player currentPlayer = players[currentPlayerIndex];
-      cd.Card hitCard = deck.draw();
+      gameHit(players[currentPlayerIndex]);
       currentPlayerIndex = getNextPlayer(currentPlayerIndex);
-      currentPlayer.onHit(hitCard);
     }
     return;
   }
 
+  void aiTurn(CpuPlayer currentCPUPlayer) {
+    if (currentCPUPlayer.difficulty == Difficulty.easy) {
+      double failureProb = calculateFailureProbability(
+        currentCPUPlayer.playerNum,
+      );
+      if (failureProb < .45) {
+        gameHit(currentCPUPlayer);
+      } else {
+        currentCPUPlayer.handleStay();
+      }
+    }
+  }
+
+  void gameHit(Player currentPlayer) {
+    cd.Card hitCard = deck.draw();
+    currentPlayer.onHit(hitCard);
+    return;
+  }
   // void gameRotation() {
   //   while (!gameEnd) {
   //     donePlayers = Set();
@@ -515,10 +530,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     // Do not rotate if next player is CPU
+    //TO DO: since they don't rotate, they should do their turn here
     if (players[nextPlayerBottomIndex] is CpuPlayer) {
       print(
         "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
       );
+      aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
       rotationPlayerOffset++;
       currentPlayerIndex = nextPlayerBottomIndex;
     } else {
