@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card.dart' as cd;
+import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
@@ -146,6 +148,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void roundStart() {
     turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
     currentPlayerIndex = turnStarterPlayerIndex;
+    for (int i = 0; i < totalPlayerCount; i++) {
+      //At round start, players are forced to hit, so _onHitPressed() might be automatically called
+      // _onHitPressed();
+      Player currentPlayer = players[currentPlayerIndex];
+      cd.Card hitCard = deck.draw();
+      currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+      currentPlayer.onHit(hitCard);
+    }
+    return;
   }
 
   void gameRotation() {
@@ -239,7 +250,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   //Expected value of number card
-  double calculateEVNumberCards() {
+  double calculateEVNumberCards(Player currentPlayer) {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
 
@@ -252,6 +263,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     for (int number in deck.numberCardsLeft.keys) {
       int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
+      //If number card is a number that the player already has, skip it
+      if (currentPlayer.numHand.contains(number)) {
+        continue;
+      }
       evNumberCard +=
           number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
       // totalNumberCards += amountOfSpecificNumberCardInDeck;
