@@ -159,25 +159,26 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return;
   }
 
-  void gameRotation() {
-    while (!gameEnd) {
-      donePlayers = Set();
-      while (donePlayers.length < totalPlayerCount) {
-        //TO DO: Handle this, will be different from python because has non-human players as well
-        print("Player ${currentPlayerIndex}'s turn!");
-        Player currentPlayer = players[currentPlayerIndex];
-        if (currentPlayer.isDone) {
-          print(
-            "Player ${currentPlayerIndex} is already done! Going to next player!",
-          );
-        } else if (currentPlayer is CpuPlayer) {
-          if (currentPlayer.difficulty == Difficulty.easy) {}
-        } else {}
+  // void gameRotation() {
+  //   while (!gameEnd) {
+  //     donePlayers = Set();
+  //     roundStart();
+  //     while (donePlayers.length < totalPlayerCount) {
+  //       //TO DO: Handle this, will be different from python because has non-human players as well
+  //       print("Player ${currentPlayerIndex}'s turn!");
+  //       Player currentPlayer = players[currentPlayerIndex];
+  //       if (currentPlayer.isDone) {
+  //         print(
+  //           "Player ${currentPlayerIndex} is already done! Going to next player!",
+  //         );
+  //       } else if (currentPlayer is CpuPlayer) {
+  //         if (currentPlayer.difficulty == Difficulty.easy) {}
+  //       } else {}
 
-        currentPlayerIndex = getNextPlayer(currentPlayerIndex);
-      }
-    }
-  }
+  //       currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+  //     }
+  //   }
+  // }
 
   //Show deck distribution
   void showDeckDistribution() {
@@ -368,6 +369,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _initPlayerList();
     game.world.addAll(players);
 
+    roundStart();
     // Set up Hud
     hud = Hud(
       hitPressed: _onHitPressed,
@@ -501,6 +503,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   void _rotatePlayers() {
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+    }
     // Determine next bottom index from the players array
     int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
