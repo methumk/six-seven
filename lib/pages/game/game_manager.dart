@@ -310,6 +310,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evEventCard;
   }
 
+  // This manages drawing a card form deck and then putting it into player
+  void onCardDrawnFromDeck() {
+    // draw from deck
+    // if not event or card can be put into player .. put into player
+  }
+
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
@@ -386,52 +392,53 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // final MultCard mtc = MultCard(value: 1.15);
     // final PlusCard pc = PlusCard(value: 11);
 
-    final ChoiceDraw cd = ChoiceDraw();
-    final CribberCard cc = CribberCard();
-    final DoubleChanceCard dcd = DoubleChanceCard();
-    final FlipThreeCard ftc = FlipThreeCard();
-    final ForecasterCard fc = ForecasterCard();
-    final FreezeCard fzc = FreezeCard();
-    final IncomeTax it = IncomeTax();
-    final LuckySixSidedDieCard ld = LuckySixSidedDieCard();
-    final TopPeekCard mgc = TopPeekCard();
-    final PolarizerCard p = PolarizerCard();
-    final RedeemerCard r = RedeemerCard();
-    final ReverseTurnCard rt = ReverseTurnCard();
-    final SalesTax st = SalesTax();
-    final SunkProphet sp = SunkProphet();
-    final ThiefCard tc = ThiefCard();
-    game.world.addAll([
-      cd,
-      cc,
-      dcd,
-      ftc,
-      fc,
-      fzc,
-      it,
-      ld,
-      mgc,
-      p,
-      r,
-      rt,
-      st,
-      sp,
-      tc,
-      // mc1,
-      // mc2,
-      // mc3,
-      // mc4,
-      // pc1,
-      // pc2,
-      // pc3,
-      // pc4,
-      // m1,
-      // m2,
-      // m3,
-      // m4,
-      // mtc,
-      // pc,
-    ]);
+    // final ChoiceDraw cd = ChoiceDraw();
+    // final CribberCard cc = CribberCard();
+    // final DoubleChanceCard dcd = DoubleChanceCard();
+    // final FlipThreeCard ftc = FlipThreeCard();
+    // final ForecasterCard fc = ForecasterCard();
+    // final FreezeCard fzc = FreezeCard();
+    // final IncomeTax it = IncomeTax();
+    // final LuckySixSidedDieCard ld = LuckySixSidedDieCard();
+    // final TopPeekCard mgc = TopPeekCard();
+    // final PolarizerCard p = PolarizerCard();
+    // final RedeemerCard r = RedeemerCard();
+    // final ReverseTurnCard rt = ReverseTurnCard();
+    // final SalesTax st = SalesTax();
+    // final SunkProphet sp = SunkProphet();
+    // final ThiefCard tc = ThiefCard();
+    // game.world.addAll([
+    //   cd,
+    //   cc,
+    //   dcd,
+    //   ftc,
+    //   fc,
+    //   fzc,
+    //   it,
+    //   ld,
+    //   mgc,
+    //   p,
+    //   r,
+    //   rt,
+    //   st,
+    //   sp,
+    //   tc,
+    //   // mc1,
+    //   // mc2,
+    //   // mc3,
+    //   // mc4,
+    //   // pc1,
+    //   // pc2,
+    //   // pc3,
+    //   // pc4,
+    //   // m1,
+    //   // m2,
+    //   // m3,
+    //   // m4,
+    //   // mtc,
+    //   // pc,
+    // ]);
+    game.world.add(deck);
 
     // TESTING
     final tcc = CircleComponent(
@@ -482,6 +489,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print("ANIMATION DISABLED UNTIL CURR FINISHED");
       return;
     }
+
+    // onCardDrawnFromDeck
+
+    // Calculate bust
+
+    // Handle events
 
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
