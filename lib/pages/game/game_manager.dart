@@ -157,11 +157,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
+    double failureProb = calculateFailureProbability(
+      currentCPUPlayer.playerNum,
+    );
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
-      double failureProb = calculateFailureProbability(
-        currentCPUPlayer.playerNum,
-      );
       if (failureProb < .45) {
+        gameHit(currentCPUPlayer);
+      } else {
+        currentCPUPlayer.handleStay();
+      }
+    } else if (currentCPUPlayer.difficulty == Difficulty.medium) {
+      if (failureProb < .3) {
         gameHit(currentCPUPlayer);
       } else {
         currentCPUPlayer.handleStay();
