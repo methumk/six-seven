@@ -91,8 +91,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final double ty; // ellipse top radius from rotation center
   late final double by; // ellipse bottom radius from rotation center
 
-  late final RectangleComponent rc;
-
   GameManager({
     required this.totalPlayerCount,
     required this.aiPlayerCount,
@@ -350,13 +348,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       paint: Paint()..color = Colors.red,
       radius: 5,
     );
-    rc = RectangleComponent(
-      position: Vector2.all(0),
-      size: Vector2(50, 80),
-      paint: Paint()..color = Colors.white,
-      anchor: Anchor.bottomCenter,
-    );
-    game.world.add(rc);
     game.world.addAll([tcc, bcc, lcc, rcc, ccc]);
     print(
       "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
