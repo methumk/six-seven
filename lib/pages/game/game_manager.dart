@@ -248,15 +248,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Set up Hud
     hud = Hud(
-      hitPressed: () async {
-        _startPlayerMove();
-      },
-      stayPressed: () async {
-        print("Stay Pressed");
-      },
-      backPressed: () async {
-        game.showExitDialog();
-      },
+      hitPressed: _onHitPressed,
+      stayPressed: _onStayPressed,
+      backPressed: game.showExitDialog,
       enableProbability: game.setupSettings.showDeckDistribution,
     );
     game.camera.viewport.add(hud);
@@ -358,6 +352,68 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print(
       "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
     );
+  }
+
+  // Set up on stay pressed handler
+  Future<void> _onStayPressed() async {
+    print("Stay Pressed");
+  }
+
+  // Set up on hit pressed handler
+  // Handles rotation, and other functionality
+  Future<void> _onHitPressed() async {
+    if (animatePlayerRotation) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+      return;
+    }
+
+    // Rotate the players and disable hit/stay when running
+    _rotatePlayers();
+  }
+
+  void _rotatePlayers() {
+    // Determine next bottom index from the players array
+    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+      currentPlayerIndex,
+      totalPlayerCount,
+      rotation: rotationDirection,
+    );
+
+    // Do not rotate if next player is CPU
+    if (players[nextPlayerBottomIndex] is CpuPlayer) {
+      print(
+        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
+      );
+      rotationPlayerOffset++;
+      currentPlayerIndex = nextPlayerBottomIndex;
+    } else {
+      currentPlayerIndex = nextPlayerBottomIndex;
+      print("UPDATING with extra rotation value $rotationPlayerOffset");
+
+      for (int i = 0; i < totalPlayerCount; ++i) {
+        Player p = players[i];
+        p.rotateNum = _getNextNumRotations(
+          p.position,
+          rotationDirection,
+          extraRotation: rotationPlayerOffset,
+        );
+        p.moveTo = _getNextRotationPos(
+          p.position,
+          p.rotateNum,
+          rotationDirection,
+        );
+        print(
+          "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+        );
+        p.isRotating = true;
+      }
+
+      // If human player we don't have offset so reset
+      rotationPlayerOffset = 0;
+      // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
+      animatePlayerRotation = true;
+      hud.disableHitAndStayBtns();
+    }
   }
 
   // NOTE: This should only be used for initializing players array
@@ -524,57 +580,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return _getPlayerPosbyPosIndex(nextSlot);
   }
 
-  // Set up player rotation
-  void _startPlayerMove() {
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
-      return;
-    }
-
-    // Determine next bottom index from the players array
-    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-      currentPlayerIndex,
-      totalPlayerCount,
-      rotation: rotationDirection,
-    );
-
-    // Do not rotate if next player is CPU
-    if (players[nextPlayerBottomIndex] is CpuPlayer) {
-      print(
-        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
-      );
-      rotationPlayerOffset++;
-      currentPlayerIndex = nextPlayerBottomIndex;
-      return;
-    } else {
-      currentPlayerIndex = nextPlayerBottomIndex;
-    }
-
-    print("UPDATING with extra rotation value $rotationPlayerOffset");
-    for (int i = 0; i < totalPlayerCount; ++i) {
-      Player p = players[i];
-      p.rotateNum = _getNextNumRotations(
-        p.position,
-        rotationDirection,
-        extraRotation: rotationPlayerOffset,
-      );
-      p.moveTo = _getNextRotationPos(
-        p.position,
-        p.rotateNum,
-        rotationDirection,
-      );
-      print(
-        "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
-      );
-      p.isRotating = true;
-    }
-    // If human player we don't have offset so reset
-    rotationPlayerOffset = 0;
-    animatePlayerRotation = true;
-    hud.disableHitAndStayBtns();
-  }
-
-  void _onRotationFinished(double dt) {
+  void _onRotationFinished() {
     animatePlayerRotation = false;
     hud.enableHitAndStayBtns();
   }
@@ -632,7 +638,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
         // Check if all rotations finished
         if (playersFinished == totalPlayerCount) {
-          _onRotationFinished(dt);
+          _onRotationFinished();
         }
       }
     }

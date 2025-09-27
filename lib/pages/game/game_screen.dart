@@ -29,7 +29,8 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     add(gameManager);
   }
 
-  void showExitDialog() async {
+  Future<void> showExitDialog() async {
+    print("EXIT DIALOG");
     // Pause the game ending
     pauseEngine();
 
