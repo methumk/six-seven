@@ -197,6 +197,104 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Calculate player's chance of busting, and expected value should they choose another hit
   void calculatePlayerProbabilityEV() {}
 
+  //Calculate player's chance of busting
+  double calculateFailureProbability(int playerNum) {
+    Player currentPlayer = players[playerNum];
+    int outcomeCardinality =
+        0; //the total number of cards in deck that can bust you
+
+    for (double number in currentPlayer.numHand) {
+      int currentNumberCardinality = deck.numberCardsLeft[number]!;
+
+      print(
+        "You have a number card of: ${number.toInt()}, and there are ${currentNumberCardinality} cards of the same value.",
+      );
+      outcomeCardinality = outcomeCardinality + currentNumberCardinality;
+    }
+
+    int numCardsLeft = deck.deckList.length;
+    print("Total number of cards left in the deck: ${numCardsLeft}");
+    double failureProb = outcomeCardinality / numCardsLeft;
+    print("Your probability of failing is: ${failureProb}");
+    return failureProb;
+  }
+
+  //Expected value of multiplier for mult cards
+  double calculateEVMultCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+    //Total amount of mult cards left in deck
+    int totalMultCards = 0;
+    //Expected value of multiplation cards effects in next hit
+    double evMultCard = 0;
+    for (double multiplier in deck.multCardsLeft.keys) {
+      int amountOfMultiplierInDeck = deck.multCardsLeft[multiplier]!;
+      evMultCard += multiplier * (amountOfMultiplierInDeck / numCardsLeft);
+      totalMultCards += amountOfMultiplierInDeck;
+    }
+
+    //Include event that the card drawn was not a mult value card
+    evMultCard += 1 * (numCardsLeft - totalMultCards) / numCardsLeft;
+    return evMultCard;
+  }
+
+  //Expected value of number card
+  double calculateEVNumberCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    ///Total amount of number cards left in deck
+    ///(not needed for number cards)
+    // int totalNumberCards = 0;
+
+    ///Expected Value of number cards on next hit
+    double evNumberCard = 0;
+
+    for (int number in deck.numberCardsLeft.keys) {
+      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
+      evNumberCard +=
+          number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
+      // totalNumberCards += amountOfSpecificNumberCardInDeck;
+    }
+    //The event that the card drawn was not a number card has a numeric value
+    //of "0" so is commented here for semantic reasons
+    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
+    return evNumberCard;
+  }
+
+  //Expected Value for value action cards
+  double calculateEVPlusMinusValueCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    ///Total amount of number cards left in deck
+    ///(not needed for number cards)
+    // int totalValueCards = 0;
+    double evPlusMinusValueCard = 0;
+
+    for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
+      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
+      evPlusMinusValueCard +=
+          plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
+      // totalNumberCards += amountOfSpecificNumberCardInDeck;
+    }
+
+    //The event that the card drawn was not a number card has a numeric value
+    //of "0" so is commented here for semantic reasons
+    //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
+    return evPlusMinusValueCard;
+  }
+
+  double calculateEVEventCards() {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    double evEventCard = 0;
+
+    //TO DO: implement for each case
+    return evEventCard;
+  }
+
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
