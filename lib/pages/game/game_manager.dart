@@ -248,9 +248,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Set up Hud
     hud = Hud(
-      hitPressed: _startPlayerMove,
-      stayPressed: () => print("Stay Pressed"),
-      backPressed: game.showExitDialog,
+      hitPressed: () async {
+        _startPlayerMove();
+      },
+      stayPressed: () async {
+        print("Stay Pressed");
+      },
+      backPressed: () async {
+        game.showExitDialog();
+      },
       enableProbability: game.setupSettings.showDeckDistribution,
     );
     game.camera.viewport.add(hud);
