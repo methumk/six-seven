@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
@@ -62,6 +63,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // late final BottomHud bHud;
   int currentCard = 0;
 
+  //Used for challenge difficulty ai players;
+  final random = Random();
   // Calculate the CENTER positions of where the players should go
   static final Vector2 topPlayerPosPercent = Vector2(.5, .25);
   static final Vector2 bottomPlayerPosPercent = Vector2(.5, .94);
@@ -170,6 +173,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //if E[hit] >= n, hit , else stay
       EVBasedComparison(currentCPUPlayer);
     }
+    //Else, is expert difficulty
+    else {
+      //Random number from 1 to 7. If 6 or 7, AI gets
+      //to peak at the next card in the deck
+      int rng = random.nextInt(7) + 1;
+      if (rng == 6 || rng == 7) {
+        //TO DO: do the deck peak, case by case analysis
+      } else {
+        EVBasedComparison(currentCPUPlayer);
+      }
+    }
   }
 
   //Easy and medium difficulty players play based on risk tolerance.
@@ -257,7 +271,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return failureProb;
   }
 
-  //Hard and Challenge AI players compare E[X+n] to n
+  //Hard and Expert AI players compare E[X+n] to n
   void EVBasedComparison(Player currentPlayer) {
     double ev = calculateEVCumulative(currentPlayer);
     double failureProb = calculateFailureProbability(currentPlayer);
