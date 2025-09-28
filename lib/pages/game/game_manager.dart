@@ -157,22 +157,27 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
-    double failureProb = calculateFailureProbability(
-      currentCPUPlayer.playerNum,
-    );
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
-      if (failureProb < .45) {
-        gameHit(currentCPUPlayer);
-      } else {
-        currentCPUPlayer.handleStay();
-      }
+      //Easy difficulty: has a risk tolerance of 45%, so
+      //if probability of failing is less than 45%, hit
+      riskTolerance(currentCPUPlayer, .45);
     } else if (currentCPUPlayer.difficulty == Difficulty.medium) {
-      if (failureProb < .3) {
-        gameHit(currentCPUPlayer);
-      } else {
-        currentCPUPlayer.handleStay();
-      }
+      //Medium difficulty: has a risk tolerance of 30%, so
+      //if probability of failing is less than 30%, hit
+      riskTolerance(currentCPUPlayer, .3);
     }
+  }
+
+  //Easy and medium difficulty players play based on risk tolerance.
+  //If risk of failing is too high, stay
+  void riskTolerance(Player currentCPUPlayer, double failureTolerance) {
+    double failureProb = calculateFailureProbability(currentCPUPlayer);
+    if (failureProb < failureTolerance) {
+      gameHit(currentCPUPlayer);
+    } else {
+      currentCPUPlayer.handleStay();
+    }
+    return;
   }
 
   void gameHit(Player currentPlayer) {
@@ -227,12 +232,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
-  //Calculate player's chance of busting, and expected value should they choose another hit
-  void calculatePlayerProbabilityEV() {}
-
   //Calculate player's chance of busting
-  double calculateFailureProbability(int playerNum) {
-    Player currentPlayer = players[playerNum];
+  double calculateFailureProbability(Player currentPlayer) {
     int outcomeCardinality =
         0; //the total number of cards in deck that can bust you
 
@@ -250,6 +251,35 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double failureProb = outcomeCardinality / numCardsLeft;
     print("Your probability of failing is: ${failureProb}");
     return failureProb;
+  }
+
+  //Hard and Challenge AI players compare E[X+n] to n
+  void EVBasedComparison(Player currentPlayer) {
+    double ev = calculateEVCumulative(currentPlayer);
+    double failureProb = calculateFailureProbability(currentPlayer);
+    double successProb = 1 - failureProb;
+
+    //ev is the expected value of the hit itself given it was a success.
+    //So we multiply it by success probability. Then we add the event you fail
+    //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
+    //by failureProb.
+    double valueHit = ev * successProb + 0 * failureProb;
+    if (valueHit >= currentPlayer.currentValue) {
+      gameHit(currentPlayer);
+    } else {
+      currentPlayer.handleStay();
+    }
+    return;
+  }
+
+  //Calculate actual expected value of next hit, including current points
+  double calculateEVCumulative(Player currentPlayer) {
+    double evCumulative =
+        currentPlayer.currentValue +
+        calculateEVMultCards() * calculateEVNumberCards(currentPlayer) +
+        calculateEVPlusMinusValueCards() +
+        calculateEVEventCards();
+    return evCumulative;
   }
 
   //Expected value of multiplier for mult cards
@@ -332,6 +362,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evEventCard;
   }
 
+  //This  should only be for visual animation -sean
   // This manages drawing a card form deck and then putting it into player
   void onCardDrawnFromDeck() {
     // draw from deck
