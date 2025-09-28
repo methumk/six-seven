@@ -382,9 +382,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   //This  should only be for visual animation -sean
   // This manages drawing a card form deck and then putting it into player
-  void onCardDrawnFromDeck() {
+  void _handleDrawCardFromDeck() {
     // draw from deck
     // if not event or card can be put into player .. put into player
+    final card = deck.draw();
+    print("Got card: $card");
+
+    players[currentPlayerIndex].onHit(card);
   }
 
   @override
@@ -552,6 +556,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on stay pressed handler
   Future<void> _onStayPressed() async {
     print("Stay Pressed");
+    if (animatePlayerRotation) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+      return;
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Rotate the players and disable hit/stay when running
+    _rotatePlayers();
   }
 
   // Set up on hit pressed handler
@@ -562,11 +575,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return;
     }
 
-    // onCardDrawnFromDeck
+    // drawCardFromDeck
+    _handleDrawCardFromDeck();
 
     // Calculate bust
 
     // Handle events
+
+    await Future.delayed(const Duration(seconds: 1));
 
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
@@ -590,9 +606,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print(
         "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
       );
-      aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
       rotationPlayerOffset++;
-      currentPlayerIndex = nextPlayerBottomIndex;
+      aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
+      // currentPlayerIndex = nextPlayerBottomIndex;
     } else {
       currentPlayerIndex = nextPlayerBottomIndex;
       print("UPDATING with extra rotation value $rotationPlayerOffset");

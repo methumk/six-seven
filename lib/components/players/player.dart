@@ -116,8 +116,13 @@ abstract class Player extends PositionComponent
     newCard.description();
     if (newCard is NumberCard) {
       hitNumberCard(newCard.value);
+      nch.addCardtoHand(newCard);
     } else if (newCard is ValueActionCard) {
       hitValueActionCard(newCard);
+      dch.addCardtoHand(newCard);
+    } else {
+      // Only some event cards get added
+      dch.addCardtoHand(newCard);
     }
   }
 
