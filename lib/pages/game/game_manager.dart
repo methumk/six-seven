@@ -334,7 +334,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     for (int number in deck.numberCardsLeft.keys) {
       int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
       //If number card is a number that the player already has, skip it
-      if (currentPlayer.numHand.contains(number)) {
+      if (currentPlayer.numHandSet.contains(number)) {
         continue;
       }
       evNumberCard +=
