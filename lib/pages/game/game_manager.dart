@@ -165,6 +165,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //Medium difficulty: has a risk tolerance of 30%, so
       //if probability of failing is less than 30%, hit
       riskTolerance(currentCPUPlayer, .3);
+    } else if (currentCPUPlayer.difficulty == Difficulty.hard) {
+      //Hard diifficulty: Starts comparing by EV instead of probability risk
+      //if E[hit] >= n, hit , else stay
+      EVBasedComparison(currentCPUPlayer);
     }
   }
 
