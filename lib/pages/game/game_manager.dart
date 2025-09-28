@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
@@ -61,6 +63,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // late final BottomHud bHud;
   int currentCard = 0;
 
+  //Used for challenge difficulty ai players;
+  final random = Random();
   // Calculate the CENTER positions of where the players should go
   static final Vector2 topPlayerPosPercent = Vector2(.5, .25);
   static final Vector2 bottomPlayerPosPercent = Vector2(.5, .94);
@@ -146,27 +150,79 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void roundStart() {
     turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
     currentPlayerIndex = turnStarterPlayerIndex;
+    for (int i = 0; i < totalPlayerCount; i++) {
+      //At round start, players are forced to hit, so _onHitPressed() might be automatically called
+      // _onHitPressed();
+      gameHit(players[currentPlayerIndex]);
+      currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+    }
+    return;
   }
 
-  void gameRotation() {
-    while (!gameEnd) {
-      donePlayers = Set();
-      while (donePlayers.length < totalPlayerCount) {
-        //TO DO: Handle this, will be different from python because has non-human players as well
-        print("Player ${currentPlayerIndex}'s turn!");
-        Player currentPlayer = players[currentPlayerIndex];
-        if (currentPlayer.isDone) {
-          print(
-            "Player ${currentPlayerIndex} is already done! Going to next player!",
-          );
-        } else if (currentPlayer is CpuPlayer) {
-          if (currentPlayer.difficulty == Difficulty.easy) {}
-        } else {}
-
-        currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+  void aiTurn(CpuPlayer currentCPUPlayer) {
+    if (currentCPUPlayer.difficulty == Difficulty.easy) {
+      //Easy difficulty: has a risk tolerance of 45%, so
+      //if probability of failing is less than 45%, hit
+      riskTolerance(currentCPUPlayer, .45);
+    } else if (currentCPUPlayer.difficulty == Difficulty.medium) {
+      //Medium difficulty: has a risk tolerance of 30%, so
+      //if probability of failing is less than 30%, hit
+      riskTolerance(currentCPUPlayer, .3);
+    } else if (currentCPUPlayer.difficulty == Difficulty.hard) {
+      //Hard diifficulty: Starts comparing by EV instead of probability risk
+      //if E[hit] >= n, hit , else stay
+      EVBasedComparison(currentCPUPlayer);
+    }
+    //Else, is expert difficulty
+    else {
+      //Random number from 1 to 7. If 6 or 7, AI gets
+      //to peak at the next card in the deck
+      int rng = random.nextInt(7) + 1;
+      if (rng == 6 || rng == 7) {
+        //TO DO: do the deck peak, case by case analysis
+      } else {
+        EVBasedComparison(currentCPUPlayer);
       }
     }
   }
+
+  //Easy and medium difficulty players play based on risk tolerance.
+  //If risk of failing is too high, stay
+  void riskTolerance(Player currentCPUPlayer, double failureTolerance) {
+    double failureProb = calculateFailureProbability(currentCPUPlayer);
+    if (failureProb < failureTolerance) {
+      gameHit(currentCPUPlayer);
+    } else {
+      currentCPUPlayer.handleStay();
+    }
+    return;
+  }
+
+  void gameHit(Player currentPlayer) {
+    cd.Card hitCard = deck.draw();
+    currentPlayer.onHit(hitCard);
+    return;
+  }
+  // void gameRotation() {
+  //   while (!gameEnd) {
+  //     donePlayers = Set();
+  //     roundStart();
+  //     while (donePlayers.length < totalPlayerCount) {
+  //       //TO DO: Handle this, will be different from python because has non-human players as well
+  //       print("Player ${currentPlayerIndex}'s turn!");
+  //       Player currentPlayer = players[currentPlayerIndex];
+  //       if (currentPlayer.isDone) {
+  //         print(
+  //           "Player ${currentPlayerIndex} is already done! Going to next player!",
+  //         );
+  //       } else if (currentPlayer is CpuPlayer) {
+  //         if (currentPlayer.difficulty == Difficulty.easy) {}
+  //       } else {}
+
+  //       currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+  //     }
+  //   }
+  // }
 
   //Show deck distribution
   void showDeckDistribution() {
@@ -194,12 +250,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("There are a total of ${numCardLeft} cards left in the deck");
   }
 
-  //Calculate player's chance of busting, and expected value should they choose another hit
-  void calculatePlayerProbabilityEV() {}
-
   //Calculate player's chance of busting
-  double calculateFailureProbability(int playerNum) {
-    Player currentPlayer = players[playerNum];
+  double calculateFailureProbability(Player currentPlayer) {
     int outcomeCardinality =
         0; //the total number of cards in deck that can bust you
 
@@ -217,6 +269,35 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double failureProb = outcomeCardinality / numCardsLeft;
     print("Your probability of failing is: ${failureProb}");
     return failureProb;
+  }
+
+  //Hard and Expert AI players compare E[X+n] to n
+  void EVBasedComparison(Player currentPlayer) {
+    double ev = calculateEVCumulative(currentPlayer);
+    double failureProb = calculateFailureProbability(currentPlayer);
+    double successProb = 1 - failureProb;
+
+    //ev is the expected value of the hit itself given it was a success.
+    //So we multiply it by success probability. Then we add the event you fail
+    //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
+    //by failureProb.
+    double valueHit = ev * successProb + 0 * failureProb;
+    if (valueHit >= currentPlayer.currentValue) {
+      gameHit(currentPlayer);
+    } else {
+      currentPlayer.handleStay();
+    }
+    return;
+  }
+
+  //Calculate actual expected value of next hit, including current points
+  double calculateEVCumulative(Player currentPlayer) {
+    double evCumulative =
+        currentPlayer.currentValue +
+        calculateEVMultCards() * calculateEVNumberCards(currentPlayer) +
+        calculateEVPlusMinusValueCards() +
+        calculateEVEventCards();
+    return evCumulative;
   }
 
   //Expected value of multiplier for mult cards
@@ -239,7 +320,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   //Expected value of number card
-  double calculateEVNumberCards() {
+  double calculateEVNumberCards(Player currentPlayer) {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
 
@@ -252,6 +333,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     for (int number in deck.numberCardsLeft.keys) {
       int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
+      //If number card is a number that the player already has, skip it
+      if (currentPlayer.numHand.contains(number)) {
+        continue;
+      }
       evNumberCard +=
           number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
       // totalNumberCards += amountOfSpecificNumberCardInDeck;
@@ -295,6 +380,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evEventCard;
   }
 
+  //This  should only be for visual animation -sean
   // This manages drawing a card form deck and then putting it into player
   void onCardDrawnFromDeck() {
     // draw from deck
@@ -353,6 +439,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _initPlayerList();
     game.world.addAll(players);
 
+    roundStart();
     // Set up Hud
     hud = Hud(
       hitPressed: _onHitPressed,
@@ -486,6 +573,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   void _rotatePlayers() {
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+    }
     // Determine next bottom index from the players array
     int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
@@ -494,10 +585,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     // Do not rotate if next player is CPU
+    //TO DO: since they don't rotate, they should do their turn here
     if (players[nextPlayerBottomIndex] is CpuPlayer) {
       print(
         "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
       );
+      aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
       rotationPlayerOffset++;
       currentPlayerIndex = nextPlayerBottomIndex;
     } else {
