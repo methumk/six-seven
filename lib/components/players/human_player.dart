@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/player.dart';
 
@@ -23,5 +24,11 @@ class HumanPlayer extends Player {
       position: Vector2.all(0),
     );
     add(playerName);
+
+    nch = NumberCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    add(nch);
+
+    dch = DynamicCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    add(dch);
   }
 }

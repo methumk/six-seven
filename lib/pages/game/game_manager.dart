@@ -203,7 +203,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int outcomeCardinality =
         0; //the total number of cards in deck that can bust you
 
-    for (double number in currentPlayer.numHand) {
+    for (double number in currentPlayer.numHandSet) {
       int currentNumberCardinality = deck.numberCardsLeft[number]!;
 
       print(

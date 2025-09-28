@@ -54,7 +54,9 @@ abstract class Card extends RoundedBorderComponent
   static final Vector2 cardSize = Vector2(80, 140);
   static final Vector2 halfCardSize = cardSize / 2;
   Card({required this.cardType})
-    : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0);
+    : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
+    anchor = Anchor.bottomCenter;
+  }
 
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
@@ -71,7 +73,6 @@ class NumberCard extends Card {
 
   NumberCard({required double value}) : super(cardType: CardType.numberCard) {
     _value = value;
-    anchor = Anchor.bottomCenter;
   }
 
   double get value => _value;
@@ -219,9 +220,6 @@ class NumberCard extends Card {
     super.onTapDown(event);
     print("Tapping down");
   }
-
-  @override
-  bool get debugMode => true;
 }
 
 //Event Action Card Class
