@@ -340,7 +340,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   //Warning:Both peek and forecasting are shallow copies and hence point to
   // the same memory. In other words, changing the values of the copy will change
   //the values of the original deck element.
-  Card Peek() {
+  Card peek() {
     //First, check if deck is empty. Then refill before peeking
     if (deckList == []) {
       refill();
@@ -348,7 +348,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     return deckList[-1];
   }
 
-  List<Card> Forecast() {
+  List<Card> forecast() {
     //This is only if deckList is entirely empty
     //If length >0 and <3, just forecast rest of cards in deck
     if (deckList == []) {
@@ -357,7 +357,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     int numPeek = min(deckList.length, 4);
     List<Card> forecastCards = [];
     for (int i = 1; i <= numPeek; i++) {
-      forecastCards.add(Peek());
+      forecastCards.add(peek());
     }
     return forecastCards;
   }
