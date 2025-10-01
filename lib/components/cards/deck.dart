@@ -354,7 +354,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     if (deckList == []) {
       refill();
     }
-    int numPeek = min(deckList.length, 3);
+    int numPeek = min(deckList.length, 4);
     List<Card> forecastCards = [];
     for (int i = 1; i <= numPeek; i++) {
       forecastCards.add(Peek());
