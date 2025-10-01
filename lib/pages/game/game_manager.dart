@@ -179,11 +179,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //to peak at the next card in the deck
       int rng = random.nextInt(7) + 1;
       if (rng == 6 || rng == 7) {
-        //TO DO: do the deck peak, case by case analysis
+        cd.Card peekCard = deck.peek();
+        //TO DO: case by case analysis of peeked card
       } else {
         EVBasedComparison(currentCPUPlayer);
       }
     }
+    return;
   }
 
   //Easy and medium difficulty players play based on risk tolerance.
@@ -192,8 +194,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
     if (failureProb < failureTolerance) {
       gameHit(currentCPUPlayer);
+      _onHitPressed();
     } else {
       currentCPUPlayer.handleStay();
+      _onStayPressed();
     }
     return;
   }
@@ -284,8 +288,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double valueHit = ev * successProb + 0 * failureProb;
     if (valueHit >= currentPlayer.currentValue) {
       gameHit(currentPlayer);
+      _onHitPressed();
     } else {
       currentPlayer.handleStay();
+      _onStayPressed();
     }
     return;
   }
