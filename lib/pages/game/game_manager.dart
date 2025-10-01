@@ -49,7 +49,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   //When there's no reverse, players increment in CCW manner.
   //So if player 0 (call them main player) is in the bottom, then player 1 is right, player 2 is up, player 3 is left, etc
-  bool tableSpinCCW = true;
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
 
@@ -121,7 +120,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   int getNextPlayer(int player) {
-    if (tableSpinCCW) {
+    if (rotationDirection == PlayerRotation.counterClockWise) {
       player = (player + 1) % totalPlayerCount;
     } else {
       if (player == 0) {
@@ -201,7 +200,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void gameHit(Player currentPlayer) {
     cd.Card hitCard = deck.draw();
     currentPlayer.onHit(hitCard);
-    return;
   }
   // void gameRotation() {
   //   while (!gameEnd) {
@@ -386,7 +384,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // draw from deck
     // if not event or card can be put into player .. put into player
     final card = deck.draw();
-    print("Got card: $card");
+    print("Got card: $card ${card.cardType}");
 
     players[currentPlayerIndex].onHit(card);
   }
