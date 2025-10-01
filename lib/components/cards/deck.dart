@@ -337,6 +337,31 @@ class CardDeck extends PositionComponent with TapCallbacks {
     return newCard;
   }
 
+  //Warning:Both peek and forecasting are shallow copies and hence point to
+  // the same memory. In other words, changing the values of the copy will change
+  //the values of the original deck element.
+  Card Peek() {
+    //First, check if deck is empty. Then refill before peeking
+    if (deckList == []) {
+      refill();
+    }
+    return deckList[-1];
+  }
+
+  List<Card> Forecast() {
+    //This is only if deckList is entirely empty
+    //If length >0 and <3, just forecast rest of cards in deck
+    if (deckList == []) {
+      refill();
+    }
+    int numPeek = min(deckList.length, 4);
+    List<Card> forecastCards = [];
+    for (int i = 1; i <= numPeek; i++) {
+      forecastCards.add(Peek());
+    }
+    return forecastCards;
+  }
+
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
