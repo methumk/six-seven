@@ -33,6 +33,13 @@ class NumberCardHolder extends PositionComponent with TapCallbacks {
     card.priority = currCardPriority++;
   }
 
+  bool hasValue(NumberCard nc) {
+    for (var card in numberHand) {
+      if (card.value == nc.value) return true;
+    }
+    return false;
+  }
+
   void updateScale(double scale) {
     if (scale <= 0 || scale >= 1) return;
     for (final c in numberHand) {
@@ -60,11 +67,12 @@ class DynamicCardHolder extends PositionComponent {
   static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .15, 0);
   final List<PlusCard> addHand = [];
   final List<MultCard> multHand = [];
-  final List<MinusCard> minusHand = [];
+  // final List<MinusCard> minusHand = [];
   final List<EventActionCard> eventHand =
       []; // Only for some events - most events get used
   int currCardPriority = 0;
-  Map<double, int> minusHandMap = {};
+  int minusCardLength = 0;
+  Map<double, List<MinusCard>> minusHandMap = {};
 
   DynamicCardHolder() : super(anchor: Anchor.bottomLeft) {}
 
@@ -75,8 +83,7 @@ class DynamicCardHolder extends PositionComponent {
 
   void _setCard(Card card) {
     int totalCards =
-        addHand.length + multHand.length + minusHand.length + eventHand.length;
-    print("total Cards: $totalCards");
+        addHand.length + multHand.length + minusCardLength + eventHand.length;
 
     Vector2 newCardPos = Vector2(
       position.x + Card.halfCardSize.x + (totalCards * cardPosOffset.x),
@@ -93,10 +100,18 @@ class DynamicCardHolder extends PositionComponent {
     } else if (c is MultCard) {
       multHand.add(c);
     } else if (c is MinusCard) {
-      minusHand.add(c);
+      double minusValue = c.value;
+      minusCardLength++;
+      if (minusHandMap.containsKey(minusValue)) {
+        var minusList = minusHandMap[minusValue];
+        minusList!.add(c);
+      } else {
+        minusHandMap[minusValue] = [c];
+      }
     } else if (c is EventActionCard) {
       eventHand.add(c);
     }
+
     _setCard(c);
     add(c);
   }
@@ -120,11 +135,29 @@ class DynamicCardHolder extends PositionComponent {
     addHand.clear();
   }
 
-  void removeAllMinusHand() {
-    for (final c in minusHand) {
-      remove(c);
+  bool minusCardInHand(double numberValue) =>
+      minusHandMap.containsKey(numberValue) &&
+      minusHandMap[numberValue]!.isNotEmpty;
+
+  void removeSingleMinusCard(double minusValue) {
+    final minusList = minusHandMap[minusValue];
+    if (minusList != null && minusList.isNotEmpty) {
+      var mc = minusList.removeLast();
+      remove(mc);
     }
-    minusHand.clear();
+  }
+
+  void removeAllMinusHand() {
+    for (final c in minusHandMap.entries) {
+      final minusList = minusHandMap[c.key];
+      if (minusList != null) {
+        for (MinusCard mc in minusList) {
+          remove(mc);
+        }
+      }
+    }
+    minusHandMap.clear();
+    minusCardLength = 0;
   }
 
   void removeAllMultHand() {
@@ -143,7 +176,6 @@ class DynamicCardHolder extends PositionComponent {
   void removeAllCards() {
     removeAllValueHands();
     removeAllEventHand();
-    minusHandMap.clear();
     currCardPriority = 0;
   }
 }

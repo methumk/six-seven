@@ -16,24 +16,14 @@ abstract class Player extends PositionComponent
   double totalValue = 0;
   double currentValue = 0;
   bool isDone = false;
-  // Set<double> numHand = Set();
   late final NumberCardHolder nch;
   late final DynamicCardHolder dch;
-  // List<NumberCard> numberHand = [];
-  // List<PlusCard> addHand = [];
-  // List<MultCard> multHand = [];
-  // List<MinusCard> minusHand = [];
-  //Minus hands are special in that positive duplicates can be canceled
-  //by a minus card of same value.
-  //To have fast checks, we instead need a hashmap
-  // Map<double, int> minusHandMap = {};
 
   Set<double> get numHandSet => nch.numHandSet;
   List<NumberCard> get numberHand => nch.numberHand;
   List<PlusCard> get addHand => dch.addHand;
   List<MultCard> get multHand => dch.multHand;
-  List<MinusCard> get minusHand => dch.minusHand;
-  Map<double, int> get minusHandMap => dch.minusHandMap;
+  Map<double, List<MinusCard>> get minusHandMap => dch.minusHandMap;
 
   bool doubleChance = false;
   late int playerNum;
@@ -83,7 +73,7 @@ abstract class Player extends PositionComponent
       currentValue = addCard.executeOnStay(currentValue);
     }
     for (var minusValue in dch.minusHandMap.entries) {
-      for (int i = 1; i <= minusValue.value; i++) {
+      for (int i = 1; i <= minusValue.value.length; i++) {
         currentValue -= minusValue.key;
       }
     }
@@ -99,11 +89,7 @@ abstract class Player extends PositionComponent
 
   //Method for resetting certain attributes
   void reset() {
-    // numHand.clear();
-    // addHand.clear();
-    // multHand.clear();
-    // minusHand.clear();
-    // minusHandMap.clear();
+    nch.removeAllCards();
     dch.removeAllCards();
     isDone = false;
     currentValue = 0;
@@ -115,10 +101,8 @@ abstract class Player extends PositionComponent
     print("You hit and got a card:");
     newCard.description();
     if (newCard is NumberCard) {
-      hitNumberCard(newCard.value);
-      nch.addCardtoHand(newCard);
+      hitNumberCard(newCard);
     } else if (newCard is ValueActionCard) {
-      hitValueActionCard(newCard);
       dch.addCardtoHand(newCard);
     } else {
       // Only some event cards get added
@@ -138,14 +122,13 @@ abstract class Player extends PositionComponent
   }
 
   //sub-method for hitting a number card
-  void hitNumberCard(double numberValue) {
-    if (nch.numHandSet.contains(numberValue)) {
-      if (dch.minusHandMap.containsKey(numberValue) &&
-          dch.minusHandMap[numberValue]! >= 1) {
+  void hitNumberCard(NumberCard nc) {
+    if (nch.numHandSet.contains(nc.value)) {
+      if (dch.minusCardInHand(nc.value)) {
         print(
-          "You got a duplicate card, but you also have a minus card of the same value in magnitude! Hence that minus card cancels out the duplicate!",
+          "You got a duplicate card, but you also have a minus card of the same value (${nc.value}) in magnitude! Hence that minus card cancels out the duplicate!",
         );
-        dch.minusHandMap[numberValue] = dch.minusHandMap[numberValue]! - 1;
+        dch.removeSingleMinusCard(nc.value);
       } else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
@@ -153,23 +136,8 @@ abstract class Player extends PositionComponent
         bust();
       }
     } else {
-      nch.numHandSet.add(numberValue);
-    }
-  }
-
-  //Sub-method for hitting a value action card
-  void hitValueActionCard(ValueActionCard newCard) {
-    if (newCard is PlusCard) {
-      dch.addHand.add(newCard);
-    } else if (newCard is MultCard) {
-      dch.multHand.add(newCard);
-    } else if (newCard is MinusCard) {
-      double minusValue = newCard.value;
-      if (dch.minusHandMap.containsKey(minusValue)) {
-        dch.minusHandMap[minusValue] = dch.minusHandMap[minusValue]! + 1;
-      } else {
-        dch.minusHandMap[minusValue] = 1;
-      }
+      nch.addCardtoHand(nc);
+      nch.numHandSet.add(nc.value);
     }
   }
 
