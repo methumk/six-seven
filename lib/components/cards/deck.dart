@@ -394,7 +394,4 @@ class CardDeck extends PositionComponent with TapCallbacks {
 
     // addAll([deckComponent, discardComponent]);
   }
-
-  @override
-  bool get debugMode => true;
 }
