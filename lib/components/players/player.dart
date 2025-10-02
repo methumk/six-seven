@@ -89,7 +89,13 @@ abstract class Player extends PositionComponent
 
   //Method for resetting certain attributes
   void reset() {
+    game.gameManager.deck.addToDiscard(nch.numberHand);
     nch.removeAllCards();
+    game.gameManager.deck.addToDiscard(dch.addHand);
+    game.gameManager.deck.addToDiscard(dch.multHand);
+    for (var minusCardList in dch.minusHandMap.values) {
+      game.gameManager.deck.addToDiscard(minusCardList);
+    }
     dch.removeAllCards();
     isDone = false;
     currentValue = 0;
