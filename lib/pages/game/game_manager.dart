@@ -604,6 +604,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       rotation: rotationDirection,
     );
 
+    //If player is done, skip
+    while (players[nextPlayerBottomIndex].isDone) {
+      rotationPlayerOffset++;
+    }
+
     // Do not rotate if next player is CPU
     //TO DO: since they don't rotate, they should do their turn here
     if (players[nextPlayerBottomIndex] is CpuPlayer) {
