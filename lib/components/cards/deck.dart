@@ -337,6 +337,11 @@ class CardDeck extends PositionComponent with TapCallbacks {
     return newCard;
   }
 
+  void addToDiscard(List<Card> newTrash) {
+    discardPile = discardPile + newTrash;
+    return;
+  }
+
   //Warning:Both peek and forecasting are shallow copies and hence point to
   // the same memory. In other words, changing the values of the copy will change
   //the values of the original deck element.
