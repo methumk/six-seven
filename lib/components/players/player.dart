@@ -61,6 +61,9 @@ abstract class Player extends PositionComponent
 
   //Method for handling when player stays
   void handleStay() {
+    print("Handling stay");
+    //Make isDone bool true
+    isDone = true;
     currentValue = 0;
     for (double numberValue in nch.numHandSet) {
       currentValue += numberValue;
@@ -85,10 +88,12 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length >= 7) {
       currentValue += 42;
     }
+    //Remove all cards from player's hand
+    handRemoval();
   }
 
-  //Method for resetting certain attributes
-  void reset() {
+  //Method for discarding cards on bust/staying
+  void handRemoval() {
     game.gameManager.deck.addToDiscard(nch.numberHand);
     nch.removeAllCards();
     game.gameManager.deck.addToDiscard(dch.addHand);
@@ -97,6 +102,10 @@ abstract class Player extends PositionComponent
       game.gameManager.deck.addToDiscard(minusCardList);
     }
     dch.removeAllCards();
+  }
+
+  //Method for resetting certain attributes
+  void reset() {
     isDone = false;
     currentValue = 0;
     doubleChance = false;
@@ -120,6 +129,7 @@ abstract class Player extends PositionComponent
   void bust() {
     print("Bust!");
     isDone = true;
+    handRemoval();
   }
 
   //Grant player a double chance status
@@ -172,4 +182,7 @@ abstract class Player extends PositionComponent
     super.update(dt);
     _handleRotate(dt);
   }
+
+  @override
+  bool get debugMode => true;
 }
