@@ -71,7 +71,7 @@ class DynamicCardHolder extends PositionComponent {
   final List<EventActionCard> eventHand =
       []; // Only for some events - most events get used
   int currCardPriority = 0;
-  int minusCardLength = 0;
+  int minusHandLength = 0;
   Map<double, List<MinusCard>> minusHandMap = {};
 
   DynamicCardHolder() : super(anchor: Anchor.bottomLeft) {}
@@ -81,17 +81,121 @@ class DynamicCardHolder extends PositionComponent {
     super.onLoad();
   }
 
-  void _setCard(Card card) {
-    int totalCards =
-        addHand.length + multHand.length + minusCardLength + eventHand.length;
+  // Updates all card positions based on order (card assumed to be already added to arrays (lengths updated))
+  // Order of rendering is Add/Minus/Mult/Event
+  void _updateCardPosOnAdd(Card card) {
+    int totalCardsAtPlacement = 0;
+    Vector2 newCardPos = Vector2(position.x + Card.halfCardSize.x, 0);
 
-    Vector2 newCardPos = Vector2(
-      position.x + Card.halfCardSize.x + (totalCards * cardPosOffset.x),
-      0,
-    );
+    // Determine current placement total cards
+    if (card is PlusCard) {
+      totalCardsAtPlacement += addHand.length;
+    } else if (card is MinusCard) {
+      totalCardsAtPlacement += addHand.length + minusHandLength;
+    } else if (card is MultCard) {
+      totalCardsAtPlacement +=
+          addHand.length + minusHandLength + multHand.length;
+    } else if (card is EventActionCard) {
+      totalCardsAtPlacement +=
+          addHand.length + minusHandLength + multHand.length + eventHand.length;
+    }
+    newCardPos.x = newCardPos.x + (totalCardsAtPlacement * cardPosOffset.x);
+
+    // Update current cards position and priority
+    // NOTE: priority is the same as total cards at placement
     card.position = newCardPos;
-    // Newest card (on left is higher up than previous cards)
-    card.priority = currCardPriority++;
+    currCardPriority = totalCardsAtPlacement;
+    card.priority = currCardPriority;
+
+    // if plus --> update minus/mult/event
+    // if minus --> update mult/event
+    // if mult --> update event
+    // Update the next cards positions
+    bool updateNext = false;
+    if (card is PlusCard) {
+      for (final c in minusHandMap.entries) {
+        final minusList = minusHandMap[c.key];
+        if (minusList != null) {
+          for (MinusCard mc in minusList) {
+            mc.position = Vector2(
+              position.x +
+                  Card.halfCardSize.x +
+                  (++currCardPriority * cardPosOffset.x),
+              0,
+            );
+            mc.priority = currCardPriority;
+          }
+        }
+      }
+      // Update mult cards next
+      updateNext = true;
+    }
+    if (updateNext || card is MinusCard) {
+      for (var mtc in multHand) {
+        mtc.position = Vector2(
+          position.x +
+              Card.halfCardSize.x +
+              (++currCardPriority * cardPosOffset.x),
+          0,
+        );
+        mtc.priority = currCardPriority;
+      }
+      updateNext = true;
+    }
+    if (updateNext || card is MultCard) {
+      for (var eac in eventHand) {
+        eac.position = Vector2(
+          position.x +
+              Card.halfCardSize.x +
+              (++currCardPriority * cardPosOffset.x),
+          0,
+        );
+        eac.priority = currCardPriority;
+      }
+    }
+  }
+
+  void _updateCardPositionOnMinusRemoval() {
+    // Curr priority starts at number of add cards
+    currCardPriority = addHand.length;
+
+    // Update minus hand position
+    for (final c in minusHandMap.entries) {
+      final minusList = minusHandMap[c.key];
+      if (minusList != null) {
+        for (MinusCard mc in minusList) {
+          mc.position = Vector2(
+            position.x +
+                Card.halfCardSize.x +
+                (++currCardPriority * cardPosOffset.x),
+            0,
+          );
+          mc.priority = currCardPriority;
+        }
+      }
+    }
+
+    // mult hand position update
+    for (var mtc in multHand) {
+      mtc.position = Vector2(
+        position.x +
+            Card.halfCardSize.x +
+            (++currCardPriority * cardPosOffset.x),
+        0,
+      );
+      mtc.priority = currCardPriority;
+    }
+
+    // Event hand position update
+    for (var eac in eventHand) {
+      eac.position = Vector2(
+        position.x +
+            Card.halfCardSize.x +
+            (++currCardPriority * cardPosOffset.x),
+        0,
+      );
+      eac.priority = currCardPriority;
+    }
   }
 
   void addCardtoHand(Card c) {
@@ -101,7 +205,7 @@ class DynamicCardHolder extends PositionComponent {
       multHand.add(c);
     } else if (c is MinusCard) {
       double minusValue = c.value;
-      minusCardLength++;
+      minusHandLength++;
       if (minusHandMap.containsKey(minusValue)) {
         var minusList = minusHandMap[minusValue];
         minusList!.add(c);
@@ -112,7 +216,7 @@ class DynamicCardHolder extends PositionComponent {
       eventHand.add(c);
     }
 
-    _setCard(c);
+    _updateCardPosOnAdd(c);
     add(c);
   }
 
@@ -139,11 +243,14 @@ class DynamicCardHolder extends PositionComponent {
       minusHandMap.containsKey(numberValue) &&
       minusHandMap[numberValue]!.isNotEmpty;
 
+  // Removes card from hand and updates all other card positions
   void removeSingleMinusCard(double minusValue) {
     final minusList = minusHandMap[minusValue];
     if (minusList != null && minusList.isNotEmpty) {
       var mc = minusList.removeLast();
+      minusHandLength--;
       remove(mc);
+      _updateCardPositionOnMinusRemoval();
     }
   }
 
@@ -157,7 +264,7 @@ class DynamicCardHolder extends PositionComponent {
       }
     }
     minusHandMap.clear();
-    minusCardLength = 0;
+    minusHandLength = 0;
   }
 
   void removeAllMultHand() {
