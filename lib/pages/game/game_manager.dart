@@ -152,7 +152,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     for (int i = 0; i < totalPlayerCount; i++) {
       //At round start, players are forced to hit, so _onHitPressed() might be automatically called
       // _onHitPressed();
-      gameHit(players[currentPlayerIndex]);
+      players[currentPlayerIndex].reset();
+      _handleDrawCardFromDeck();
       currentPlayerIndex = getNextPlayer(currentPlayerIndex);
     }
     return;
@@ -192,7 +193,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void riskTolerance(Player currentCPUPlayer, double failureTolerance) {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
     if (failureProb < failureTolerance) {
-      gameHit(currentCPUPlayer);
+      _handleDrawCardFromDeck();
       _onHitPressed();
     } else {
       currentCPUPlayer.handleStay();
@@ -201,10 +202,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return;
   }
 
-  void gameHit(Player currentPlayer) {
-    cd.Card hitCard = deck.draw();
-    currentPlayer.onHit(hitCard);
-  }
   // void gameRotation() {
   //   while (!gameEnd) {
   //     donePlayers = Set();
@@ -285,7 +282,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //by failureProb.
     double valueHit = ev * successProb + 0 * failureProb;
     if (valueHit >= currentPlayer.currentValue) {
-      gameHit(currentPlayer);
+      _handleDrawCardFromDeck();
       _onHitPressed();
     } else {
       currentPlayer.handleStay();
@@ -384,15 +381,20 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evEventCard;
   }
 
-  //This  should only be for visual animation -sean
   // This manages drawing a card form deck and then putting it into player
   void _handleDrawCardFromDeck() {
     // draw from deck
     // if not event or card can be put into player .. put into player
+    Player currentPlayer = players[currentPlayerIndex];
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
-    players[currentPlayerIndex].onHit(card);
+    currentPlayer.onHit(card);
+
+    if (currentPlayer.isDone) {
+      donePlayers.add(currentPlayer);
+    }
+    return;
   }
 
   @override
@@ -565,6 +567,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return;
     }
 
+    Player currentPlayer = players[currentPlayerIndex];
+    currentPlayer.handleStay();
+    donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(seconds: 1));
 
     // Rotate the players and disable hit/stay when running
@@ -581,7 +586,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // drawCardFromDeck
     _handleDrawCardFromDeck();
-
     // Calculate bust
 
     // Handle events
@@ -594,9 +598,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void _rotatePlayers() {
     if (donePlayers.length == totalPlayerCount) {
+      print("Jin Jie");
       roundStart();
       donePlayers = Set();
+      rotationPlayerOffset++;
+      for (int i = 0; i < totalPlayerCount; i++) {
+        print("Is player ${i} done: ${players[i].isDone}");
+      }
     }
+    print("Not Jin Jie");
     // Determine next bottom index from the players array
     int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
@@ -606,11 +616,19 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     //If player is done, skip
     while (players[nextPlayerBottomIndex].isDone) {
+      nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+        nextPlayerBottomIndex,
+        totalPlayerCount,
+        rotation: rotationDirection,
+      );
+      // print("next bottom index: ${nextPlayerBottomIndex}");
       rotationPlayerOffset++;
     }
 
     // Do not rotate if next player is CPU
-    //TO DO: since they don't rotate, they should do their turn here
+    // Since AI is not human, they are coded to make actions
+    //based on difficulty. This is done automatically, without having any rotations
+    //and hence we don't rotate until it comes to a human player's turn, or everyone is done
     if (players[nextPlayerBottomIndex] is CpuPlayer) {
       print(
         "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
@@ -832,9 +850,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         // Update position of players
         for (int i = 0; i < totalPlayerCount; ++i) {
           Player p = players[i];
+
           if (p.isRotating) {
+            print(
+              "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
+            );
             // If player has reached close enough to target position go to next player
-            if (almostEqual(p.position, p.moveTo!, epsilon: 0.01)) {
+            if (almostEqual(p.position, p.moveTo!, epsilon: 15)) {
               print("Player $i has finished rotating");
               p.position = p.moveTo!;
               p.isRotating = false;
@@ -844,7 +866,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
             // Determine speed angle to determine position
             double angle =
-                p.currAngle + (direction * speedPerRotation * p.rotateNum * dt);
+                // p.currAngle + (direction * speedPerRotation * p.rotateNum * dt);
+                p.currAngle + (direction * speedPerRotation * dt);
             if (angle > math.pi * 2) {
               angle -= math.pi * 2;
             }
