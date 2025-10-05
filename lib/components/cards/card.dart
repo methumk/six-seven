@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/value_action_text.dart';
@@ -49,10 +50,19 @@ String doubleToStringNoTrailingZeros(double value, int safeZone) {
 
 //Base card class
 abstract class Card extends RoundedBorderComponent
-    with DragCallbacks, TapCallbacks {
+    with DragCallbacks, TapCallbacks, HoverCallbacks {
   late CardType cardType;
   static final Vector2 cardSize = Vector2(80, 140);
   static final Vector2 halfCardSize = cardSize / 2;
+
+  // Attributes related to cards being touched moved inside deck
+  MoveToEffect? dragEndMoveTo;
+  MoveToEffect? spotLightMoveUp;
+  MoveToEffect? spotLightMoveDown;
+  int savePriority = 0;
+  Vector2? deckReturnTo;
+  bool spotLightEnable = false;
+
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
     anchor = Anchor.bottomCenter;
@@ -63,6 +73,27 @@ abstract class Card extends RoundedBorderComponent
   void executeOnEvent();
   double executeOnStay(double currentValue);
   void description();
+
+  void onDragEndReturnTo(Vector2 returnPos, int priority) {
+    if (deckReturnTo == null) {
+      deckReturnTo = returnPos.clone();
+    } else {
+      deckReturnTo!.setFrom(returnPos);
+    }
+    savePriority = priority;
+  }
+
+  void dragEndReturnEffect() {
+    if (deckReturnTo == null) return;
+
+    dragEndMoveTo?.removeFromParent();
+    dragEndMoveTo = MoveToEffect(
+      deckReturnTo!,
+      EffectController(duration: 0.3),
+    );
+
+    add(dragEndMoveTo!);
+  }
 }
 
 //Base Number Card Class
@@ -70,6 +101,7 @@ class NumberCard extends Card {
   late final double _value;
   late final TextComponent _tlText, _trText, _blText, _brText, _cText;
   bool componentInitialized = false;
+  Vector2? dragOffset;
 
   NumberCard({required double value}) : super(cardType: CardType.numberCard) {
     _value = value;
@@ -205,14 +237,14 @@ class NumberCard extends Card {
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    position += event.canvasDelta;
+    position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    // paint.color = Colors.white;
     fillColor = Colors.white;
+    dragEndReturnEffect();
   }
 
   @override
@@ -318,13 +350,14 @@ abstract class EventActionCard extends Card {
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    position += event.canvasDelta;
+    position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
     fillColor = Colors.white;
+    dragEndReturnEffect();
   }
 
   @override
@@ -437,13 +470,14 @@ abstract class ValueActionCard extends Card {
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    position += event.canvasDelta;
+    position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
     fillColor = Colors.white;
+    dragEndReturnEffect();
   }
 
   @override
