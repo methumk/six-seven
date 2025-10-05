@@ -52,6 +52,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
 
+  bool buttonPressed = false;
   late final Leaderboard<Player> endGameLeaderBoard;
   late final Leaderboard<Player> currentLeaderBoard;
 
@@ -147,19 +148,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void calculateLeaderBoard() {}
 
   void roundStart() {
-    turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
-    currentPlayerIndex = turnStarterPlayerIndex;
     for (int i = 0; i < totalPlayerCount; i++) {
       //At round start, players are forced to hit, so _onHitPressed() might be automatically called
       // _onHitPressed();
-      players[currentPlayerIndex].reset();
-      _handleDrawCardFromDeck();
-      currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+      players[i].reset();
+      _handleDrawCardFromDeck(i);
     }
     return;
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
+    print("Difficulty of current AI: ${currentCPUPlayer.difficulty}");
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
       //Easy difficulty: has a risk tolerance of 45%, so
       //if probability of failing is less than 45%, hit
@@ -175,6 +174,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     //Else, is expert difficulty
     else {
+      print("Watch out we got Phil Hellmuth over here");
       //Random number from 1 to 7. If 6 or 7, AI gets
       //to peak at the next card in the deck
       int rng = random.nextInt(7) + 1;
@@ -280,9 +280,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
     //by failureProb.
     double valueHit = ev * successProb + 0 * failureProb;
+    print("Expected value of hit E[hit] = current value + E[X]: ${valueHit}");
+    print("Current Value: ${currentPlayer.currentValue}");
     if (valueHit >= currentPlayer.currentValue) {
+      print("Expected value is higher than current points. Hit!");
       _onHitPressed();
     } else {
+      print("Current points exceed expected value. Stay!");
       currentPlayer.handleStay();
       _onStayPressed();
     }
@@ -380,10 +384,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // This manages drawing a card form deck and then putting it into player
-  void _handleDrawCardFromDeck() {
+  void _handleDrawCardFromDeck(int playerIndex) {
     // draw from deck
     // if not ent or card can be put into player .. put into player
-    Player currentPlayer = players[currentPlayerIndex];
+    Player currentPlayer = players[playerIndex];
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
@@ -560,10 +564,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on stay pressed handler
   Future<void> _onStayPressed() async {
     print("Stay Pressed");
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+    if (animatePlayerRotation || buttonPressed) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
+
+    buttonPressed = true;
 
     hud.disableHitAndStayBtns();
     Player currentPlayer = players[currentPlayerIndex];
@@ -571,6 +577,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(seconds: 1));
 
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+      rotationPlayerOffset = 0;
+    }
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
@@ -578,34 +589,31 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on hit pressed handler
   // Handles rotation, and other functionality
   Future<void> _onHitPressed() async {
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+    hud.disableHitAndStayBtns();
+    if (animatePlayerRotation || buttonPressed) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
 
-    hud.disableHitAndStayBtns();
+    buttonPressed = true;
     // drawCardFromDeck
-    _handleDrawCardFromDeck();
+    _handleDrawCardFromDeck(currentPlayerIndex);
     // Calculate bust
 
     // Handle events
 
     await Future.delayed(const Duration(seconds: 1));
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+      rotationPlayerOffset = 0;
+    }
 
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
 
   Future<void> _rotatePlayers() async {
-    if (donePlayers.length == totalPlayerCount) {
-      print("Jin Jie");
-      roundStart();
-      donePlayers = Set();
-      rotationPlayerOffset = 0;
-      for (int i = 0; i < totalPlayerCount; i++) {
-        print("Is player ${i} done: ${players[i].isDone}");
-      }
-    }
     //Get the next player to be rotated to
     currentPlayerIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
@@ -816,6 +824,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void _onRotationFinished() {
     animatePlayerRotation = false;
+    buttonPressed = false;
     if (players[currentPlayerIndex].isCpu()) {
       hud.disableHitAndStayBtns();
       print(
@@ -826,6 +835,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     } else {
       hud.enableHitAndStayBtns();
     }
+    return;
   }
 
   // Handle player rotation on update
@@ -849,7 +859,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
             // );
             // If player has reached close enough to target position go to next player
-            if (almostEqual(p.position, p.moveTo!, epsilon: 15)) {
+            if (almostEqual(p.position, p.moveTo!, epsilon: 25)) {
               print("Player $i has finished rotating");
               p.position = p.moveTo!;
               p.isRotating = false;
