@@ -57,11 +57,8 @@ abstract class Card extends RoundedBorderComponent
 
   // Attributes related to cards being touched moved inside deck
   MoveToEffect? dragEndMoveTo;
-  MoveToEffect? spotLightMoveUp;
-  MoveToEffect? spotLightMoveDown;
   int savePriority = 0;
   Vector2? deckReturnTo;
-  bool spotLightEnable = false;
 
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
