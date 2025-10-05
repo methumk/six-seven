@@ -7,13 +7,13 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 
-class NumberCardHolder extends PositionComponent with TapCallbacks {
+class NumberCardHolder extends PositionComponent with DragCallbacks {
   Set<double> numHandSet = Set();
   final List<NumberCard> numberHand = [];
-  static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .15, 0);
+  static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .27, 0);
   int currCardPriority = 0;
 
-  NumberCardHolder() : super(anchor: Anchor.bottomRight) {}
+  NumberCardHolder() : super(anchor: Anchor.bottomRight);
 
   @override
   FutureOr<void> onLoad() async {
@@ -50,7 +50,9 @@ class NumberCardHolder extends PositionComponent with TapCallbacks {
   void addCardtoHand(NumberCard card) {
     _setCard(card);
     numberHand.add(card);
+    numHandSet.add(card.value);
     add(card);
+    card.onDragEndReturnTo(card.position, card.priority);
   }
 
   void removeAllCards() {
@@ -64,7 +66,7 @@ class NumberCardHolder extends PositionComponent with TapCallbacks {
 }
 
 class DynamicCardHolder extends PositionComponent {
-  static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .15, 0);
+  static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .25, 0);
   final List<PlusCard> addHand = [];
   final List<MultCard> multHand = [];
   // final List<MinusCard> minusHand = [];
@@ -74,7 +76,7 @@ class DynamicCardHolder extends PositionComponent {
   int minusHandLength = 0;
   Map<double, List<MinusCard>> minusHandMap = {};
 
-  DynamicCardHolder() : super(anchor: Anchor.bottomLeft) {}
+  DynamicCardHolder() : super(anchor: Anchor.bottomLeft);
 
   @override
   FutureOr<void> onLoad() async {
@@ -106,6 +108,7 @@ class DynamicCardHolder extends PositionComponent {
     card.position = newCardPos;
     currCardPriority = totalCardsAtPlacement;
     card.priority = currCardPriority;
+    card.onDragEndReturnTo(card.position, card.priority);
 
     // if plus --> update minus/mult/event
     // if minus --> update mult/event
@@ -124,6 +127,7 @@ class DynamicCardHolder extends PositionComponent {
               0,
             );
             mc.priority = currCardPriority;
+            mc.onDragEndReturnTo(mc.position, mc.priority);
           }
         }
       }
@@ -139,6 +143,7 @@ class DynamicCardHolder extends PositionComponent {
           0,
         );
         mtc.priority = currCardPriority;
+        mtc.onDragEndReturnTo(mtc.position, mtc.priority);
       }
       updateNext = true;
     }
@@ -151,6 +156,7 @@ class DynamicCardHolder extends PositionComponent {
           0,
         );
         eac.priority = currCardPriority;
+        eac.onDragEndReturnTo(eac.position, eac.priority);
       }
     }
   }
@@ -171,6 +177,7 @@ class DynamicCardHolder extends PositionComponent {
             0,
           );
           mc.priority = currCardPriority;
+          mc.onDragEndReturnTo(mc.position, mc.priority);
         }
       }
     }
@@ -184,6 +191,7 @@ class DynamicCardHolder extends PositionComponent {
         0,
       );
       mtc.priority = currCardPriority;
+      mtc.onDragEndReturnTo(mtc.position, mtc.priority);
     }
 
     // Event hand position update
@@ -195,6 +203,7 @@ class DynamicCardHolder extends PositionComponent {
         0,
       );
       eac.priority = currCardPriority;
+      eac.onDragEndReturnTo(eac.position, eac.priority);
     }
   }
 
