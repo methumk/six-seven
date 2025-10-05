@@ -14,9 +14,9 @@ class GameSetupSettingsConstants {
   static const int aiPlayerCountMin = 0;
   static const int aiPlayerCountMax = 3;
 
-  // Thinking easy medium hard right now
+  // Thinking easy medium hard expert
   static const int aiDifficultyMin = 0;
-  static const int aiDifficultyMax = 2;
+  static const int aiDifficultyMax = 3;
 
   // Game Options
   static const double winningScoreMin = 200;
