@@ -193,7 +193,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void riskTolerance(Player currentCPUPlayer, double failureTolerance) {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
     if (failureProb < failureTolerance) {
-      _handleDrawCardFromDeck();
       _onHitPressed();
     } else {
       currentCPUPlayer.handleStay();
@@ -282,7 +281,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //by failureProb.
     double valueHit = ev * successProb + 0 * failureProb;
     if (valueHit >= currentPlayer.currentValue) {
-      _handleDrawCardFromDeck();
       _onHitPressed();
     } else {
       currentPlayer.handleStay();
@@ -384,7 +382,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // This manages drawing a card form deck and then putting it into player
   void _handleDrawCardFromDeck() {
     // draw from deck
-    // if not event or card can be put into player .. put into player
+    // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[currentPlayerIndex];
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
@@ -567,6 +565,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return;
     }
 
+    hud.disableHitAndStayBtns();
     Player currentPlayer = players[currentPlayerIndex];
     currentPlayer.handleStay();
     donePlayers.add(currentPlayer);
@@ -584,6 +583,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       return;
     }
 
+    hud.disableHitAndStayBtns();
     // drawCardFromDeck
     _handleDrawCardFromDeck();
     // Calculate bust
@@ -596,51 +596,33 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _rotatePlayers();
   }
 
-  void _rotatePlayers() {
+  Future<void> _rotatePlayers() async {
     if (donePlayers.length == totalPlayerCount) {
       print("Jin Jie");
       roundStart();
       donePlayers = Set();
-      rotationPlayerOffset++;
+      rotationPlayerOffset = 0;
       for (int i = 0; i < totalPlayerCount; i++) {
         print("Is player ${i} done: ${players[i].isDone}");
       }
     }
-    print("Not Jin Jie");
-    // Determine next bottom index from the players array
-    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+    //Get the next player to be rotated to
+    currentPlayerIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
       totalPlayerCount,
       rotation: rotationDirection,
     );
-
+    print("Current player in rotatePlayers: ${currentPlayerIndex}");
+    print("What is rotation offset: ${rotationPlayerOffset}");
     //Continue to skip done players, or automatically handle action for cpu players without rotating
     //keep doing until it's a human player's turn who is still in the round
-    while (players[nextPlayerBottomIndex].isDone ||
-        players[nextPlayerBottomIndex] is CpuPlayer) {
-      if (players[nextPlayerBottomIndex].isDone) {
-        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-          nextPlayerBottomIndex,
-          totalPlayerCount,
-          rotation: rotationDirection,
-        );
-        // print("next bottom index: ${nextPlayerBottomIndex}");
-        rotationPlayerOffset++;
-        continue;
-      } else {
-        print(
-          "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
-        );
-        aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
-        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-          nextPlayerBottomIndex,
-          totalPlayerCount,
-          rotation: rotationDirection,
-        );
-        // print("next bottom index: ${nextPlayerBottomIndex}");
-        rotationPlayerOffset++;
-        continue;
-      }
+    while (players[currentPlayerIndex].isDone) {
+      currentPlayerIndex = _getNextBottomPlayerIndex(
+        currentPlayerIndex,
+        totalPlayerCount,
+        rotation: rotationDirection,
+      );
+      rotationPlayerOffset++;
     }
 
     for (int i = 0; i < totalPlayerCount; ++i) {
@@ -666,8 +648,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
     animatePlayerRotation = true;
     hud.disableHitAndStayBtns();
-    //Set current player to the next bottom player index
-    currentPlayerIndex = nextPlayerBottomIndex;
   }
 
   // NOTE: This should only be used for initializing players array
@@ -836,7 +816,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void _onRotationFinished() {
     animatePlayerRotation = false;
-    hud.enableHitAndStayBtns();
+    if (players[currentPlayerIndex].isCpu()) {
+      hud.disableHitAndStayBtns();
+      print(
+        "Next player $currentPlayerIndex from player $currentPlayerIndex is CPU",
+      );
+      aiTurn(players[currentPlayerIndex] as CpuPlayer);
+      // print("next bottom index: ${nextPlayerBottomIndex}");
+    } else {
+      hud.enableHitAndStayBtns();
+    }
   }
 
   // Handle player rotation on update
@@ -856,9 +845,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           Player p = players[i];
 
           if (p.isRotating) {
-            print(
-              "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
-            );
+            // print(
+            //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
+            // );
             // If player has reached close enough to target position go to next player
             if (almostEqual(p.position, p.moveTo!, epsilon: 15)) {
               print("Player $i has finished rotating");
