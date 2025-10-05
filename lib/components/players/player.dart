@@ -143,7 +143,6 @@ abstract class Player extends PositionComponent
       }
     } else {
       nch.addCardtoHand(nc);
-      nch.numHandSet.add(nc.value);
     }
   }
 
