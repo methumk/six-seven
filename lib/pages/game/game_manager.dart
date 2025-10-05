@@ -614,56 +614,60 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       rotation: rotationDirection,
     );
 
-    //If player is done, skip
-    while (players[nextPlayerBottomIndex].isDone) {
-      nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-        nextPlayerBottomIndex,
-        totalPlayerCount,
-        rotation: rotationDirection,
-      );
-      // print("next bottom index: ${nextPlayerBottomIndex}");
-      rotationPlayerOffset++;
-    }
-
-    // Do not rotate if next player is CPU
-    // Since AI is not human, they are coded to make actions
-    //based on difficulty. This is done automatically, without having any rotations
-    //and hence we don't rotate until it comes to a human player's turn, or everyone is done
-    if (players[nextPlayerBottomIndex] is CpuPlayer) {
-      print(
-        "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
-      );
-      rotationPlayerOffset++;
-      aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
-      // currentPlayerIndex = nextPlayerBottomIndex;
-    } else {
-      currentPlayerIndex = nextPlayerBottomIndex;
-      print("UPDATING with extra rotation value $rotationPlayerOffset");
-
-      for (int i = 0; i < totalPlayerCount; ++i) {
-        Player p = players[i];
-        p.rotateNum = _getNextNumRotations(
-          p.position,
-          rotationDirection,
-          extraRotation: rotationPlayerOffset,
+    //Continue to skip done players, or automatically handle action for cpu players without rotating
+    //keep doing until it's a human player's turn who is still in the round
+    while (players[nextPlayerBottomIndex].isDone ||
+        players[nextPlayerBottomIndex] is CpuPlayer) {
+      if (players[nextPlayerBottomIndex].isDone) {
+        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+          nextPlayerBottomIndex,
+          totalPlayerCount,
+          rotation: rotationDirection,
         );
-        p.moveTo = _getNextRotationPos(
-          p.position,
-          p.rotateNum,
-          rotationDirection,
-        );
+        // print("next bottom index: ${nextPlayerBottomIndex}");
+        rotationPlayerOffset++;
+        continue;
+      } else {
         print(
-          "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+          "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
         );
-        p.isRotating = true;
+        aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
+        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+          nextPlayerBottomIndex,
+          totalPlayerCount,
+          rotation: rotationDirection,
+        );
+        // print("next bottom index: ${nextPlayerBottomIndex}");
+        rotationPlayerOffset++;
+        continue;
       }
-
-      // If human player we don't have offset so reset
-      rotationPlayerOffset = 0;
-      // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
-      animatePlayerRotation = true;
-      hud.disableHitAndStayBtns();
     }
+
+    for (int i = 0; i < totalPlayerCount; ++i) {
+      Player p = players[i];
+      p.rotateNum = _getNextNumRotations(
+        p.position,
+        rotationDirection,
+        extraRotation: rotationPlayerOffset,
+      );
+      p.moveTo = _getNextRotationPos(
+        p.position,
+        p.rotateNum,
+        rotationDirection,
+      );
+      print(
+        "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+      );
+      p.isRotating = true;
+    }
+
+    // If human player we don't have offset so reset
+    rotationPlayerOffset = 0;
+    // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
+    animatePlayerRotation = true;
+    hud.disableHitAndStayBtns();
+    //Set current player to the next bottom player index
+    currentPlayerIndex = nextPlayerBottomIndex;
   }
 
   // NOTE: This should only be used for initializing players array
