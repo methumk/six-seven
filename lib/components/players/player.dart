@@ -59,11 +59,9 @@ abstract class Player extends PositionComponent
     print("Total points excluding this round: ${totalValue}");
   }
 
-  //Method for handling when player stays
-  void handleStay() {
-    print("Handling stay");
-    //Make isDone bool true
-    isDone = true;
+  //Method for updating current value (might noy be the final points of the round, just used for
+  //ev comparison)
+  void updateCurrentValue() {
     currentValue = 0;
     for (double numberValue in nch.numHandSet) {
       currentValue += numberValue;
@@ -88,6 +86,18 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length >= 7) {
       currentValue += 42;
     }
+  }
+
+  //Method for handling when player stays
+  void handleStay() {
+    print("Handling stay");
+    //Make isDone bool true
+    isDone = true;
+    //Update current value to reflect final points accrued in this round
+    updateCurrentValue();
+
+    //Add currentValue to total accumulated points from player in the game
+    totalValue += currentValue;
     //Remove all cards from player's hand
     handRemoval();
   }
@@ -123,6 +133,7 @@ abstract class Player extends PositionComponent
       // Only some event cards get added
       dch.addCardtoHand(newCard);
     }
+    updateCurrentValue();
   }
 
   //Method for when player busts
