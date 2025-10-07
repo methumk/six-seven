@@ -20,6 +20,12 @@ import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
+    as cd;
+import 'package:six_seven/components/cards/value_action_cards/mult_card.dart'
+    as cd;
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart'
+    as cd;
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
@@ -158,6 +164,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
+    print("Setting difficulty: ${game.setupSettings.aiDifficulty}");
     print("Difficulty of current AI: ${currentCPUPlayer.difficulty}");
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
       //Easy difficulty: has a risk tolerance of 45%, so
@@ -168,7 +175,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //if probability of failing is less than 30%, hit
       riskTolerance(currentCPUPlayer, .3);
     } else if (currentCPUPlayer.difficulty == Difficulty.hard) {
-      //Hard diifficulty: Starts comparing by EV instead of probability risk
+      //Hard difficulty: Starts comparing by EV instead of probability risk
       //if E[hit] >= n, hit , else stay
       EVBasedComparison(currentCPUPlayer);
     }
@@ -179,11 +186,45 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //to peak at the next card in the deck
       int rng = random.nextInt(7) + 1;
       if (rng == 6 || rng == 7) {
-        cd.Card peekCard = deck.peek();
-        //TO DO: case by case analysis of peeked card
+        print("Expert AI gets a peek!");
+        expertPeek(currentCPUPlayer);
       } else {
         EVBasedComparison(currentCPUPlayer);
       }
+      return;
+    }
+  }
+  //Method for expert CPU peeking
+
+  void expertPeek(CpuPlayer currentCPUPlayer) {
+    cd.Card peekCard = deck.peek();
+    if (peekCard is cd.NumberCard) {
+      print("Peeked card was a number card!");
+      //if peeked number card is a duplicate and will bust, stay,
+      //else hit
+      if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard)) {
+        _onStayPressed();
+      } else {
+        _onHitPressed();
+      }
+    }
+    //Plus cards are always good, hit them.
+    else if (peekCard is cd.PlusCard) {
+      _onHitPressed();
+    } else if (peekCard is cd.MinusCard) {
+      //For minus card, AI Player will choose to hit anyways if E[Hit] >= n
+      //because they can still continue getting points with more hits.
+      //Else, they stay because E[Hit] < n, and hence it is not worth the risk
+      //to hit more.
+      EVBasedComparison(currentCPUPlayer);
+    } else if (peekCard is cd.MultCard) {
+      if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
+        _onStayPressed();
+      } else {
+        _onHitPressed();
+      }
+    } else {
+      //TO DO: Handle event action cards case
     }
     return;
   }
@@ -195,7 +236,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     if (failureProb < failureTolerance) {
       _onHitPressed();
     } else {
-      currentCPUPlayer.handleStay();
       _onStayPressed();
     }
     return;
@@ -280,14 +320,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
     //by failureProb.
     double valueHit = ev * successProb + 0 * failureProb;
-    print("Expected value of hit E[hit] = current value + E[X]: ${valueHit}");
+    print("Expected value of hit E[hit] = E[current value + X]: ${valueHit}");
     print("Current Value: ${currentPlayer.currentValue}");
     if (valueHit >= currentPlayer.currentValue) {
-      print("Expected value is higher than current points. Hit!");
+      print("Expected value is higher than current points. ");
       _onHitPressed();
     } else {
       print("Current points exceed expected value. Stay!");
-      currentPlayer.handleStay();
       _onStayPressed();
     }
     return;
@@ -361,7 +400,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double evPlusMinusValueCard = 0;
 
     for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
-      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
+      int amountofPlusMinusValueInDeck =
+          deck.plusMinusCardsLeft[plusMinusValue]!;
       evPlusMinusValueCard +=
           plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
       // totalNumberCards += amountOfSpecificNumberCardInDeck;
@@ -771,8 +811,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         p = HumanPlayer(playerNum: i)..position = pos!;
         humanCount++;
       } else {
-        p = CpuPlayer(playerNum: i, difficulty: Difficulty.easy)
-          ..position = pos;
+        p = CpuPlayer(
+          playerNum: i,
+          difficulty: fromLevel(game.setupSettings.aiDifficulty),
+        )..position = pos;
       }
 
       p.currAngle = _getAngleByVectorPos(pos)!;
