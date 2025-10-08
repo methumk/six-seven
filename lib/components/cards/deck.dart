@@ -350,7 +350,9 @@ class CardDeck extends PositionComponent with TapCallbacks {
     if (deckList == []) {
       refill();
     }
-    return deckList[-1];
+    //Dart does NOT have negative indices unlike Python, meaning
+    //you can NOT do deckList[-1];
+    return deckList[deckList.length - 1];
   }
 
   List<Card> forecast() {

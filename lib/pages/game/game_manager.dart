@@ -20,6 +20,12 @@ import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
+    as cd;
+import 'package:six_seven/components/cards/value_action_cards/mult_card.dart'
+    as cd;
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart'
+    as cd;
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
@@ -73,6 +79,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
 
+  bool buttonPressed = false;
   late final Leaderboard<Player> endGameLeaderBoard;
   late final Leaderboard<Player> currentLeaderBoard;
 
@@ -168,19 +175,18 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void calculateLeaderBoard() {}
 
   void roundStart() {
-    turnStarterPlayerIndex = getNextPlayer(turnStarterPlayerIndex);
-    currentPlayerIndex = turnStarterPlayerIndex;
     for (int i = 0; i < totalPlayerCount; i++) {
       //At round start, players are forced to hit, so _onHitPressed() might be automatically called
       // _onHitPressed();
-      players[currentPlayerIndex].reset();
-      _handleDrawCardFromDeck();
-      currentPlayerIndex = getNextPlayer(currentPlayerIndex);
+      players[i].reset();
+      _handleDrawCardFromDeck(i);
     }
     return;
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
+    print("Setting difficulty: ${game.setupSettings.aiDifficulty}");
+    print("Difficulty of current AI: ${currentCPUPlayer.difficulty}");
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
       //Easy difficulty: has a risk tolerance of 45%, so
       //if probability of failing is less than 45%, hit
@@ -190,21 +196,56 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //if probability of failing is less than 30%, hit
       riskTolerance(currentCPUPlayer, .3);
     } else if (currentCPUPlayer.difficulty == Difficulty.hard) {
-      //Hard diifficulty: Starts comparing by EV instead of probability risk
+      //Hard difficulty: Starts comparing by EV instead of probability risk
       //if E[hit] >= n, hit , else stay
       EVBasedComparison(currentCPUPlayer);
     }
     //Else, is expert difficulty
     else {
+      print("Watch out we got Phil Hellmuth over here");
       //Random number from 1 to 7. If 6 or 7, AI gets
       //to peak at the next card in the deck
       int rng = random.nextInt(7) + 1;
       if (rng == 6 || rng == 7) {
-        cd.Card peekCard = deck.peek();
-        //TO DO: case by case analysis of peeked card
+        print("Expert AI gets a peek!");
+        expertPeek(currentCPUPlayer);
       } else {
         EVBasedComparison(currentCPUPlayer);
       }
+      return;
+    }
+  }
+  //Method for expert CPU peeking
+
+  void expertPeek(CpuPlayer currentCPUPlayer) {
+    cd.Card peekCard = deck.peek();
+    if (peekCard is cd.NumberCard) {
+      print("Peeked card was a number card!");
+      //if peeked number card is a duplicate and will bust, stay,
+      //else hit
+      if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard)) {
+        _onStayPressed();
+      } else {
+        _onHitPressed();
+      }
+    }
+    //Plus cards are always good, hit them.
+    else if (peekCard is cd.PlusCard) {
+      _onHitPressed();
+    } else if (peekCard is cd.MinusCard) {
+      //For minus card, AI Player will choose to hit anyways if E[Hit] >= n
+      //because they can still continue getting points with more hits.
+      //Else, they stay because E[Hit] < n, and hence it is not worth the risk
+      //to hit more.
+      EVBasedComparison(currentCPUPlayer);
+    } else if (peekCard is cd.MultCard) {
+      if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
+        _onStayPressed();
+      } else {
+        _onHitPressed();
+      }
+    } else {
+      //TO DO: Handle event action cards case
     }
     return;
   }
@@ -214,10 +255,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void riskTolerance(Player currentCPUPlayer, double failureTolerance) {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
     if (failureProb < failureTolerance) {
-      _handleDrawCardFromDeck();
       _onHitPressed();
     } else {
-      currentCPUPlayer.handleStay();
       _onStayPressed();
     }
     return;
@@ -302,11 +341,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
     //by failureProb.
     double valueHit = ev * successProb + 0 * failureProb;
+    print("Expected value of hit E[hit] = E[current value + X]: ${valueHit}");
+    print("Current Value: ${currentPlayer.currentValue}");
     if (valueHit >= currentPlayer.currentValue) {
-      _handleDrawCardFromDeck();
+      print("Expected value is higher than current points. ");
       _onHitPressed();
     } else {
-      currentPlayer.handleStay();
+      print("Current points exceed expected value. Stay!");
       _onStayPressed();
     }
     return;
@@ -380,7 +421,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double evPlusMinusValueCard = 0;
 
     for (int plusMinusValue in deck.plusMinusCardsLeft.keys) {
-      int amountofPlusMinusValueInDeck = deck.numberCardsLeft[plusMinusValue]!;
+      int amountofPlusMinusValueInDeck =
+          deck.plusMinusCardsLeft[plusMinusValue]!;
       evPlusMinusValueCard +=
           plusMinusValue * (amountofPlusMinusValueInDeck / numCardsLeft);
       // totalNumberCards += amountOfSpecificNumberCardInDeck;
@@ -403,10 +445,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // This manages drawing a card form deck and then putting it into player
-  void _handleDrawCardFromDeck() {
+  void _handleDrawCardFromDeck(int playerIndex) {
     // draw from deck
-    // if not event or card can be put into player .. put into player
-    Player currentPlayer = players[currentPlayerIndex];
+    // if not ent or card can be put into player .. put into player
+    Player currentPlayer = players[playerIndex];
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
@@ -595,16 +637,24 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on stay pressed handler
   Future<void> _onStayPressed() async {
     print("Stay Pressed");
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+    if (animatePlayerRotation || buttonPressed) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
 
+    buttonPressed = true;
+
+    hud.disableHitAndStayBtns();
     Player currentPlayer = players[currentPlayerIndex];
     currentPlayer.handleStay();
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(seconds: 1));
 
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+      rotationPlayerOffset = 0;
+    }
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
@@ -612,68 +662,48 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on hit pressed handler
   // Handles rotation, and other functionality
   Future<void> _onHitPressed() async {
-    if (animatePlayerRotation) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED");
+    hud.disableHitAndStayBtns();
+    if (animatePlayerRotation || buttonPressed) {
+      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
 
+    buttonPressed = true;
     // drawCardFromDeck
-    _handleDrawCardFromDeck();
+    _handleDrawCardFromDeck(currentPlayerIndex);
     // Calculate bust
 
     // Handle events
 
     await Future.delayed(const Duration(seconds: 1));
+    if (donePlayers.length == totalPlayerCount) {
+      roundStart();
+      donePlayers = Set();
+      rotationPlayerOffset = 0;
+    }
 
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
 
-  void _rotatePlayers() {
-    if (donePlayers.length == totalPlayerCount) {
-      print("Jin Jie");
-      roundStart();
-      donePlayers = Set();
-      rotationPlayerOffset++;
-      for (int i = 0; i < totalPlayerCount; i++) {
-        print("Is player ${i} done: ${players[i].isDone}");
-      }
-    }
-    print("Not Jin Jie");
-    // Determine next bottom index from the players array
-    int nextPlayerBottomIndex = _getNextBottomPlayerIndex(
+  Future<void> _rotatePlayers() async {
+    //Get the next player to be rotated to
+    currentPlayerIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,
       totalPlayerCount,
       rotation: rotationDirection,
     );
-
+    print("Current player in rotatePlayers: ${currentPlayerIndex}");
+    print("What is rotation offset: ${rotationPlayerOffset}");
     //Continue to skip done players, or automatically handle action for cpu players without rotating
     //keep doing until it's a human player's turn who is still in the round
-    while (players[nextPlayerBottomIndex].isDone ||
-        players[nextPlayerBottomIndex] is CpuPlayer) {
-      if (players[nextPlayerBottomIndex].isDone) {
-        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-          nextPlayerBottomIndex,
-          totalPlayerCount,
-          rotation: rotationDirection,
-        );
-        // print("next bottom index: ${nextPlayerBottomIndex}");
-        rotationPlayerOffset++;
-        continue;
-      } else {
-        print(
-          "Next player $nextPlayerBottomIndex from player $currentPlayerIndex is CPU",
-        );
-        aiTurn(players[nextPlayerBottomIndex] as CpuPlayer);
-        nextPlayerBottomIndex = _getNextBottomPlayerIndex(
-          nextPlayerBottomIndex,
-          totalPlayerCount,
-          rotation: rotationDirection,
-        );
-        // print("next bottom index: ${nextPlayerBottomIndex}");
-        rotationPlayerOffset++;
-        continue;
-      }
+    while (players[currentPlayerIndex].isDone) {
+      currentPlayerIndex = _getNextBottomPlayerIndex(
+        currentPlayerIndex,
+        totalPlayerCount,
+        rotation: rotationDirection,
+      );
+      rotationPlayerOffset++;
     }
 
     for (int i = 0; i < totalPlayerCount; ++i) {
@@ -705,8 +735,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
     animatePlayerRotation = true;
     hud.disableHitAndStayBtns();
-    //Set current player to the next bottom player index
-    currentPlayerIndex = nextPlayerBottomIndex;
   }
 
   // Returns bezier paths from one point to another based on rotation direction
@@ -888,8 +916,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         p = HumanPlayer(playerNum: i)..position = pos!;
         humanCount++;
       } else {
-        p = CpuPlayer(playerNum: i, difficulty: Difficulty.easy)
-          ..position = pos;
+        p = CpuPlayer(
+          playerNum: i,
+          difficulty: fromLevel(game.setupSettings.aiDifficulty),
+        )..position = pos;
       }
 
       p.currAngle = _getAngleByVectorPos(pos)!;
@@ -941,7 +971,18 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void _onRotationFinished() {
     animatePlayerRotation = false;
-    hud.enableHitAndStayBtns();
+    buttonPressed = false;
+    if (players[currentPlayerIndex].isCpu()) {
+      hud.disableHitAndStayBtns();
+      print(
+        "Next player $currentPlayerIndex from player $currentPlayerIndex is CPU",
+      );
+      aiTurn(players[currentPlayerIndex] as CpuPlayer);
+      // print("next bottom index: ${nextPlayerBottomIndex}");
+    } else {
+      hud.enableHitAndStayBtns();
+    }
+    return;
   }
 
   // Handle player rotation on update
@@ -965,7 +1006,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
             // );
             // If player has reached close enough to target position go to next player
-            if (almostEqual(p.position, p.moveTo!, epsilon: 15)) {
+            if (almostEqual(p.position, p.moveTo!, epsilon: 25)) {
               print("Player $i has finished rotating");
               p.position = p.moveTo!;
               p.isRotating = false;
