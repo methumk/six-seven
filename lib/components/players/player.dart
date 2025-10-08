@@ -1,7 +1,8 @@
 // import 'package:six_seven/components/cards/card.dart';
 import 'dart:async';
-
+import 'dart:ui';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/card_holders.dart';
@@ -18,6 +19,9 @@ abstract class Player extends PositionComponent
   bool isDone = false;
   late final NumberCardHolder nch;
   late final DynamicCardHolder dch;
+
+  // rotation effect
+  SequenceEffect? nextPlayerRotateEffect;
 
   Set<double> get numHandSet => nch.numHandSet;
   List<NumberCard> get numberHand => nch.numberHand;
@@ -165,6 +169,27 @@ abstract class Player extends PositionComponent
   void _handleRotate(double dt) {
     if (isRotating) {
       // isRotating = false;
+    }
+  }
+
+  // Starts rotating player around given path
+  void startRotation(List<Path> rotationPaths) {
+    // Only setup rotation if nextPlayerRotate effect is null (if it isn't it's still running)
+    if (rotationPaths.isEmpty) return;
+
+    List<MoveAlongPathEffect> mp = [];
+    for (final p in rotationPaths) {
+      mp.add(MoveAlongPathEffect(p, EffectController(duration: 1.5)));
+    }
+
+    if (mp.isNotEmpty) {
+      nextPlayerRotateEffect = SequenceEffect(
+        mp,
+        onComplete: () {
+          nextPlayerRotateEffect = null;
+        },
+      );
+      add(nextPlayerRotateEffect!);
     }
   }
 
