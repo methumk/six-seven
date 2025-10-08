@@ -31,6 +31,27 @@ import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/vector_helpers.dart';
 
+class PathDebugComponent extends PositionComponent {
+  final Path path;
+  final Paint paintStyle;
+
+  PathDebugComponent({
+    required this.path,
+    Color color = Colors.blue,
+    double strokeWidth = 5.0,
+  }) : paintStyle =
+           Paint()
+             ..color = color
+             ..style = PaintingStyle.stroke
+             ..strokeWidth = strokeWidth;
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    canvas.drawPath(path, paintStyle);
+  }
+}
+
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   CardDeck deck = CardDeck();
@@ -520,7 +541,19 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //   // mtc,
     //   // pc,
     // ]);
-    game.world.add(deck);
+    // game.world.add(deck);
+
+    // PathDebugComponent
+    var lp = determineBezierRotationPoints(
+      PlayerSlot.top,
+      PlayerSlot.bottom,
+      completeLoop: true,
+    );
+    List<PathDebugComponent> pdb = [];
+    for (final p in lp) {
+      pdb.add(PathDebugComponent(path: p));
+    }
+    game.world.addAll(pdb);
 
     // TESTING
     final tcc = CircleComponent(
@@ -658,6 +691,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print(
         "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
       );
+
+      var bzPath = determineBezierRotationPoints(
+        _getPosIndexbyPosVector(p.position)!,
+        _getPosIndexbyPosVector(p.moveTo!)!,
+      );
+      p.startRotation(bzPath);
       p.isRotating = true;
     }
 
@@ -668,6 +707,72 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     hud.disableHitAndStayBtns();
     //Set current player to the next bottom player index
     currentPlayerIndex = nextPlayerBottomIndex;
+  }
+
+  // Returns bezier paths from one point to another based on rotation direction
+  // One path is a 90 degree rotation
+  // If completeLoop is true, it will just take start and do a full rotation to reach start again
+  List<Path> determineBezierRotationPoints(
+    PlayerSlot start,
+    PlayerSlot end, {
+    bool completeLoop = false,
+  }) {
+    List<Path> paths = [];
+
+    // Start, end, control points of bezier
+    Vector2 sp, ep, cp = Vector2.all(0);
+    // Control curvature for ellipse
+    double controlCurveX = 0.85, controlCurveY = 1;
+    PlayerSlot curr = start, next = start;
+
+    while (curr != end || completeLoop) {
+      // Get next player slot
+      next = PlayerSlot.getNextPlayerSlot(
+        curr,
+        rotationDirection == PlayerRotation.clockWise,
+        1,
+      );
+
+      // Get vectors based on slots
+      sp = _getPlayerPosbyPosIndex(curr);
+      ep = _getPlayerPosbyPosIndex(next);
+
+      switch (curr) {
+        case PlayerSlot.top:
+          cp = Vector2(ep.x * controlCurveX, sp.y * controlCurveY);
+        case PlayerSlot.right:
+          cp = Vector2(sp.x * controlCurveX, ep.y * controlCurveY);
+        case PlayerSlot.bottom:
+          cp = Vector2(ep.x * controlCurveX, sp.y * controlCurveY);
+        case PlayerSlot.left:
+          cp = Vector2(sp.x * controlCurveX, ep.y * controlCurveY);
+      }
+
+      // Add ellipse path to list;
+      // final path =
+      //     Path()
+      //       ..moveTo(sp.x, sp.y)
+      //       ..quadraticBezierTo(cp.x, cp.y, ep.x, ep.y);
+      final path =
+          Path()..quadraticBezierTo(
+            cp.x - sp.x,
+            cp.y - sp.y,
+            ep.x - sp.x,
+            ep.y - sp.y,
+          );
+      print("From ${curr} -> ${next}: has path ${path}");
+      paths.add(path);
+
+      // Update curr position to next slot
+      curr = next;
+
+      // If complete loop finished exit while loop
+      if (completeLoop && curr == start) {
+        break;
+      }
+    }
+
+    return paths;
   }
 
   // NOTE: This should only be used for initializing players array
@@ -856,9 +961,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           Player p = players[i];
 
           if (p.isRotating) {
-            print(
-              "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
-            );
+            // print(
+            //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
+            // );
             // If player has reached close enough to target position go to next player
             if (almostEqual(p.position, p.moveTo!, epsilon: 15)) {
               print("Player $i has finished rotating");
@@ -869,27 +974,27 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             }
 
             // Determine speed angle to determine position
-            double angle =
-                // p.currAngle + (direction * speedPerRotation * p.rotateNum * dt);
-                p.currAngle + (direction * speedPerRotation * dt);
-            if (angle > math.pi * 2) {
-              angle -= math.pi * 2;
-            }
-            p.currAngle = angle;
-            double sy = math.sin(angle);
-            if (sy < 0) {
-              sy *= by;
-            } else {
-              sy *= ty;
-            }
+            // double angle =
+            //     // p.currAngle + (direction * speedPerRotation * p.rotateNum * dt);
+            //     p.currAngle + (direction * speedPerRotation * dt);
+            // if (angle > math.pi * 2) {
+            //   angle -= math.pi * 2;
+            // }
+            // p.currAngle = angle;
+            // double sy = math.sin(angle);
+            // if (sy < 0) {
+            //   sy *= by;
+            // } else {
+            //   sy *= ty;
+            // }
 
-            // Set current position
-            p.position.setFrom(
-              Vector2(
-                rotationCenter.x + rx * math.cos(angle),
-                rotationCenter.y + sy,
-              ),
-            );
+            // // Set current position
+            // p.position.setFrom(
+            //   Vector2(
+            //     rotationCenter.x + rx * math.cos(angle),
+            //     rotationCenter.y + sy,
+            //   ),
+            // );
           } else {
             playersFinished++;
           }
