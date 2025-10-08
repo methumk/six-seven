@@ -1006,9 +1006,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
             // );
             // If player has reached close enough to target position go to next player
-            if (almostEqual(p.position, p.moveTo!, epsilon: 25)) {
-              print("Player $i has finished rotating");
-              p.position = p.moveTo!;
+            if (p.moveTo != null &&
+                almostEqual(p.position, p.moveTo!, epsilon: .05)) {
+              p.position.setFrom(p.moveTo!);
               p.isRotating = false;
               playersFinished++;
               continue;
