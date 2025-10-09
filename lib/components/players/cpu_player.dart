@@ -26,7 +26,11 @@ Difficulty fromLevel(int level) =>
 class CpuPlayer extends Player {
   //Difficulty is an integer from 1 to 3, from 1 easiest to 3 hardest
   late final Difficulty difficulty;
-  CpuPlayer({required super.playerNum, required this.difficulty});
+  CpuPlayer({
+    required super.playerNum,
+    required this.difficulty,
+    required super.currSlot,
+  });
 
   @override
   bool isCpu() {

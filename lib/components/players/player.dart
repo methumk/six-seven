@@ -10,6 +10,7 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
+import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 
 abstract class Player extends PositionComponent
@@ -21,7 +22,11 @@ abstract class Player extends PositionComponent
   late final DynamicCardHolder dch;
 
   // rotation effect
-  SequenceEffect? nextPlayerRotateEffect;
+  PlayerSlot currSlot;
+  late PlayerSlot moveToSlot;
+  SequenceEffect? _nextPlayerRotateEffect;
+  bool _isRotating = false;
+  bool get isRotating => _isRotating;
 
   Set<double> get numHandSet => nch.numHandSet;
   List<NumberCard> get numberHand => nch.numberHand;
@@ -32,16 +37,13 @@ abstract class Player extends PositionComponent
   bool doubleChance = false;
   late int playerNum;
 
-  // Animation rotation
-  Vector2? moveTo;
-  double currAngle = 0;
-  int rotateNum = 0;
-  bool isRotating = false;
-
   // UI Fields
   late final GlowableText playerName;
 
-  Player({required this.playerNum}) : super(anchor: Anchor.bottomCenter);
+  Player({required this.playerNum, required this.currSlot})
+    : super(anchor: Anchor.bottomCenter) {
+    moveToSlot = currSlot;
+  }
 
   //method for seeing own hand of cards
   void showHand() {
@@ -171,36 +173,30 @@ abstract class Player extends PositionComponent
     }
   }
 
-  // Each rotation represents 1/4 of a circle (note this circle is tilted though)
-  void rotate(int numberRotations) {
-    rotateNum = numberRotations;
-    // isRotating = true;
-  }
-
-  void _handleRotate(double dt) {
-    if (isRotating) {
-      // isRotating = false;
-    }
-  }
-
   // Starts rotating player around given path
-  void startRotation(List<Path> rotationPaths) {
+  void startRotation(
+    List<Path> rotationPaths, {
+    double rotationDuration = 1.5,
+  }) {
     // Only setup rotation if nextPlayerRotate effect is null (if it isn't it's still running)
     if (rotationPaths.isEmpty) return;
 
     List<MoveAlongPathEffect> mp = [];
+    double duration = rotationDuration / rotationPaths.length;
     for (final p in rotationPaths) {
-      mp.add(MoveAlongPathEffect(p, EffectController(duration: 1.5)));
+      mp.add(MoveAlongPathEffect(p, EffectController(duration: duration)));
     }
 
     if (mp.isNotEmpty) {
-      nextPlayerRotateEffect = SequenceEffect(
+      _isRotating = true;
+      _nextPlayerRotateEffect = SequenceEffect(
         mp,
         onComplete: () {
-          nextPlayerRotateEffect = null;
+          _nextPlayerRotateEffect = null;
+          _isRotating = false;
         },
       );
-      add(nextPlayerRotateEffect!);
+      add(_nextPlayerRotateEffect!);
     }
   }
 
@@ -215,7 +211,6 @@ abstract class Player extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    _handleRotate(dt);
   }
 
   @override
