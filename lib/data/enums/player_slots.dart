@@ -6,6 +6,11 @@ enum PlayerSlot {
 
   static PlayerSlot fromPlayerIndex(int index) =>
       PlayerSlot.values.firstWhere((e) => e.index == index);
+
+  static PlayerSlot getNextPlayerSlot(PlayerSlot curr, bool cw, int steps) {
+    int update = cw == true ? steps : -steps;
+    return fromPlayerIndex((curr.index + update) % 4);
+  }
 }
 
 enum PlayerCountSlotConfig {

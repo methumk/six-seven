@@ -6,7 +6,7 @@ import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class HumanPlayer extends Player {
-  HumanPlayer({required super.playerNum});
+  HumanPlayer({required super.playerNum, required super.currSlot});
 
   @override
   bool isCpu() {

@@ -37,6 +37,27 @@ import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/vector_helpers.dart';
 
+class PathDebugComponent extends PositionComponent {
+  final Path path;
+  final Paint paintStyle;
+
+  PathDebugComponent({
+    required this.path,
+    Color color = Colors.blue,
+    double strokeWidth = 5.0,
+  }) : paintStyle =
+           Paint()
+             ..color = color
+             ..style = PaintingStyle.stroke
+             ..strokeWidth = strokeWidth;
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    canvas.drawPath(path, paintStyle);
+  }
+}
+
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   CardDeck deck = CardDeck();
@@ -502,68 +523,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
     game.camera.viewport.add(hud);
 
-    // final MinusCard mc1 = MinusCard(value: 8);
-    // final MinusCard mc2 = MinusCard(value: 1.25);
-    // final MinusCard mc3 = MinusCard(value: 12);
-    // final MinusCard mc4 = MinusCard(value: 1.3);
-    // final PlusCard pc1 = PlusCard(value: 8);
-    // final PlusCard pc2 = PlusCard(value: 1.25);
-    // final PlusCard pc3 = PlusCard(value: 12);
-    // final PlusCard pc4 = PlusCard(value: 1.3);
-    // final MultCard m1 = MultCard(value: 8);
-    // final MultCard m2 = MultCard(value: 1.25);
-    // final MultCard m3 = MultCard(value: 12);
-    // final MultCard m4 = MultCard(value: 1.3);
-    // final MultCard mtc = MultCard(value: 1.15);
-    // final PlusCard pc = PlusCard(value: 11);
-
-    // final ChoiceDraw cd = ChoiceDraw();
-    // final CribberCard cc = CribberCard();
-    // final DoubleChanceCard dcd = DoubleChanceCard();
-    // final FlipThreeCard ftc = FlipThreeCard();
-    // final ForecasterCard fc = ForecasterCard();
-    // final FreezeCard fzc = FreezeCard();
-    // final IncomeTax it = IncomeTax();
-    // final LuckySixSidedDieCard ld = LuckySixSidedDieCard();
-    // final TopPeekCard mgc = TopPeekCard();
-    // final PolarizerCard p = PolarizerCard();
-    // final RedeemerCard r = RedeemerCard();
-    // final ReverseTurnCard rt = ReverseTurnCard();
-    // final SalesTax st = SalesTax();
-    // final SunkProphet sp = SunkProphet();
-    // final ThiefCard tc = ThiefCard();
-    // game.world.addAll([
-    //   cd,
-    //   cc,
-    //   dcd,
-    //   ftc,
-    //   fc,
-    //   fzc,
-    //   it,
-    //   ld,
-    //   mgc,
-    //   p,
-    //   r,
-    //   rt,
-    //   st,
-    //   sp,
-    //   tc,
-    //   // mc1,
-    //   // mc2,
-    //   // mc3,
-    //   // mc4,
-    //   // pc1,
-    //   // pc2,
-    //   // pc3,
-    //   // pc4,
-    //   // m1,
-    //   // m2,
-    //   // m3,
-    //   // m4,
-    //   // mtc,
-    //   // pc,
-    // ]);
-    game.world.add(deck);
+    // PathDebugComponent
+    var lp = determineBezierRotationPoints(
+      PlayerSlot.top,
+      PlayerSlot.bottom,
+      completeLoop: true,
+    );
+    List<PathDebugComponent> pdb = [];
+    for (final p in lp) {
+      pdb.add(PathDebugComponent(path: p));
+    }
+    game.world.addAll(pdb);
 
     // TESTING
     final tcc = CircleComponent(
@@ -604,6 +574,34 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       roundStart();
     });
+  }
+
+  // Initialize players at position
+  void _initPlayerList() {
+    int humanCount = 0;
+    int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
+    for (int i = 0; i < totalPlayerCount; ++i) {
+      // NOTE: change get set up position, to not use player count configuration
+      PlayerSlot currSlot = _getSetUpPosIndex(i);
+      Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
+      print("Setting Player $currSlot");
+
+      Player p;
+      if (humanCount < totalHumans) {
+        p = HumanPlayer(playerNum: i, currSlot: currSlot)..position = pos;
+        humanCount++;
+      } else {
+        p = CpuPlayer(
+          playerNum: i,
+          difficulty: fromLevel(game.setupSettings.aiDifficulty),
+          currSlot: currSlot,
+        )..position = pos;
+      }
+
+      players.add(p);
+      endGameLeaderBoard.add(p);
+      currentLeaderBoard.add(p);
+    }
   }
 
   // Set up on stay pressed handler
@@ -665,6 +663,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       totalPlayerCount,
       rotation: rotationDirection,
     );
+
     print("Current player in rotatePlayers: ${currentPlayerIndex}");
     print("What is rotation offset: ${rotationPlayerOffset}");
     //Continue to skip done players, or automatically handle action for cpu players without rotating
@@ -680,20 +679,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     for (int i = 0; i < totalPlayerCount; ++i) {
       Player p = players[i];
-      p.rotateNum = _getNextNumRotations(
-        p.position,
-        rotationDirection,
+      int steps = _getNextRotationSteps(
+        p.currSlot,
         extraRotation: rotationPlayerOffset,
       );
-      p.moveTo = _getNextRotationPos(
-        p.position,
-        p.rotateNum,
-        rotationDirection,
+      p.moveToSlot = PlayerSlot.getNextPlayerSlot(
+        p.currSlot,
+        rotationDirection == PlayerRotation.clockWise,
+        steps,
       );
+
       print(
-        "p $i From ${p.position} to ${p.moveTo} takes ${p.rotateNum} steps",
+        "p $i From ${p.position} | ${p.currSlot} to ${p.moveToSlot} takes ${steps} steps",
       );
-      p.isRotating = true;
+
+      var bzPath = determineBezierRotationPoints(p.currSlot, p.moveToSlot);
+      p.startRotation(bzPath);
     }
 
     // If human player we don't have offset so reset
@@ -701,6 +702,67 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
     animatePlayerRotation = true;
     hud.disableHitAndStayBtns();
+  }
+
+  // Returns bezier paths from one point to another based on rotation direction
+  // One path is a 90 degree rotation
+  // If completeLoop is true, it will just take start and do a full rotation to reach start again
+  List<Path> determineBezierRotationPoints(
+    PlayerSlot start,
+    PlayerSlot end, {
+    bool completeLoop = false,
+  }) {
+    List<Path> paths = [];
+
+    // Start, end, control points of bezier
+    Vector2 sp, ep, cp = Vector2.all(0);
+    // Control curvature for ellipse
+    double controlCurveX = 0.85, controlCurveY = 1;
+    PlayerSlot curr = start, next = start;
+
+    while (curr != end || completeLoop) {
+      // Get next player slot
+      next = PlayerSlot.getNextPlayerSlot(
+        curr,
+        rotationDirection == PlayerRotation.clockWise,
+        1,
+      );
+
+      // Get vectors based on slots
+      sp = _getVectorPosByPlayerSlot(curr);
+      ep = _getVectorPosByPlayerSlot(next);
+
+      switch (curr) {
+        case PlayerSlot.top:
+          cp = Vector2(ep.x * controlCurveX, sp.y * controlCurveY);
+        case PlayerSlot.right:
+          cp = Vector2(sp.x * controlCurveX, ep.y * controlCurveY);
+        case PlayerSlot.bottom:
+          cp = Vector2(ep.x * controlCurveX, sp.y * controlCurveY);
+        case PlayerSlot.left:
+          cp = Vector2(sp.x * controlCurveX, ep.y * controlCurveY);
+      }
+
+      // Add ellipse path to list;
+      final path =
+          Path()..quadraticBezierTo(
+            cp.x - sp.x,
+            cp.y - sp.y,
+            ep.x - sp.x,
+            ep.y - sp.y,
+          );
+      paths.add(path);
+
+      // Update curr position to next slot
+      curr = next;
+
+      // If complete loop finished exit while loop
+      if (completeLoop && curr == start) {
+        break;
+      }
+    }
+
+    return paths;
   }
 
   // NOTE: This should only be used for initializing players array
@@ -715,7 +777,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // Maps the index to the given player position
-  Vector2 _getPlayerPosbyPosIndex(PlayerSlot pos) {
+  Vector2 _getVectorPosByPlayerSlot(PlayerSlot pos) {
     switch (pos) {
       case PlayerSlot.bottom:
         return bottomPlayerPos!;
@@ -729,7 +791,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // Maps vector position to player position
-  PlayerSlot? _getPosIndexbyPosVector(Vector2 v) {
+  PlayerSlot? _getPlayerSlotByVectorPos(Vector2 v) {
     if (v == bottomPlayerPos) {
       return PlayerSlot.bottom;
     } else if (v == leftPlayerPos) {
@@ -788,85 +850,20 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return nextBottomPlayerIndex;
   }
 
-  double? _getAngleByVectorPos(Vector2 vectorPos) {
-    if (vectorPos == topPlayerPos) {
-      return topPlayerAngle;
-    } else if (vectorPos == leftPlayerPos) {
-      return leftPlayerAngle;
-    } else if (vectorPos == bottomPlayerPos) {
-      return bottomPlayerAngle;
-    } else if (vectorPos == rightPlayerPos) {
-      return rightPlayerAngle;
-    }
-    return null;
-  }
-
-  // Initialize players at position
-  void _initPlayerList() {
-    int humanCount = 0;
-    int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
-    for (int i = 0; i < totalPlayerCount; ++i) {
-      // NOTE: change get set up position, to not use player count configuration
-      PlayerSlot currSlot = _getSetUpPosIndex(i);
-      Vector2 pos = _getPlayerPosbyPosIndex(currSlot);
-      print("Setting Player $currSlot");
-
-      Player p;
-      if (humanCount < totalHumans) {
-        p = HumanPlayer(playerNum: i)..position = pos!;
-        humanCount++;
-      } else {
-        p = CpuPlayer(
-          playerNum: i,
-          difficulty: fromLevel(game.setupSettings.aiDifficulty),
-        )..position = pos;
-      }
-
-      p.currAngle = _getAngleByVectorPos(pos)!;
-      players.add(p);
-      endGameLeaderBoard.add(p);
-      currentLeaderBoard.add(p);
-    }
-  }
-
-  // The number of 90 degree rotations need to go from currPos to the next Pos based on rotation (taking 1 step rotation)
-  // Extra rotation is how many more steps we have to do (essentially, more than 1 step rotation) to get to next pos
-  int _getNextNumRotations(
-    Vector2 currPos,
-    PlayerRotation rotation, {
-    int extraRotation = 0,
-  }) {
+  // Number of (90 degree) steps to the next position
+  int _getNextRotationSteps(PlayerSlot currSlot, {int extraRotation = 0}) {
     int normalizedExtraRotation = extraRotation % totalPlayerCount;
-    PlayerSlot fromSlot = _getPosIndexbyPosVector(currPos)!;
-    int rotationDirection = rotation == PlayerRotation.clockWise ? 1 : -1;
     int toPosIndex = _getNextPosIndex(
-      fromSlot,
-      rotDirection: rotation,
+      currSlot,
+      rotDirection: rotationDirection,
       extraRotationStep: normalizedExtraRotation,
     );
     print(
-      "Rotating player clockwise? ${rotationDirection == 1} from ${fromSlot.index} to $toPosIndex",
+      "Rotating player clockwise? ${rotationDirection} from ${currSlot.index} to $toPosIndex",
     );
-    return ((toPosIndex - fromSlot.index) * rotationDirection) %
+    int rotMagnitude = rotationDirection == PlayerRotation.clockWise ? 1 : -1;
+    return ((toPosIndex - currSlot.index) * rotMagnitude) %
         GameSetupSettingsConstants.totalPlayerCountMax;
-  }
-
-  // Gets the next position from the current position based on the number on rotations to take and the rotation orientiation
-  // Num rotations should be from _getNextNumRotations, the exact number of rotations to get from currPos to the next Position
-  Vector2? _getNextRotationPos(
-    Vector2 currPos,
-    int numRotations,
-    PlayerRotation rotation,
-  ) {
-    PlayerSlot fromSlot = _getPosIndexbyPosVector(currPos)!;
-    int nextIndex = 0;
-    if (rotation == PlayerRotation.clockWise) {
-      nextIndex = (fromSlot.index + numRotations) % 4;
-    } else {
-      nextIndex = (fromSlot.index - numRotations) % 4;
-    }
-    PlayerSlot nextSlot = PlayerSlot.fromPlayerIndex(nextIndex);
-    return _getPlayerPosbyPosIndex(nextSlot);
   }
 
   void _onRotationFinished() {
@@ -894,49 +891,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           leftPlayerPos != null) {
         // Use to determine if all rotations finished
         int playersFinished = 0;
-        // Get current direction
-        int direction = rotationDirection == PlayerRotation.clockWise ? -1 : 1;
 
         // Update position of players
         for (int i = 0; i < totalPlayerCount; ++i) {
           Player p = players[i];
 
-          if (p.isRotating) {
-            // print(
-            //   "Player ${i}'s current position: ${p.position}, target destination: ${p.moveTo}",
-            // );
-            // If player has reached close enough to target position go to next player
-            if (almostEqual(p.position, p.moveTo!, epsilon: 25)) {
-              print("Player $i has finished rotating");
-              p.position = p.moveTo!;
-              p.isRotating = false;
-              playersFinished++;
-              continue;
-            }
-
-            // Determine speed angle to determine position
-            double angle =
-                // p.currAngle + (direction * speedPerRotation * p.rotateNum * dt);
-                p.currAngle + (direction * speedPerRotation * dt);
-            if (angle > math.pi * 2) {
-              angle -= math.pi * 2;
-            }
-            p.currAngle = angle;
-            double sy = math.sin(angle);
-            if (sy < 0) {
-              sy *= by;
-            } else {
-              sy *= ty;
-            }
-
-            // Set current position
-            p.position.setFrom(
-              Vector2(
-                rotationCenter.x + rx * math.cos(angle),
-                rotationCenter.y + sy,
-              ),
-            );
-          } else {
+          if (!p.isRotating) {
+            p.currSlot = p.moveToSlot;
+            p.position.setFrom(_getVectorPosByPlayerSlot(p.currSlot));
             playersFinished++;
           }
         }
