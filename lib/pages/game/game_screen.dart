@@ -3,6 +3,7 @@ import 'package:flame/camera.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 
@@ -62,5 +63,39 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
       // Player cancelled, resume game
       resumeEngine();
     }
+  }
+
+  Future<void> showRoundPointsDialog(List<Player> players) async {
+    print("Round points dialog");
+    // Pause the game ending
+    pauseEngine();
+    final currentPointsMessage = List.generate(
+      players.length,
+      (i) =>
+          "Player ${i}'s points earned from this round: ${players[i].currentValue}",
+    ).join('\n');
+
+    final totalPointsMessage = List.generate(
+      players.length,
+      (i) => "Player ${i}'s total points: ${players[i].totalValue}",
+    ).join('\n');
+
+    final message = "$currentPointsMessage\n$totalPointsMessage";
+    // Show Flutter dialog
+    await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Round statistics'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('ok'),
+              ),
+            ],
+          ),
+    );
+    resumeEngine();
   }
 }

@@ -61,6 +61,7 @@ class PathDebugComponent extends PositionComponent {
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   CardDeck deck = CardDeck();
+
   // Index doesn't match position, but 0-Total count goes in clock wise direction, 0 at center initially then everything goes clock wise as index increases
   List<Player> players = [];
   int aiPlayerCount;
@@ -174,7 +175,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void calculateLeaderBoard() {}
 
-  void roundStart() {
+  Future<void> roundStart() async {
+    game.showRoundPointsDialog(players);
     for (int i = 0; i < totalPlayerCount; i++) {
       //At round start, players are forced to hit, so _onHitPressed() might be automatically called
       // _onHitPressed();
@@ -512,7 +514,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _initPlayerList();
     game.world.addAll(players);
 
-    roundStart();
     // Set up Hud
     hud = Hud(
       hitPressed: _onHitPressed,
@@ -569,6 +570,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print(
       "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      roundStart();
+    });
   }
 
   // Initialize players at position
