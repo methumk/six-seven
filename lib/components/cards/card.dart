@@ -10,6 +10,7 @@ import 'package:six_seven/components/circular_image_component.dart';
 import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
+import 'package:six_seven/pages/game/game_screen.dart';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -50,7 +51,11 @@ String doubleToStringNoTrailingZeros(double value, int safeZone) {
 
 //Base card class
 abstract class Card extends RoundedBorderComponent
-    with DragCallbacks, TapCallbacks, HoverCallbacks {
+    with
+        HasGameReference<GameScreen>,
+        DragCallbacks,
+        TapCallbacks,
+        HoverCallbacks {
   late CardType cardType;
   static final Vector2 cardSize = Vector2(80, 140);
   static final Vector2 halfCardSize = cardSize / 2;
