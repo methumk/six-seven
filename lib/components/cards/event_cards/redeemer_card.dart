@@ -3,7 +3,7 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class RedeemerCard extends EventActionCard {
+class RedeemerCard extends InstantEventActionCard {
   RedeemerCard();
 
   @override

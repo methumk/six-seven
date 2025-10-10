@@ -454,7 +454,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
-    currentPlayer.onHit(card);
+    if (card is cd.InstantEventActionCard || card is! cd.EventActionCard) {
+      // Instant events or all other cards except event action
+      currentPlayer.onHit(card);
+    } else {
+      // Event Card
+      // overridable
+      cd.EventActionCard eac = card;
+      eac.executeOnEvent();
+    }
 
     if (currentPlayer.isDone) {
       donePlayers.add(currentPlayer);
@@ -646,6 +654,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Handle events
 
     await Future.delayed(const Duration(seconds: 1));
+
     if (donePlayers.length == totalPlayerCount) {
       roundStart();
       donePlayers = Set();

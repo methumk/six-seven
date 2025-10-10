@@ -372,6 +372,9 @@ abstract class EventActionCard extends Card {
   // bool get debugMode => true;
 }
 
+// Extension of event - same thing, but gets added to hand instantly unlike regular event cards
+abstract class InstantEventActionCard extends EventActionCard {}
+
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {
   late final double _value;
