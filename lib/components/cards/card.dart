@@ -373,7 +373,7 @@ abstract class EventActionCard extends Card {
 }
 
 // Extension of event - same thing, but gets added to hand instantly unlike regular event cards
-abstract class InstantEventActionCard extends EventActionCard {}
+abstract class HandEventActionCard extends EventActionCard {}
 
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {

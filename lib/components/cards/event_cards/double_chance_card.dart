@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 
-class DoubleChanceCard extends InstantEventActionCard {
+class DoubleChanceCard extends HandEventActionCard {
   DoubleChanceCard();
 
   //No special execute on stay

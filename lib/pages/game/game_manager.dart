@@ -454,7 +454,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
-    if (card is cd.InstantEventActionCard || card is! cd.EventActionCard) {
+    if (card is cd.HandEventActionCard || card is! cd.EventActionCard) {
       // Instant events or all other cards except event action
       currentPlayer.onHit(card);
     } else {
