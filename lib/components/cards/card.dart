@@ -267,6 +267,13 @@ abstract class EventActionCard extends Card {
   late final Vector2 _bodyDescripSize;
   late final Vector2 _bodyDescripPadding;
 
+  SequenceEffect? _onDrawEffect;
+  bool _drawEffectRunning = false;
+  bool get isDrawEffectRunning => _drawEffectRunning;
+
+  Completer<void>? _eventCompleted;
+  Completer<void>? _waitForInputComplete;
+
   EventActionCard() : super(cardType: CardType.eventActionCard) {
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
     _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .60);
@@ -336,6 +343,35 @@ abstract class EventActionCard extends Card {
     );
     add(_bodyDescriptionBorder);
   }
+
+  void initEventCompleter() {
+    _eventCompleted = Completer<void>();
+  }
+
+  void initIsInputCompleter() {
+    _waitForInputComplete = Completer<void>();
+  }
+
+  Future<void> waitForEventCompletion() async {
+    if (_eventCompleted == null) return;
+    await _eventCompleted!.future;
+  }
+
+  Future<void> waitForInputCompletion() async {
+    if (_waitForInputComplete == null) return;
+    await _waitForInputComplete!.future;
+  }
+
+  // Future<void> onEventDrawn() async {
+  //   _drawEffectRunning = true;
+  //   _onDrawEffect = SequenceEffect(
+  //     [MoveEffect],
+  //     onComplete: () {
+  //       _drawEffectRunning = false;
+  //     },
+  //   );
+  //   add(_onDrawEffect!);
+  // }
 
   @override
   double executeOnStay(double currentValue) {

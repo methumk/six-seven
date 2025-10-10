@@ -123,6 +123,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final double ty; // ellipse top radius from rotation center
   late final double by; // ellipse bottom radius from rotation center
 
+  // Event action handlers
+  cd.EventActionCard? runningEvent;
+
   GameManager({
     required this.totalPlayerCount,
     required this.aiPlayerCount,
@@ -460,8 +463,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     } else {
       // Event Card
       // overridable
-      cd.EventActionCard eac = card;
-      eac.executeOnEvent();
+      // cd.EventActionCard eac = card;
+      runningEvent = card;
+
+      // Sets up completers
+      runningEvent!.initEventCompleter();
+      // Only certain event cards have to wait for input completers
+      // TODO: fix the if statement
+      // if (runningEvent is a inputEvent) {
+      //    runningEvent!.initIsInputCompleter();
+      // }
+
+      // Execute action
+      runningEvent!.executeOnEvent();
+
+      // Wait for event execution to complete
+      runningEvent!.waitForEventCompletion();
     }
 
     if (currentPlayer.isDone) {
