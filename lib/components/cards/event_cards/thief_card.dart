@@ -32,11 +32,15 @@ class ThiefCard extends EventActionCard {
 
     // Wait for user to select input
     // We expect input to be set when this is reolved
-    await game.gameManager.runningEvent!.waitForInputSelectedCompletion();
+    game.gameManager.runningEvent!.inputSelect.init();
+    await game.gameManager.runningEvent!.inputSelect.wait();
 
     // We got user input... proceed with action using that input (stealingFromPlayer set)
 
-    await game.gameManager.runningEvent!.waitForEventCompletion();
+    // NOTE TO SEAN: we already do this in game manager ( we are waiting below where we call executeOnEvent, for the thing to end)
+    // This signals and free handle draw in game manager
+    game.gameManager.runningEvent!.eventCompleted.resolve();
+    // await game.gameManager.runningEvent!.waitForEventCompletion();
     return;
   }
 
