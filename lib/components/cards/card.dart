@@ -357,9 +357,21 @@ abstract class EventActionCard extends Card {
     await _eventCompleted!.future;
   }
 
-  Future<void> waitForInputCompletion() async {
+  Future<void> waitForInputSelectedCompletion() async {
     if (_waitForInputComplete == null) return;
     await _waitForInputComplete!.future;
+  }
+
+  void resolveEventCompleted() {
+    if (_eventCompleted == null) return;
+    _eventCompleted?.complete();
+    _eventCompleted = null;
+  }
+
+  void resolveInputSelectedCompleted() {
+    if (_waitForInputComplete == null) return;
+    _waitForInputComplete?.complete();
+    _waitForInputComplete = null;
   }
 
   // Future<void> onEventDrawn() async {
