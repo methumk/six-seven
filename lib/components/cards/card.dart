@@ -7,6 +7,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/value_action_text.dart';
 import 'package:six_seven/components/circular_image_component.dart';
+import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
@@ -258,6 +259,8 @@ class NumberCard extends Card {
 
 //Event Action Card Class
 abstract class EventActionCard extends Card {
+  late Player? cardUser;
+  late Player? affectedPlayer;
   late final CircularImageComponent _eventIcon;
   late final RoundedBorderComponent _bodyDescriptionBorder;
   late final WrappingTextBox _descrip;
