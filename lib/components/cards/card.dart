@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
@@ -269,8 +268,8 @@ abstract class EventActionCard extends Card {
   late final Vector2 _bodyDescripPadding;
 
   SequenceEffect? _onDrawEffect;
-  bool _drawEffectRunning = false;
-  bool get isDrawEffectRunning => _drawEffectRunning;
+  bool get isDrawEffectRunning =>
+      _onDrawEffect != null && _onDrawEffect!.isMounted;
 
   EventCompleter eventCompleted = EventCompleter();
   EventCompleter inputSelect = EventCompleter();
@@ -347,17 +346,19 @@ abstract class EventActionCard extends Card {
   }
 
   Future<void> drawFromDeckAnimation() async {
-    _drawEffectRunning = true;
-    _onDrawEffect = SequenceEffect(
-      [
-        MoveEffect.by(Vector2(0, -50), EffectController(duration: .3)),
-        ScaleEffect.by(Vector2.all(2), EffectController(duration: .2)),
-      ],
-      onComplete: () {
-        _drawEffectRunning = false;
-        drawAnimation.resolve();
-      },
-    );
+    _onDrawEffect = SequenceEffect([
+      MoveEffect.by(Vector2(0, 90), EffectController(duration: .3)),
+      ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
+      ScaleEffect.by(
+        Vector2.all(1.1),
+        EffectController(
+          duration: .7,
+          reverseDuration: 0.5,
+          infinite: true, // repeat forever
+          curve: Curves.easeInOut,
+        ),
+      ),
+    ]);
     add(_onDrawEffect!);
   }
 
@@ -389,7 +390,16 @@ abstract class EventActionCard extends Card {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    print("Tapping down");
+
+    // If draw effect running
+    if (_onDrawEffect != null) {
+      _onDrawEffect!.removeFromParent();
+      _onDrawEffect = null;
+      removeFromParent();
+
+      // Mark draw animation as resolved to unblock
+      drawAnimation.resolve();
+    }
   }
 
   // @override
