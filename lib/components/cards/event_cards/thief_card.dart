@@ -2,11 +2,11 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class ThiefCard extends EventActionCard {
-  Player? stealingFromPlayer;
-
   ThiefCard();
   //No special execute on stay
   @override
@@ -35,7 +35,23 @@ class ThiefCard extends EventActionCard {
     await game.gameManager.runningEvent!.waitForInputSelectedCompletion();
 
     // We got user input... proceed with action using that input (stealingFromPlayer set)
+    if (affectedPlayer?.addHand != null) {
+      final List<PlusCard> addHand = affectedPlayer!.addHand;
+      while (addHand != []) {
+        PlusCard addCard = addHand.removeLast();
+        cardUser?.dch.addCardtoHand(addCard);
+      }
+    }
+    if (affectedPlayer?.multHand != null) {
+      final List<MultCard> multHand = affectedPlayer!.multHand;
+      while (multHand != []) {
+        MultCard multCard = multHand.removeLast();
+        cardUser?.dch.addCardtoHand(multCard);
+      }
+    }
 
+    //Should player have a choice in whether they want to get negative cards too or not?
+    //Currently, minusHand not included in the robbery, tentative. -Sean
     await game.gameManager.runningEvent!.waitForEventCompletion();
     return;
   }
