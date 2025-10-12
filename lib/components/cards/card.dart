@@ -347,7 +347,7 @@ abstract class EventActionCard extends Card {
 
   Future<void> drawFromDeckAnimation() async {
     _onDrawEffect = SequenceEffect([
-      MoveEffect.by(Vector2(0, 90), EffectController(duration: .3)),
+      MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
       ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
       ScaleEffect.by(
         Vector2.all(1.1),
@@ -391,8 +391,22 @@ abstract class EventActionCard extends Card {
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
 
+    if (_onDrawEffect != null) {
+      // Show a highlight on tap down
+      setBorderColor(Colors.blue);
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+
     // If draw effect running
     if (_onDrawEffect != null) {
+      // Set border back to black
+      setBorderColor(Colors.black);
+
+      // Remove components and draw effect
       _onDrawEffect!.removeFromParent();
       _onDrawEffect = null;
       removeFromParent();
