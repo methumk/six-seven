@@ -211,7 +211,7 @@ abstract class Player extends PositionComponent
     final runningEvent = game.gameManager.runningEvent;
     runningEvent?.affectedPlayer = this;
 
-    runningEvent?.resolveInputSelectedCompleted();
+    runningEvent?.inputSelect.resolve();
 
     // final currentPlayer =
     //     game.gameManager.players[game.gameManager.currentPlayerIndex];

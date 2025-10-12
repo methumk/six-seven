@@ -12,6 +12,7 @@ import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/event_completer.dart';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -278,8 +279,9 @@ abstract class EventActionCard extends Card {
   bool _drawEffectRunning = false;
   bool get isDrawEffectRunning => _drawEffectRunning;
 
-  Completer<void>? _eventCompleted;
-  Completer<void>? _waitForInputComplete;
+  EventCompleter eventCompleted = EventCompleter();
+  EventCompleter inputSelect = EventCompleter();
+  EventCompleter drawAnimation = EventCompleter();
 
   EventActionCard() : super(cardType: CardType.eventActionCard) {
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
@@ -351,46 +353,20 @@ abstract class EventActionCard extends Card {
     add(_bodyDescriptionBorder);
   }
 
-  void initEventCompleter() {
-    _eventCompleted = Completer<void>();
+  Future<void> drawFromDeckAnimation() async {
+    _drawEffectRunning = true;
+    _onDrawEffect = SequenceEffect(
+      [
+        MoveEffect.by(Vector2(0, -50), EffectController(duration: .3)),
+        ScaleEffect.by(Vector2.all(2), EffectController(duration: .2)),
+      ],
+      onComplete: () {
+        _drawEffectRunning = false;
+        drawAnimation.resolve();
+      },
+    );
+    add(_onDrawEffect!);
   }
-
-  void initIsInputCompleter() {
-    _waitForInputComplete = Completer<void>();
-  }
-
-  Future<void> waitForEventCompletion() async {
-    if (_eventCompleted == null) return;
-    await _eventCompleted!.future;
-  }
-
-  Future<void> waitForInputSelectedCompletion() async {
-    if (_waitForInputComplete == null) return;
-    await _waitForInputComplete!.future;
-  }
-
-  void resolveEventCompleted() {
-    if (_eventCompleted == null) return;
-    _eventCompleted?.complete();
-    _eventCompleted = null;
-  }
-
-  void resolveInputSelectedCompleted() {
-    if (_waitForInputComplete == null) return;
-    _waitForInputComplete?.complete();
-    _waitForInputComplete = null;
-  }
-
-  // Future<void> onEventDrawn() async {
-  //   _drawEffectRunning = true;
-  //   _onDrawEffect = SequenceEffect(
-  //     [MoveEffect],
-  //     onComplete: () {
-  //       _drawEffectRunning = false;
-  //     },
-  //   );
-  //   add(_onDrawEffect!);
-  // }
 
   @override
   double executeOnStay(double currentValue) {

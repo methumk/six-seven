@@ -179,14 +179,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void calculateLeaderBoard() {}
 
   Future<void> roundStart() async {
-    game.showRoundPointsDialog(players);
-    for (int i = 0; i < totalPlayerCount; i++) {
-      //At round start, players are forced to hit, so _onHitPressed() might be automatically called
-      // _onHitPressed();
-      players[i].reset();
-      _handleDrawCardFromDeck(i);
-    }
-    return;
+    await game.showRoundPointsDialog(players);
+    // for (int i = 0; i < totalPlayerCount; i++) {
+    //   //At round start, players are forced to hit, so _onHitPressed() might be automatically called
+    //   // _onHitPressed();
+    //   players[i].reset();
+    //   _handleDrawCardFromDeck(i);
+    // }
+    // return;
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
@@ -450,7 +450,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // This manages drawing a card form deck and then putting it into player
-  void _handleDrawCardFromDeck(int playerIndex) {
+  Future<void> _handleDrawCardFromDeck(int playerIndex) async {
     // draw from deck
     // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[playerIndex];
@@ -465,20 +465,28 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // overridable
       // cd.EventActionCard eac = card;
       runningEvent = card;
+      runningEvent!.position = deck.position;
+      game.world.add(runningEvent!);
 
-      // Sets up completers
-      runningEvent!.initEventCompleter();
-      // Only certain event cards have to wait for input completers
-      // TODO: fix the if statement
-      // if (runningEvent is a inputEvent) {
-      //    runningEvent!.initIsInputCompleter();
-      // }
+      // runningEvent!.initEventDrawCompleter();
+      runningEvent!.drawAnimation.init();
+      print("RUNNIGN EVENT POS AT ${runningEvent!.position}");
+
+      // Wait for deck draw animation to finish
+      await runningEvent!.drawFromDeckAnimation();
+
+      await runningEvent!.drawAnimation.wait();
+
+      print("OUTSIDE AFTER EVENT DRAWN");
+
+      // Sets up event completer
+      runningEvent!.eventCompleted.init();
 
       // Execute action
       runningEvent!.executeOnEvent();
 
       // Wait for event execution to complete
-      runningEvent!.waitForEventCompletion();
+      runningEvent!.eventCompleted.wait();
     }
 
     if (currentPlayer.isDone) {
@@ -665,7 +673,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     buttonPressed = true;
     // drawCardFromDeck
-    _handleDrawCardFromDeck(currentPlayerIndex);
+    await _handleDrawCardFromDeck(currentPlayerIndex);
     // Calculate bust
 
     // Handle events

@@ -32,7 +32,8 @@ class ThiefCard extends EventActionCard {
 
     // Wait for user to select input
     // We expect input to be set when this is reolved
-    await game.gameManager.runningEvent!.waitForInputSelectedCompletion();
+    game.gameManager.runningEvent!.inputSelect.init();
+    await game.gameManager.runningEvent!.inputSelect.wait();
 
     // We got user input... proceed with action using that input (stealingFromPlayer set)
     if (affectedPlayer?.addHand != null) {
@@ -50,9 +51,10 @@ class ThiefCard extends EventActionCard {
       }
     }
 
-    //Should player have a choice in whether they want to get negative cards too or not?
-    //Currently, minusHand not included in the robbery, tentative. -Sean
-    await game.gameManager.runningEvent!.waitForEventCompletion();
+    // NOTE TO SEAN: we already do this in game manager ( we are waiting below where we call executeOnEvent, for the thing to end)
+    // This signals and free handle draw in game manager
+    game.gameManager.runningEvent!.eventCompleted.resolve();
+    // await game.gameManager.runningEvent!.waitForEventCompletion();
     return;
   }
 
