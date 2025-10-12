@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/card_holders.dart';
+import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
@@ -202,6 +203,27 @@ abstract class Player extends PositionComponent
 
   // Must be overriden
   bool isCpu();
+
+  @override
+  void onTapUp(TapUpEvent event) async {
+    super.onTapUp(event);
+
+    final runningEvent = game.gameManager.runningEvent;
+    runningEvent?.affectedPlayer = this;
+
+    runningEvent?.resolveInputSelectedCompleted();
+
+    // final currentPlayer =
+    //     game.gameManager.players[game.gameManager.currentPlayerIndex];
+
+    // //For thief card only, can't really steal from self
+    //However if you are the only player left, this if statement would
+    //basically selflock the code, so comment for now
+    // if (runningEvent is ThiefCard && currentPlayer != this) {
+    //   runningEvent.stealingFromPlayer = this;
+    //   runningEvent.resolveInputSelectedCompleted();
+    // }
+  }
 
   @override
   FutureOr<void> onLoad() async {
