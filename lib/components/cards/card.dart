@@ -6,6 +6,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/value_action_text.dart';
 import 'package:six_seven/components/circular_image_component.dart';
+import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
@@ -258,6 +259,12 @@ class NumberCard extends Card {
 
 //Event Action Card Class
 abstract class EventActionCard extends Card {
+  //Card User is the player who has the card
+  late Player? cardUser;
+  //Affected player (if applicable) is the player that is affected by the card.
+  //Example: Player 1 gets the flip 3 card, so they are the card user.
+  //They choose Player 2 to be forced to flip 3 cards. Hence player 2 is the affected player.
+  late Player? affectedPlayer;
   late final CircularImageComponent _eventIcon;
   late final RoundedBorderComponent _bodyDescriptionBorder;
   late final WrappingTextBox _descrip;
