@@ -182,14 +182,21 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     donePlayers.clear();
     rotationPlayerOffset = 0;
     currentPlayerIndex = 0;
+
     await game.showRoundPointsDialog(players);
 
     for (int i = 0; i < totalPlayerCount; i++) {
       players[i].reset();
+
       PlayerSlot currSlot = _getSetUpPosIndex(i);
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
       players[i].position = pos;
+      players[i].currSlot = currSlot;
+      players[i].moveToSlot = currSlot;
     }
+
+    buttonPressed = false;
+    hud.enableHitAndStayBtns();
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
@@ -659,7 +666,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     if (donePlayers.length == totalPlayerCount) {
       print("ROUND STARTING - STAY");
       await roundStart();
-      buttonPressed = false;
       return;
     }
     // Rotate the players and disable hit/stay when running
@@ -687,7 +693,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     if (donePlayers.length == totalPlayerCount) {
       print("ROUND STARTING - HIT");
       await roundStart();
-      buttonPressed = false;
       return;
     }
 
