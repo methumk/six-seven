@@ -179,14 +179,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void calculateLeaderBoard() {}
 
   Future<void> roundStart() async {
+    donePlayers.clear();
+    rotationPlayerOffset = 0;
+    currentPlayerIndex = 0;
     await game.showRoundPointsDialog(players);
-    // for (int i = 0; i < totalPlayerCount; i++) {
-    //   //At round start, players are forced to hit, so _onHitPressed() might be automatically called
-    //   // _onHitPressed();
-    //   players[i].reset();
-    //   _handleDrawCardFromDeck(i);
-    // }
-    // return;
+
+    for (int i = 0; i < totalPlayerCount; i++) {
+      players[i].reset();
+      PlayerSlot currSlot = _getSetUpPosIndex(i);
+      Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
+      players[i].position = pos;
+    }
   }
 
   void aiTurn(CpuPlayer currentCPUPlayer) {
@@ -654,9 +657,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     if (donePlayers.length == totalPlayerCount) {
-      roundStart();
-      donePlayers = Set();
-      rotationPlayerOffset = 0;
+      print("ROUND STARTING - STAY");
+      await roundStart();
+      buttonPressed = false;
+      return;
     }
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
@@ -681,9 +685,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     if (donePlayers.length == totalPlayerCount) {
-      roundStart();
-      donePlayers = Set();
-      rotationPlayerOffset = 0;
+      print("ROUND STARTING - HIT");
+      await roundStart();
+      buttonPressed = false;
+      return;
     }
 
     // Rotate the players and disable hit/stay when running
