@@ -9,6 +9,7 @@ import 'package:six_seven/components/cards/value_action_cards/plus_card.dart'
     as cd;
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/utils/data_helpers.dart';
 
 enum Difficulty {
   easy(0),
@@ -47,7 +48,6 @@ class CpuPlayer extends Player {
       text: "Player $playerNum",
       position: Vector2.all(0),
     );
-
     add(playerName);
 
     nch = NumberCardHolder()..position = Vector2(0, playerName.size.y * -.7);
@@ -55,6 +55,14 @@ class CpuPlayer extends Player {
 
     dch = DynamicCardHolder()..position = Vector2(0, playerName.size.y * -.7);
     add(dch);
+
+    playerScore = GlowableText(
+      smallTextSize: 10,
+      smallColor: Colors.white,
+      text: roundAndStringify(currentValue),
+      position: Vector2(0, playerName.size.y * -1.5 - cd.Card.cardSize.y),
+    );
+    add(playerScore);
   }
 
   //Method for if peeked card is a mult card.

@@ -13,6 +13,7 @@ import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/data_helpers.dart';
 
 abstract class Player extends PositionComponent
     with HasGameReference<GameScreen>, TapCallbacks {
@@ -40,6 +41,7 @@ abstract class Player extends PositionComponent
 
   // UI Fields
   late final GlowableText playerName;
+  late final GlowableText playerScore;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
@@ -93,6 +95,7 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length >= 7) {
       currentValue += 42;
     }
+    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
   //Method for handling when player stays
