@@ -480,7 +480,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       // runningEvent!.initEventDrawCompleter();
       runningEvent!.drawAnimation.init();
-      print("RUNNIGN EVENT POS AT ${runningEvent!.position}");
+      print("RUNNING EVENT POS AT ${runningEvent!.position}");
 
       // Wait for deck draw animation to finish
       await runningEvent!.drawFromDeckAnimation();
@@ -493,7 +493,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       runningEvent!.eventCompleted.init();
 
       // Execute action
-      runningEvent!.executeOnEvent();
+      await runningEvent!.executeOnEvent();
 
       // Wait for event execution to complete
       runningEvent!.eventCompleted.wait();
@@ -746,6 +746,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Set stay and hit to disabled while it's rotating, once finished rotating hit and stay will be reenabled
     animatePlayerRotation = true;
     hud.disableHitAndStayBtns();
+  }
+
+  //Method for making player buttons clickable
+  void makePlayersClickable() {
+    for (Player player in players) {
+      player.buttonClickStatus = true;
+    }
+    return;
+  }
+
+  //Method for making player buttons not clickable
+  void makePlayersUnclickable() {
+    for (Player player in players) {
+      player.buttonClickStatus = false;
+    }
+    return;
   }
 
   // Returns bezier paths from one point to another based on rotation direction
