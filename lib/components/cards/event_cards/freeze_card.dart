@@ -25,7 +25,7 @@ class FreezeCard extends EventActionCard {
 
   //Freezes other player
   @override
-  void executeOnEvent() {
+  Future<void> executeOnEvent() async {
     //TO DO: Impleme
     return;
   }

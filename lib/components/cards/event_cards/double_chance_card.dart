@@ -24,7 +24,7 @@ class DoubleChanceCard extends HandEventActionCard {
 
   //Grants double chance
   @override
-  void executeOnEvent() {
+  Future<void> executeOnEvent() async {
     //To do: implement
     return;
   }

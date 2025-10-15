@@ -24,7 +24,7 @@ class FlipThreeCard extends EventActionCard {
 
   //Forces player to flip 3 cards
   @override
-  void executeOnEvent() {
+  Future<void> executeOnEvent() async {
     //To Do: implement
     return;
   }

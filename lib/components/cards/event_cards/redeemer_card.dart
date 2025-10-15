@@ -24,7 +24,7 @@ class RedeemerCard extends HandEventActionCard {
   }
 
   @override
-  void executeOnEvent() {
+  Future<void> executeOnEvent() async {
     //To do: implement
     return;
   }
