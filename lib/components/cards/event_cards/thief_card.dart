@@ -28,34 +28,23 @@ class ThiefCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    //To do: implement
-
-    // Wait for user to select input
-    // We expect input to be set when this is reolved
-    game.gameManager.runningEvent!.inputSelect.init();
-    await game.gameManager.runningEvent!.inputSelect.wait();
-
+    await choosePlayer();
     // We got user input... proceed with action using that input (stealingFromPlayer set)
     if (affectedPlayer?.addHand != null) {
       final List<PlusCard> addHand = affectedPlayer!.addHand;
-      while (addHand != []) {
+      while (addHand.isNotEmpty) {
         PlusCard addCard = addHand.removeLast();
         cardUser?.dch.addCardtoHand(addCard);
       }
     }
     if (affectedPlayer?.multHand != null) {
       final List<MultCard> multHand = affectedPlayer!.multHand;
-      while (multHand != []) {
+      while (multHand.isNotEmpty) {
         MultCard multCard = multHand.removeLast();
         cardUser?.dch.addCardtoHand(multCard);
       }
     }
-
-    // NOTE TO SEAN: we already do this in game manager ( we are waiting below where we call executeOnEvent, for the thing to end)
-    // This signals and free handle draw in game manager
-    game.gameManager.runningEvent!.eventCompleted.resolve();
-    // await game.gameManager.runningEvent!.waitForEventCompletion();
-    return;
+    finishEventCompleter();
   }
 
   @override
