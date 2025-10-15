@@ -73,7 +73,7 @@ abstract class Card extends RoundedBorderComponent
 
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
-  void executeOnEvent();
+  Future<void> executeOnEvent();
   double executeOnStay(double currentValue);
   void description();
 
@@ -209,7 +209,7 @@ class NumberCard extends Card {
   }
 
   @override
-  void executeOnEvent() {}
+  Future<void> executeOnEvent() async {}
 
   @override
   void description() {
@@ -423,6 +423,31 @@ abstract class EventActionCard extends Card {
     }
   }
 
+  //Method for initiating player selection process
+  Future<void> choosePlayer() async {
+    print("Choose a player to be affected by eventAction card:");
+    // Wait for user to select input
+    // We expect input to be set when this is resolved
+    game.gameManager.makePlayersClickable();
+    game.gameManager.runningEvent!.inputSelect.init();
+    await game.gameManager.runningEvent!.inputSelect.wait();
+    print("The player has been chosen!");
+    return;
+  }
+
+  //Method for finishing event completer
+  void finishEventCompleter() {
+    //Resolve event completer
+    game.gameManager.runningEvent!.eventCompleted.resolve();
+
+    //Make buttons unclickale
+    game.gameManager.makePlayersUnclickable();
+    return;
+  }
+
+  @override
+  Future<void> executeOnEvent() async {}
+
   // @override
   // bool get debugMode => true;
 }
@@ -504,7 +529,7 @@ abstract class ValueActionCard extends Card {
   }
 
   @override
-  void executeOnEvent() {}
+  Future<void> executeOnEvent() async {}
 
   @override
   FutureOr<void> onLoad() async {
