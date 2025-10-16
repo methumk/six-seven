@@ -43,15 +43,15 @@ abstract class Player extends PositionComponent
   // UI Fields
   late final GlowableText playerName;
   late ButtonComponent button;
-  late RectangleComponent physicalButton;
+  late CircleComponent physicalButton;
   //Bool for if button is clickable
   bool buttonIsClickable = false;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
     moveToSlot = currSlot;
-    physicalButton = RectangleComponent(
-      size: Vector2(120, 40),
+    physicalButton = CircleComponent(
+      radius: 14,
       paint:
           Paint()
             ..color =
@@ -62,19 +62,16 @@ abstract class Player extends PositionComponent
         TextComponent(
           text: "Player $playerNum",
           textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Colors.black, // or white depending on your background
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Colors.black, fontSize: 8),
           ),
           anchor: Anchor.center,
-          position: Vector2(60, 20), // center within 120x40
+          position: Vector2(14, 14),
         ),
       ],
     );
     button = ButtonComponent(
-      position: Vector2(0, 0),
-      size: Vector2(120, 40),
+      position: Vector2(10, -50),
+      size: Vector2(14, 14),
       button: physicalButton,
       onPressed: () {
         if (buttonIsClickable) {
