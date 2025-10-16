@@ -109,11 +109,15 @@ abstract class Player extends PositionComponent
     //Add currentValue to total accumulated points from player in the game
     totalValue += currentValue;
     //Remove all cards from player's hand
-    handRemoval();
+    handRemoval(saveScoreToPot: false);
   }
 
   //Method for discarding cards on bust/staying
-  void handRemoval() {
+  void handRemoval({bool saveScoreToPot = false}) {
+    if (saveScoreToPot) {
+      game.gameManager.pot.addToPot(currentValue);
+    }
+
     game.gameManager.deck.addToDiscard(nch.numberHand);
     nch.removeAllCards();
     game.gameManager.deck.addToDiscard(dch.addHand);
@@ -150,7 +154,7 @@ abstract class Player extends PositionComponent
   void bust() {
     print("Bust!");
     isDone = true;
-    handRemoval();
+    handRemoval(saveScoreToPot: true);
   }
 
   //Grant player a double chance status

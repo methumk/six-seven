@@ -30,6 +30,8 @@ import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/pot/counting_number.dart';
+import 'package:six_seven/components/pot/pot.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
@@ -37,26 +39,26 @@ import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/vector_helpers.dart';
 
-class PathDebugComponent extends PositionComponent {
-  final Path path;
-  final Paint paintStyle;
+// class PathDebugComponent extends PositionComponent {
+//   final Path path;
+//   final Paint paintStyle;
 
-  PathDebugComponent({
-    required this.path,
-    Color color = Colors.blue,
-    double strokeWidth = 5.0,
-  }) : paintStyle =
-           Paint()
-             ..color = color
-             ..style = PaintingStyle.stroke
-             ..strokeWidth = strokeWidth;
+//   PathDebugComponent({
+//     required this.path,
+//     Color color = Colors.blue,
+//     double strokeWidth = 5.0,
+//   }) : paintStyle =
+//            Paint()
+//              ..color = color
+//              ..style = PaintingStyle.stroke
+//              ..strokeWidth = strokeWidth;
 
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    canvas.drawPath(path, paintStyle);
-  }
-}
+//   @override
+//   void render(Canvas canvas) {
+//     super.render(canvas);
+//     canvas.drawPath(path, paintStyle);
+//   }
+// }
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
@@ -125,6 +127,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Event action handlers
   cd.EventActionCard? runningEvent;
+
+  // Pot
+  late final Pot pot;
 
   GameManager({
     required this.totalPlayerCount,
@@ -566,17 +571,21 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
     game.camera.viewport.add(hud);
 
+    // Set Up Game pot
+    pot = Pot(startScore: 0, position: Vector2(0, 0), size: Vector2(10, 10));
+    game.world.add(pot);
+
     // PathDebugComponent
-    var lp = determineBezierRotationPoints(
-      PlayerSlot.top,
-      PlayerSlot.bottom,
-      completeLoop: true,
-    );
-    List<PathDebugComponent> pdb = [];
-    for (final p in lp) {
-      pdb.add(PathDebugComponent(path: p));
-    }
-    game.world.addAll(pdb);
+    // var lp = determineBezierRotationPoints(
+    //   PlayerSlot.top,
+    //   PlayerSlot.bottom,
+    //   completeLoop: true,
+    // );
+    // List<PathDebugComponent> pdb = [];
+    // for (final p in lp) {
+    //   pdb.add(PathDebugComponent(path: p));
+    // }
+    // game.world.addAll(pdb);
 
     // TESTING
     final tcc = CircleComponent(
@@ -649,7 +658,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Set up on stay pressed handler
   Future<void> _onStayPressed() async {
-    print("Stay Pressed");
     if (animatePlayerRotation || buttonPressed) {
       print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
