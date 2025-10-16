@@ -11,6 +11,7 @@ import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/event_completer.dart';
 
 enum CardType {
@@ -20,34 +21,6 @@ enum CardType {
 
   final String label;
   const CardType(this.label);
-}
-
-double truncateToDecimals(double value, int fractionalDigits) {
-  double mod = math.pow(10.0, fractionalDigits).toDouble();
-  return (value * mod).truncate() / mod;
-}
-
-// Will truncate a given double value  to the number of decimal places needed and return the number of digits in the double
-int numDigitsInDouble(double value, {int truncateNumDecimals = 0}) {
-  double truncated = truncateToDecimals(value, truncateNumDecimals);
-  String str = truncated.toString();
-  List<String> parts = str.split('.');
-
-  int beforeDecimal = parts[0].length;
-  int afterDecimal = parts.length > 1 ? parts[1].length : 0;
-
-  return beforeDecimal + afterDecimal;
-}
-
-int numCharsInDouble(double value, {int truncateNumDecimals = 0}) {
-  double truncated = truncateToDecimals(value, truncateNumDecimals);
-  return truncated.toString().length;
-}
-
-// This will round to the safeZone place, so ensure this value doesn't effect your number
-String doubleToStringNoTrailingZeros(double value, int safeZone) {
-  // Use fixed precision, then strip trailing zeros and decimal if unnecessary
-  return value.toStringAsFixed(safeZone).replaceFirst(RegExp(r'\.?0+$'), '');
 }
 
 //Base card class

@@ -28,6 +28,10 @@ class GlowableText extends TextComponent {
     highlighted = false;
   }
 
+  void updateText(String newText) {
+    text = newText;
+  }
+
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
