@@ -23,7 +23,7 @@ class SalesTax extends EventActionCard {
   }
 
   @override
-  void executeOnEvent() {
+  Future<void> executeOnEvent() async {
     //To do: implement
     return;
   }

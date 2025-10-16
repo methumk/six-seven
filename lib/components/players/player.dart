@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
-import 'package:six_seven/components/cards/card.dart';
+import 'package:flame/input.dart';
+import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
@@ -31,7 +33,7 @@ abstract class Player extends PositionComponent
   bool get isRotating => _isRotating;
 
   Set<double> get numHandSet => nch.numHandSet;
-  List<NumberCard> get numberHand => nch.numberHand;
+  List<cd.NumberCard> get numberHand => nch.numberHand;
   List<PlusCard> get addHand => dch.addHand;
   List<MultCard> get multHand => dch.multHand;
   Map<double, List<MinusCard>> get minusHandMap => dch.minusHandMap;
@@ -41,11 +43,60 @@ abstract class Player extends PositionComponent
 
   // UI Fields
   late final GlowableText playerName;
+  late ButtonComponent button;
+  late CircleComponent physicalButton;
+  //Bool for if button is clickable
+  bool buttonIsClickable = false;
   late final GlowableText playerScore;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
     moveToSlot = currSlot;
+    physicalButton = CircleComponent(
+      radius: 14,
+      paint:
+          Paint()
+            ..color =
+                buttonIsClickable
+                    ? Color.fromARGB(255, 122, 255, 255)
+                    : Color.fromARGB(0, 255, 255, 255),
+      children: [
+        TextComponent(
+          text: "Player $playerNum",
+          textRenderer: TextPaint(
+            style: const TextStyle(color: Colors.black, fontSize: 8),
+          ),
+          anchor: Anchor.center,
+          position: Vector2(14, 14),
+        ),
+      ],
+    );
+    button = ButtonComponent(
+      position: Vector2(10, -50),
+      size: Vector2(14, 14),
+      button: physicalButton,
+      onPressed: () {
+        if (buttonIsClickable) {
+          final runningEvent = game.gameManager.runningEvent;
+          runningEvent?.affectedPlayer = this;
+          print("We're supposed to be robbing ${this.playerNum}");
+          runningEvent?.inputSelect.resolve();
+        } else {
+          print("buttonIsClickable is false!");
+        }
+      },
+    );
+    add(button);
+  }
+  //setter for buttonIsClickable
+  set buttonClickStatus(bool buttonStatus) {
+    buttonIsClickable = buttonStatus;
+    physicalButton.paint =
+        Paint()
+          ..color =
+              buttonIsClickable
+                  ? const Color.fromARGB(255, 122, 255, 255)
+                  : const Color.fromARGB(0, 255, 255, 255);
   }
 
   //method for seeing own hand of cards
@@ -136,12 +187,12 @@ abstract class Player extends PositionComponent
   }
 
   //Method for hitting
-  void onHit(Card newCard) {
+  void onHit(cd.Card newCard) {
     print("You hit and got a card:");
     newCard.description();
-    if (newCard is NumberCard) {
+    if (newCard is cd.NumberCard) {
       hitNumberCard(newCard);
-    } else if (newCard is ValueActionCard) {
+    } else if (newCard is cd.ValueActionCard) {
       dch.addCardtoHand(newCard);
     } else {
       // Only some event cards get added
@@ -163,7 +214,7 @@ abstract class Player extends PositionComponent
   }
 
   //sub-method for hitting a number card
-  void hitNumberCard(NumberCard nc) {
+  void hitNumberCard(cd.NumberCard nc) {
     if (nch.numHandSet.contains(nc.value)) {
       if (dch.minusCardInHand(nc.value)) {
         print(
@@ -214,11 +265,11 @@ abstract class Player extends PositionComponent
   @override
   void onTapUp(TapUpEvent event) async {
     super.onTapUp(event);
-
-    final runningEvent = game.gameManager.runningEvent;
-    runningEvent?.affectedPlayer = this;
-
-    runningEvent?.inputSelect.resolve();
+    print("onTapUp registered!");
+    // final runningEvent = game.gameManager.runningEvent;
+    // runningEvent?.affectedPlayer = this;
+    // print("We're supposed to be robbing ${this.playerNum}");
+    // runningEvent?.inputSelect.resolve();
 
     // final currentPlayer =
     //     game.gameManager.players[game.gameManager.currentPlayerIndex];
