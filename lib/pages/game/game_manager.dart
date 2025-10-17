@@ -475,6 +475,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // overridable
       // cd.EventActionCard eac = card;
       runningEvent = card;
+      runningEvent?.cardUser = currentPlayer;
       runningEvent!.position = deck.position;
       game.world.add(runningEvent!);
 
@@ -751,7 +752,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Method for making player buttons clickable
   void makePlayersClickable() {
     for (Player player in players) {
-      player.buttonClickStatus = true;
+      player.button.buttonClickStatus = true;
     }
     return;
   }
@@ -759,7 +760,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Method for making player buttons not clickable
   void makePlayersUnclickable() {
     for (Player player in players) {
-      player.buttonClickStatus = false;
+      player.button.buttonClickStatus = false;
     }
     return;
   }
