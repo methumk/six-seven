@@ -142,7 +142,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //TO DO: implement
     };
 
-    initNumberCards();
+    // initNumberCards();
     initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();

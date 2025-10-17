@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart'
@@ -42,25 +43,25 @@ class CpuPlayer extends Player {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
-    playerName = GlowableText(
-      smallTextSize: 15,
-      smallColor: Colors.green,
-      text: "Player $playerNum",
-      position: Vector2.all(0),
-    );
-    add(playerName);
+    // playerName = GlowableText(
+    //   smallTextSize: 15,
+    // smallColor: Colors.green,
+    //   text: "Player $playerNum",
+    //   position: Vector2.all(0),
+    // );
+    // add(playerName);
 
-    nch = NumberCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    nch = NumberCardHolder()..position = Vector2(0, button.radius * -.7);
     add(nch);
 
-    dch = DynamicCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    dch = DynamicCardHolder()..position = Vector2(0, button.radius * -.7);
     add(dch);
 
     playerScore = GlowableText(
       smallTextSize: 10,
       smallColor: Colors.white,
       text: roundAndStringify(currentValue),
-      position: Vector2(0, playerName.size.y * -1.5 - cd.Card.cardSize.y),
+      position: Vector2(0, button.radius * -1.5 - cd.Card.cardSize.y),
     );
     add(playerScore);
   }

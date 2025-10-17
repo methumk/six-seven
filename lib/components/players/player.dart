@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
@@ -43,40 +44,18 @@ abstract class Player extends PositionComponent
 
   // UI Fields
   late final GlowableText playerName;
-  late ButtonComponent button;
-  late CircleComponent physicalButton;
-  //Bool for if button is clickable
-  bool buttonIsClickable = false;
+  late PlayerButton button;
   late final GlowableText playerScore;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
     moveToSlot = currSlot;
-    physicalButton = CircleComponent(
-      radius: 14,
-      paint:
-          Paint()
-            ..color =
-                buttonIsClickable
-                    ? Color.fromARGB(255, 122, 255, 255)
-                    : Color.fromARGB(0, 255, 255, 255),
-      children: [
-        TextComponent(
-          text: "Player $playerNum",
-          textRenderer: TextPaint(
-            style: const TextStyle(color: Colors.black, fontSize: 8),
-          ),
-          anchor: Anchor.center,
-          position: Vector2(14, 14),
-        ),
-      ],
-    );
-    button = ButtonComponent(
-      position: Vector2(10, -50),
-      size: Vector2(14, 14),
-      button: physicalButton,
-      onPressed: () {
-        if (buttonIsClickable) {
+    button = PlayerButton(
+      pos: Vector2(-20, 0),
+      playerNum: playerNum,
+      radius: 20,
+      onHit: () {
+        if (button.buttonIsClickable) {
           final runningEvent = game.gameManager.runningEvent;
           runningEvent?.affectedPlayer = this;
           print("We're supposed to be robbing ${this.playerNum}");
@@ -87,16 +66,6 @@ abstract class Player extends PositionComponent
       },
     );
     add(button);
-  }
-  //setter for buttonIsClickable
-  set buttonClickStatus(bool buttonStatus) {
-    buttonIsClickable = buttonStatus;
-    physicalButton.paint =
-        Paint()
-          ..color =
-              buttonIsClickable
-                  ? const Color.fromARGB(255, 122, 255, 255)
-                  : const Color.fromARGB(0, 255, 255, 255);
   }
 
   //method for seeing own hand of cards
