@@ -39,3 +39,8 @@ String roundAndStringify(double value, {int digits = 2}) {
       .toStringAsFixed(digits)
       .replaceAll(RegExp(r'(\.0+$|(?<=\.\d)0+$)'), '');
 }
+
+double roundDouble(double value, int places) {
+  double mod = math.pow(10.0, places).toDouble();
+  return ((value * mod).round().toDouble() / mod);
+}
