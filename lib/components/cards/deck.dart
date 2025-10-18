@@ -142,8 +142,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //TO DO: implement
     };
 
-    initNumberCards();
-    initValueActionCards();
+    // initNumberCards();
+    // initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
     deckList.shuffle();
@@ -313,11 +313,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
   //Method for drawing
   Card draw() {
     //First, check if deck is empty. Then refill before drawing
-    if (deckList == []) {
+    if (deckList.isEmpty) {
       refill();
     }
 
-    //Draw a card
     Card newCard = deckList.removeLast();
     if (newCard is NumberCard) {
       double value = newCard.value;

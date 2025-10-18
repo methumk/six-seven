@@ -19,25 +19,25 @@ class HumanPlayer extends Player {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
-    playerName = GlowableText(
-      smallTextSize: 15,
-      smallColor: Colors.white,
-      text: "Player $playerNum",
-      position: Vector2.all(0),
-    );
-    add(playerName);
+    // playerName = GlowableText(
+    //   smallTextSize: 15,
+    //   smallColor: Colors.white,
+    //   text: "Player $playerNum",
+    //   position: Vector2.all(0),
+    // );
+    // add(playerName);
 
-    nch = NumberCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    nch = NumberCardHolder()..position = Vector2(0, button.radius * -.7);
     add(nch);
 
-    dch = DynamicCardHolder()..position = Vector2(0, playerName.size.y * -.7);
+    dch = DynamicCardHolder()..position = Vector2(0, button.radius * -.7);
     add(dch);
 
     playerScore = GlowableText(
       smallTextSize: 13,
       smallColor: Colors.white,
       text: "Score: ${roundAndStringify(currentValue)}",
-      position: Vector2(0, playerName.size.y * -1.5 - cd.Card.cardSize.y),
+      position: Vector2(0, button.radius * -1.5 - cd.Card.cardSize.y),
     );
     add(playerScore);
   }
