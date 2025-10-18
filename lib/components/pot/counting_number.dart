@@ -28,6 +28,13 @@ class CountingNumberComponent extends TextComponent {
        _duration = duration,
        super(text: roundAndStringify(value));
 
+  void updateNoAnimation(double newValue) {
+    _startValue = newValue;
+    _targetValue = newValue;
+    _currentValue = newValue;
+    text = roundAndStringify(newValue);
+  }
+
   void updateValue(double newValue, {double? duration}) {
     if ((newValue - _targetValue).abs() < 1e-9) return; // ignore tiny diffs
 
