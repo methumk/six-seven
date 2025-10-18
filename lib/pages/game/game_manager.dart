@@ -331,6 +331,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   //Calculate player's chance of busting
   double calculateFailureProbability(Player currentPlayer) {
+    //If deck is empty, refill it
+    if (deck.deckList.isEmpty) {
+      deck.refill();
+    }
     int outcomeCardinality =
         0; //the total number of cards in deck that can bust you
 
@@ -489,10 +493,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print("RUNNING EVENT POS AT ${runningEvent!.position}");
 
       // Wait for deck draw animation to finish
-      await runningEvent!.drawFromDeckAnimation();
+      if (currentPlayer.isCpu()) {
+        await runningEvent!.drawFromDeckAnimation(isInfinite: false);
 
-      await runningEvent!.drawAnimation.wait();
+        await runningEvent!.drawAnimation.wait();
+      } else {
+        await runningEvent!.drawFromDeckAnimation(isInfinite: true);
 
+        await runningEvent!.drawAnimation.wait();
+      }
       print("OUTSIDE AFTER EVENT DRAWN");
 
       // Sets up event completer
@@ -503,6 +512,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       // Wait for event execution to complete
       runningEvent!.eventCompleted.wait();
+
+      //After event is done, add card to discard pile
+      deck.addToDiscard([runningEvent as cd.Card]);
     }
 
     if (currentPlayer.isDone) {
