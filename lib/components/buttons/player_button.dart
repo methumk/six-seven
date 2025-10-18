@@ -13,6 +13,7 @@ class PlayerButton extends ButtonComponent with HasGameReference<GameScreen> {
   late final int playerNum;
   late final double radius;
   late void Function() onHit;
+  late final bool isCPU;
   late CircleComponent physicalButton;
   //Bool for if button is clickable
   bool buttonIsClickable = false;
@@ -21,6 +22,7 @@ class PlayerButton extends ButtonComponent with HasGameReference<GameScreen> {
     required this.playerNum,
     required this.radius,
     required this.onHit,
+    required this.isCPU,
   }) : super(
          position: pos,
          size: Vector2.all(radius * 2),
@@ -31,7 +33,10 @@ class PlayerButton extends ButtonComponent with HasGameReference<GameScreen> {
              TextComponent(
                text: "Player $playerNum",
                textRenderer: TextPaint(
-                 style: TextStyle(color: Colors.white, fontSize: radius / 2),
+                 style: TextStyle(
+                   color: isCPU ? Colors.lightBlue : Colors.white,
+                   fontSize: radius / 2,
+                 ),
                ),
                anchor: Anchor.center,
                position: Vector2(radius, radius),
@@ -49,7 +54,7 @@ class PlayerButton extends ButtonComponent with HasGameReference<GameScreen> {
         Paint()
           ..color =
               buttonIsClickable
-                  ? const Color.fromARGB(255, 4, 132, 132)
+                  ? const Color.fromARGB(255, 124, 0, 143)
                   : const Color.fromARGB(0, 255, 255, 255);
   }
 }
