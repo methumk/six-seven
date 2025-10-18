@@ -30,14 +30,13 @@ import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
-import 'package:six_seven/components/pot/counting_number.dart';
 import 'package:six_seven/components/pot/pot.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/leaderboard.dart';
-import 'package:six_seven/utils/vector_helpers.dart';
 
 // class PathDebugComponent extends PositionComponent {
 //   final Path path;
@@ -183,15 +182,41 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   void calculateLeaderBoard() {}
 
-  Future<void> roundStart() async {
+  Future<void> handleNewRound() async {
+    Player lp = players[currentPlayerIndex];
+    Map<Player, double> potDistrib = {};
+
+    // Calculate pot distribution before resetting and showing leaderboard
+    if (lp.status == PlayerStatus.bust) {
+      double distributedPot = roundDouble(
+        pot.totalScore / (totalPlayerCount - 1),
+        2,
+      );
+      for (int i = 0; i < totalPlayerCount; ++i) {
+        if (i != currentPlayerIndex) {
+          potDistrib[players[i]] = distributedPot;
+        }
+      }
+    } else {
+      potDistrib[lp] = pot.totalScore;
+    }
+
+    // clear variable fields
+    pot.reset();
     donePlayers.clear();
     rotationPlayerOffset = 0;
     currentPlayerIndex = 0;
 
-    await game.showRoundPointsDialog(players);
+    // await game.showRoundPointsDialog(players);
+    await game.showLeaderboard(
+      totalPlayerCount,
+      endGameLeaderBoard.topN(totalPlayerCount),
+      currentLeaderBoard.topN(totalPlayerCount),
+      potDistrib,
+    );
 
     for (int i = 0; i < totalPlayerCount; i++) {
-      players[i].reset();
+      players[i].resetRound();
 
       PlayerSlot currSlot = _getSetUpPosIndex(i);
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
@@ -285,7 +310,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // void gameRotation() {
   //   while (!gameEnd) {
   //     donePlayers = Set();
-  //     roundStart();
+  //     handleNewRound();
   //     while (donePlayers.length < totalPlayerCount) {
   //       //TO DO: Handle this, will be different from python because has non-human players as well
   //       print("Player ${currentPlayerIndex}'s turn!");
@@ -624,7 +649,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      roundStart();
+      handleNewRound();
     });
   }
 
@@ -632,7 +657,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void _initPlayerList() {
     int humanCount = 0;
     int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
-    for (int i = 0; i < totalPlayerCount; ++i) {
+    for (int i = 1; i <= totalPlayerCount; ++i) {
       // NOTE: change get set up position, to not use player count configuration
       PlayerSlot currSlot = _getSetUpPosIndex(i);
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
@@ -664,18 +689,22 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     buttonPressed = true;
-
     hud.disableHitAndStayBtns();
+
     Player currentPlayer = players[currentPlayerIndex];
     currentPlayer.handleStay();
+
+    // On stay update pot
+    await pot.addToPot(currentPlayer.currentValue);
+
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(seconds: 1));
 
     if (donePlayers.length == totalPlayerCount) {
-      print("ROUND STARTING - STAY");
-      await roundStart();
+      await handleNewRound();
       return;
     }
+
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
@@ -683,24 +712,21 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Set up on hit pressed handler
   // Handles rotation, and other functionality
   Future<void> _onHitPressed() async {
-    hud.disableHitAndStayBtns();
     if (animatePlayerRotation || buttonPressed) {
       print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
 
     buttonPressed = true;
-    // drawCardFromDeck
-    await _handleDrawCardFromDeck(currentPlayerIndex);
-    // Calculate bust
+    hud.disableHitAndStayBtns();
 
-    // Handle events
+    // Draw cards from deck and handl eevent
+    await _handleDrawCardFromDeck(currentPlayerIndex);
 
     await Future.delayed(const Duration(seconds: 1));
 
     if (donePlayers.length == totalPlayerCount) {
-      print("ROUND STARTING - HIT");
-      await roundStart();
+      await handleNewRound();
       return;
     }
 
