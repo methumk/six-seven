@@ -178,7 +178,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
       for (int j = 0; j < widget.totalPlayer; ++j) {
         final ptl = widget.totalLeaderboard[i];
         final pcl = widget.currentLeaderboard[j];
-        if (ptl.playerName.text == pcl.playerName.text) {
+        if (ptl.playerName == pcl.playerName) {
           double potBonus = widget.potDistrib[ptl] ?? 0;
           ptl.totalValue += ptl.currentValue + potBonus;
           _combinedLeaderboard.updateFor(ptl);
@@ -193,8 +193,8 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
       for (int j = 0; j < widget.totalPlayer; ++j) {
         final pcomb = _combinedList[i];
         final pprev = widget.totalLeaderboard[j];
-        if (pcomb.playerName.text == pprev.playerName.text) {
-          _rankChange[pcomb.playerName.text] = j - i;
+        if (pcomb.playerName == pprev.playerName) {
+          _rankChange[pcomb.playerName] = j - i;
           break;
         }
       }
@@ -212,7 +212,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
             LeaderboardRow(
               rank: i + 1,
               player: _combinedList[i],
-              rankChange: _rankChange[_combinedList[i].playerName.text] ?? 0,
+              rankChange: _rankChange[_combinedList[i].playerName] ?? 0,
               potEarning: widget.potDistrib[_combinedList[i]] ?? 0,
             ),
         ],
@@ -273,7 +273,7 @@ class LeaderboardRow extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              player.playerName.text,
+              player.playerName,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),

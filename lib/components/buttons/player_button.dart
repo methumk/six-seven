@@ -31,7 +31,7 @@ class PlayerButton extends ButtonComponent with HasGameReference<GameScreen> {
            paint: Paint()..color = const Color.fromARGB(0, 255, 255, 255),
            children: [
              TextComponent(
-               text: "Player $playerNum",
+               text: "P $playerNum",
                textRenderer: TextPaint(
                  style: TextStyle(
                    color: isCPU ? Colors.lightBlue : Colors.white,
