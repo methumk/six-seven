@@ -17,11 +17,15 @@ import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
 
+enum PlayerStatus { active, bust, stay }
+
 abstract class Player extends PositionComponent
     with HasGameReference<GameScreen>, TapCallbacks {
   double totalValue = 0;
   double currentValue = 0;
-  bool isDone = false;
+  PlayerStatus status = PlayerStatus.active;
+  bool get isDone => status != PlayerStatus.active;
+
   late final NumberCardHolder nch;
   late final DynamicCardHolder dch;
 
@@ -152,13 +156,11 @@ abstract class Player extends PositionComponent
   //Method for handling when player stays
   void handleStay() {
     print("Handling stay");
-    //Make isDone bool true
-    isDone = true;
+    //Make status bool true
+    status = PlayerStatus.stay;
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
 
-    //Add currentValue to total accumulated points from player in the game
-    totalValue += currentValue;
     //Remove all cards from player's hand
     handRemoval(saveScoreToPot: false);
   }
@@ -180,10 +182,12 @@ abstract class Player extends PositionComponent
   }
 
   //Method for resetting certain attributes
-  void reset() {
-    isDone = false;
+  void resetRound() {
+    status = PlayerStatus.active;
+    totalValue += currentValue;
     currentValue = 0;
     doubleChance = false;
+    playerScore.updateText("Score: $currentValue");
   }
 
   //Method for hitting
@@ -204,7 +208,7 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   void bust() {
     print("Bust!");
-    isDone = true;
+    status = PlayerStatus.bust;
     handRemoval(saveScoreToPot: true);
   }
 
