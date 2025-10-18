@@ -54,6 +54,7 @@ abstract class Player extends PositionComponent
       pos: Vector2(-20, 0),
       playerNum: playerNum,
       radius: 20,
+      isCPU: isCpu(),
       onHit: () {
         if (button.buttonIsClickable) {
           final runningEvent = game.gameManager.runningEvent;
