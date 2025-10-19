@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
-import 'package:six_seven/pages/game/leaderboard/leaderboard_widget.dart';
+import 'package:six_seven/pages/game/overlays/leaderboard_widget.dart';
 
 class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   final BuildContext context;
