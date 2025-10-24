@@ -37,7 +37,8 @@ enum EventCardEnum {
   SunkProphet("Sunk Prophet Card"),
   Thief("Thief Card"),
   Polarizer("Polarizer Card"),
-  Redeemer("Redeemer Card");
+  Redeemer("Redeemer Card"),
+  TopPeek("Top Peek Card");
 
   final String label;
   const EventCardEnum(this.label);
@@ -136,6 +137,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.Thief: 0,
       EventCardEnum.Polarizer: 0,
       EventCardEnum.Redeemer: 0,
+      EventCardEnum.TopPeek: 0,
     };
 
     eventNumericalEVAlone = {
@@ -143,7 +145,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     };
 
     // initNumberCards();
-    // initValueActionCards();
+    initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
     deckList.shuffle();
@@ -236,7 +238,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       // deckList.add(DoubleChanceCard());
-      // deckList.add(TopPeekCard());
+      deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
       // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
@@ -259,6 +261,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.MagnifyingGlass]! + 1;
       eventCardsLeft[EventCardEnum.Thief] =
           eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.TopPeek] =
+          eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // eventCardsLeft[EventCardEnum.Cribber] =
       //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
       // eventCardsLeft[EventCardEnum.Forecaster] =
