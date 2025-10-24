@@ -47,12 +47,13 @@ abstract class Player extends PositionComponent
   late int playerNum;
 
   // UI Fields
-  late final GlowableText playerName;
+  late final String playerName;
   late PlayerButton button;
   late final GlowableText playerScore;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
+    playerName = "Player ${playerNum}";
     moveToSlot = currSlot;
     button = PlayerButton(
       pos: Vector2(-20, 0),
