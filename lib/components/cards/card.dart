@@ -39,6 +39,23 @@ abstract class Card extends RoundedBorderComponent
   int savePriority = 0;
   Vector2? deckReturnTo;
 
+  late final CircularImageComponent _eventIcon;
+  late final RoundedBorderComponent _bodyDescriptionBorder;
+  late final WrappingTextBox _descrip;
+  late final TextComponent _descripTitle;
+
+  late final Vector2 _bodyDescripPos;
+  late final Vector2 _bodyDescripSize;
+  late final Vector2 _bodyDescripPadding;
+
+  SequenceEffect? _onDrawEffect;
+  bool get isDrawEffectRunning =>
+      _onDrawEffect != null && _onDrawEffect!.isMounted;
+
+  EventCompleter eventCompleted = EventCompleter();
+  EventCompleter inputSelect = EventCompleter();
+  EventCompleter drawAnimation = EventCompleter();
+
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
     anchor = Anchor.bottomCenter;
@@ -69,6 +86,57 @@ abstract class Card extends RoundedBorderComponent
     );
 
     add(dragEndMoveTo!);
+  }
+
+  // "TO DO:  Create another method for animating peek as its own thing"
+  Future<void> drawFromDeckAnimation({required bool isInfinite}) async {
+    //The effect controller for the third parameter in tbe _onDrawEffect depends
+    //on whether the cardUser is human or CPU. If human, it should repeat forever until onTapUp is registered,
+    //else it repeates 3 times
+
+    //Variable to store original card size
+    final Vector2 ogSize = Vector2.copy(size);
+    print("ogSize: ${ogSize}");
+    final scaleController =
+        isInfinite
+            ? EffectController(
+              duration: 0.7,
+              reverseDuration: 0.5,
+              curve: Curves.easeInOut,
+              infinite: true,
+            )
+            : EffectController(
+              duration: 0.7,
+              reverseDuration: 0.5,
+              curve: Curves.easeInOut,
+              repeatCount: 3,
+            );
+
+    _onDrawEffect = SequenceEffect(
+      [
+        MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
+        ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
+        ScaleEffect.by(Vector2.all(1.1), scaleController),
+      ],
+      onComplete: () {
+        // Set border back to black
+        setBorderColor(Colors.black);
+
+        // Remove components and draw effect
+        _onDrawEffect!.removeFromParent();
+        _onDrawEffect = null;
+        removeFromParent();
+
+        // Mark draw animation as resolved to unblock
+        drawAnimation.resolve();
+        //Each time you add _onDrawEffect, it takes the scale from before and multiplies it by the
+        //current scale effect. So You must reset scale by making it [1.0, 1.0].
+        scale = Vector2.all(1.0);
+        size = ogSize;
+      },
+    );
+
+    add(_onDrawEffect!);
   }
 }
 
@@ -238,22 +306,6 @@ abstract class EventActionCard extends Card {
   //Example: Player 1 gets the flip 3 card, so they are the card user.
   //They choose Player 2 to be forced to flip 3 cards. Hence player 2 is the affected player.
   late Player? affectedPlayer;
-  late final CircularImageComponent _eventIcon;
-  late final RoundedBorderComponent _bodyDescriptionBorder;
-  late final WrappingTextBox _descrip;
-  late final TextComponent _descripTitle;
-
-  late final Vector2 _bodyDescripPos;
-  late final Vector2 _bodyDescripSize;
-  late final Vector2 _bodyDescripPadding;
-
-  SequenceEffect? _onDrawEffect;
-  bool get isDrawEffectRunning =>
-      _onDrawEffect != null && _onDrawEffect!.isMounted;
-
-  EventCompleter eventCompleted = EventCompleter();
-  EventCompleter inputSelect = EventCompleter();
-  EventCompleter drawAnimation = EventCompleter();
 
   EventActionCard() : super(cardType: CardType.eventActionCard) {
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
@@ -325,49 +377,49 @@ abstract class EventActionCard extends Card {
     add(_bodyDescriptionBorder);
   }
 
-  Future<void> drawFromDeckAnimation({required bool isInfinite}) async {
-    //The effect controller for the third parameter in tbe _onDrawEffect depends
-    //on whether the cardUser is human or CPU. If human, it should repeat forever until onTapUp is registered,
-    //else it repeates 3 times
-    final scaleController =
-        isInfinite
-            ? EffectController(
-              duration: 0.7,
-              reverseDuration: 0.5,
-              curve: Curves.easeInOut,
-              infinite: true,
-            )
-            : EffectController(
-              duration: 0.7,
-              reverseDuration: 0.5,
-              curve: Curves.easeInOut,
-              repeatCount: 3,
-            );
+  // Future<void> drawFromDeckAnimation({required bool isInfinite}) async {
+  //   //The effect controller for the third parameter in tbe _onDrawEffect depends
+  //   //on whether the cardUser is human or CPU. If human, it should repeat forever until onTapUp is registered,
+  //   //else it repeates 3 times
+  //   final scaleController =
+  //       isInfinite
+  //           ? EffectController(
+  //             duration: 0.7,
+  //             reverseDuration: 0.5,
+  //             curve: Curves.easeInOut,
+  //             infinite: true,
+  //           )
+  //           : EffectController(
+  //             duration: 0.7,
+  //             reverseDuration: 0.5,
+  //             curve: Curves.easeInOut,
+  //             repeatCount: 3,
+  //           );
 
-    _onDrawEffect = SequenceEffect(
-      [
-        MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
-        ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
-        ScaleEffect.by(Vector2.all(1.1), scaleController),
-      ],
-      onComplete: () {
-        // Set border back to black
-        setBorderColor(Colors.black);
+  //   _onDrawEffect = SequenceEffect(
+  //     [
+  //       MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
+  //       ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
+  //       ScaleEffect.by(Vector2.all(1.1), scaleController),
+  //     ],
+  //     onComplete: () {
+  //       // Set border back to black
+  //       setBorderColor(Colors.black);
 
-        // Remove components and draw effect
-        _onDrawEffect!.removeFromParent();
-        _onDrawEffect = null;
-        removeFromParent();
+  //       // Remove components and draw effect
+  //       _onDrawEffect!.removeFromParent();
+  //       _onDrawEffect = null;
+  //       removeFromParent();
 
-        // Mark draw animation as resolved to unblock
-        drawAnimation.resolve();
-      },
-    );
-    //Each time you add _onDrawEffect, it takes the scale from before and multiplies it by the
-    //current scale effect. So You must reset scale by making it [1.0, 1.0].
-    scale = Vector2.all(1.0);
-    add(_onDrawEffect!);
-  }
+  //       // Mark draw animation as resolved to unblock
+  //       drawAnimation.resolve();
+  //     },
+  //   );
+  //   //Each time you add _onDrawEffect, it takes the scale from before and multiplies it by the
+  //   //current scale effect. So You must reset scale by making it [1.0, 1.0].
+  //   scale = Vector2.all(1.0);
+  //   add(_onDrawEffect!);
+  // }
 
   @override
   double executeOnStay(double currentValue) {
@@ -458,14 +510,14 @@ abstract class HandEventActionCard extends EventActionCard {}
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {
   late final double _value;
-  late final WrappingTextBox _descrip;
-  late final TextComponent _descripTitle; // Description box
+  // late final WrappingTextBox _descrip;
+  // late final TextComponent _descripTitle; // Description box
   late final ValueActionTitleText _titleText;
-  late final RoundedBorderComponent _bodyDescriptionBorder;
+  // late final RoundedBorderComponent _bodyDescriptionBorder;
 
-  late final Vector2 _bodyDescripPos;
-  late final Vector2 _bodyDescripSize;
-  late final Vector2 _bodyDescripPadding;
+  // late final Vector2 _bodyDescripPos;
+  // late final Vector2 _bodyDescripSize;
+  // late final Vector2 _bodyDescripPadding;
 
   ValueActionCard({required double value})
     : super(cardType: CardType.valueActionCard) {

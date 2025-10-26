@@ -81,6 +81,9 @@ class ThiefCard extends EventActionCard {
         }
       }
     }
+
+    //For either human player or CPU player, the affectedUser is chosen. Proceed to steal the cards
+
     //If affectedPlayer is the same as the cardUser, then there's
     //nothing to steal. Return early
     if (affectedPlayer == cardUser) {

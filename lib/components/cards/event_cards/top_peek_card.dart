@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
 
 class TopPeekCard extends EventActionCard {
   TopPeekCard();
@@ -26,7 +27,23 @@ class TopPeekCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    //To do: implement
+    if (cardUser!.isCpu()) {
+      game.gameManager.expertPeek(cardUser as CpuPlayer);
+    } else {
+      Card peekCard = game.gameManager.deck.peek();
+      game.world.add(peekCard);
+      peekCard.drawAnimation.init();
+      await peekCard.drawFromDeckAnimation(isInfinite: false);
+      await peekCard.drawAnimation.wait();
+      game.gameManager.buttonPressed = false;
+      game.gameManager.hud.enableHitAndStayBtns();
+      String decision = await game.gameManager.hud.waitForHitOrStay();
+      if (decision == 'hit') {
+        await game.gameManager.callOnHitPressed();
+      } else if (decision == 'stay') {
+        await game.gameManager.callOnStayPressed();
+      }
+    }
     return;
   }
 
