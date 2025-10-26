@@ -3,9 +3,10 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/players/player.dart';
 
-class LuckySixSidedDieCard extends EventActionCard {
-  LuckySixSidedDieCard();
+class LuckyDieCard extends EventActionCard {
+  LuckyDieCard();
 
   @override
   double executeOnStay(double currentValue) {
@@ -26,7 +27,13 @@ class LuckySixSidedDieCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    //To do: implement
+    int points = await game.showRollDiceEvent();
+    Player? p = game.gameManager.getCurrentPlayer;
+
+    if (p == null) {
+      return;
+    }
+    p.updateBonusValue(points.toDouble());
     return;
   }
 
