@@ -94,8 +94,6 @@ abstract class Card extends RoundedBorderComponent
     add(dragEndMoveTo!);
   }
 
-  // "TO DO:  Create another method for animating peek as its own thing"
-
   Future<void> peekAnimation() async {
     _onDrawEffect = SequenceEffect(
       [
@@ -497,7 +495,7 @@ abstract class EventActionCard extends Card {
     super.onTapUp(event);
 
     // If draw effect running
-    if (_onDrawEffect != null) {
+    if (_onDrawEffect != null && !cardUser!.isCpu()) {
       // Set border back to black
       setBorderColor(Colors.black);
 
