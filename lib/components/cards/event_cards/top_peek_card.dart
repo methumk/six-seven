@@ -32,9 +32,14 @@ class TopPeekCard extends EventActionCard {
     } else {
       Card peekCard = game.gameManager.deck.peek();
       game.world.add(peekCard);
+
+      //Do peekCard animation
       peekCard.drawAnimation.init();
-      await peekCard.drawFromDeckAnimation(isInfinite: false);
+      await peekCard.peekAnimation();
       await peekCard.drawAnimation.wait();
+
+      //Reset peek card size
+      peekCard.resetSize();
       game.gameManager.buttonPressed = false;
       game.gameManager.hud.enableHitAndStayBtns();
       String decision = await game.gameManager.hud.waitForHitOrStay();
