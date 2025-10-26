@@ -19,17 +19,6 @@ class HumanPlayer extends Player {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
-    playerName = GlowableText(
-      smallTextSize: 15,
-      smallColor: Colors.white,
-      text: "Player $playerNum",
-      position: Vector2.all(0),
-    );
-    //Commented out the playerName from being physically added to world; player button is in its place
-    //as of current Figma design.
-    //It is only needed for score board now.
-    // add(playerName);
-
     nch = NumberCardHolder()..position = Vector2(0, button.radius * -.7);
     add(nch);
 
