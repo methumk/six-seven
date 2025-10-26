@@ -722,6 +722,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _rotatePlayers();
   }
 
+  //Public method to call _onStayPressed.
+  Future<void> callOnStayPressed() => _onStayPressed();
+
   // Set up on hit pressed handler
   // Handles rotation, and other functionality
   Future<void> _onHitPressed() async {
@@ -746,6 +749,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
+
+  //Public method to call _onHitPressed
+  Future<void> callOnHitPressed() => _onHitPressed();
 
   Future<void> _rotatePlayers() async {
     //Get the next player to be rotated to
