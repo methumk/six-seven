@@ -70,6 +70,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
       height: 300,
       child: Column(
         children: [
+          RowHeader(),
           for (int i = 0; i < widget.totalPlayer; ++i)
             LeaderboardRow(
               rank: i + 1,
@@ -77,6 +78,60 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
               rankChange: _rankChange[_combinedList[i].playerName] ?? 0,
               potEarning: widget.potDistrib[_combinedList[i]] ?? 0,
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class RowHeader extends StatelessWidget {
+  const RowHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          SizedBox(width: 30, child: Text('', textAlign: TextAlign.center)),
+          Expanded(
+            flex: 3,
+            child: Text(
+              "Ranking",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.left,
+            ),
+          ),
+          Expanded(flex: 1, child: Text("")),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "Total",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "Current",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "Pot",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
