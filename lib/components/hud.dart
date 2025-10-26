@@ -25,6 +25,24 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
   late Future<void> Function() hitPressed;
   late Future<void> Function() backPressed;
 
+  Completer<String>? _decisionCompleter;
+
+  Future<String> waitForHitOrStay() {
+    _decisionCompleter = Completer<String>();
+    return _decisionCompleter!.future;
+  }
+
+  void _completeDecision(String decision) {
+    if (_decisionCompleter != null && !_decisionCompleter!.isCompleted) {
+      _decisionCompleter!.complete(decision);
+    }
+  }
+
+  void setupButtonHandlers() {
+    hitPressed = () async => _completeDecision('hit');
+    stayPressed = () async => _completeDecision('stay');
+  }
+
   Hud({
     required this.hitPressed,
     required this.stayPressed,
@@ -114,13 +132,16 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
     add(_backBtn);
     add(_stayBtn);
     add(_hitBtn);
+
+    setupButtonHandlers();
   }
 
   void disableHitAndStayBtns() {
     if (_disableUpBtnImg == null ||
         _disableDownBtnImg == null ||
-        hitAndStayDisabled)
+        hitAndStayDisabled) {
       return;
+    }
 
     // Make the up and down both the disabled up, so it doesn't look clickable
     _stayBtn.changeImage(
