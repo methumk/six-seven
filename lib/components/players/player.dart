@@ -173,7 +173,7 @@ abstract class Player extends PositionComponent
     currentValue = 0;
     currentBonusValue = 0;
     doubleChance = false;
-    playerScore.updateText("Score: $currentValue");
+    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
   //Method for hitting

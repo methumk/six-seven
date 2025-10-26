@@ -30,6 +30,10 @@ String doubleToStringNoTrailingZeros(double value, int safeZone) {
 
 // Digits is number of decimal digits we want, so digits = 2 is hundreths place
 String roundAndStringify(double value, {int digits = 2}) {
+  if (value == 0) {
+    return "0";
+  }
+
   // Round to the 10ths place
   double roundedValue =
       (value * math.pow(10, digits)).roundToDouble() / math.pow(10, digits);
