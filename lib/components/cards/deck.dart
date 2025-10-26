@@ -291,6 +291,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
     int numDiscardedCards = discardPile.length;
     for (int i = 0; i < numDiscardedCards; i++) {
       Card discardedCard = discardPile.removeLast();
+
+      discardedCard.resetSize();
       deckList.add(discardedCard);
       if (discardedCard is NumberCard) {
         double value = discardedCard.value;
@@ -350,7 +352,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   //the values of the original deck element.
   Card peek() {
     //First, check if deck is empty. Then refill before peeking
-    if (deckList == []) {
+    if (deckList.isEmpty) {
       refill();
     }
     //Dart does NOT have negative indices unlike Python, meaning
@@ -361,7 +363,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   List<Card> forecast() {
     //This is only if deckList is entirely empty
     //If length >0 and <3, just forecast rest of cards in deck
-    if (deckList == []) {
+    if (deckList.isEmpty) {
       refill();
     }
     int numPeek = min(deckList.length, 4);
