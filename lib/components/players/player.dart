@@ -52,7 +52,7 @@ abstract class Player extends PositionComponent
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
-    playerName = "Player ${playerNum}";
+    playerName = "Player $playerNum";
     moveToSlot = currSlot;
     button = PlayerButton(
       pos: Vector2(-20, 0),
@@ -63,7 +63,7 @@ abstract class Player extends PositionComponent
         if (button.buttonIsClickable) {
           final runningEvent = game.gameManager.runningEvent;
           runningEvent?.affectedPlayer = this;
-          print("We're supposed to be robbing ${this.playerNum}");
+          print("We're supposed to be robbing $playerNum");
           runningEvent?.inputSelect.resolve();
         } else {
           print("buttonIsClickable is false!");
@@ -173,7 +173,7 @@ abstract class Player extends PositionComponent
     currentValue = 0;
     currentBonusValue = 0;
     doubleChance = false;
-    playerScore.updateText("Score: $currentValue");
+    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
   //Method for hitting
@@ -282,7 +282,4 @@ abstract class Player extends PositionComponent
   void update(double dt) {
     super.update(dt);
   }
-
-  @override
-  bool get debugMode => true;
 }
