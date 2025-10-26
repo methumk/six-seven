@@ -130,6 +130,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Pot
   late final Pot pot;
 
+  Player? get getCurrentPlayer =>
+      players.isNotEmpty &&
+              players.length > currentPlayerIndex &&
+              players[currentPlayerIndex] != null
+          ? players[currentPlayerIndex]
+          : null;
+
   GameManager({
     required this.totalPlayerCount,
     required this.aiPlayerCount,
