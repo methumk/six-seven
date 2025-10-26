@@ -282,7 +282,4 @@ abstract class Player extends PositionComponent
   void update(double dt) {
     super.update(dt);
   }
-
-  @override
-  bool get debugMode => true;
 }
