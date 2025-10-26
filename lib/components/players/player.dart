@@ -4,12 +4,10 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
-import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
@@ -24,6 +22,7 @@ abstract class Player extends PositionComponent
     with HasGameReference<GameScreen>, TapCallbacks {
   double totalValue = 0;
   double currentValue = 0;
+  double currentBonusValue = 0;
   PlayerStatus status = PlayerStatus.active;
   bool get isDone => status != PlayerStatus.active;
 
@@ -94,6 +93,20 @@ abstract class Player extends PositionComponent
     print("Total points excluding this round: ${totalValue}");
   }
 
+  // Update the bonus score
+  void updateBonusValue(
+    double additionalBonus, {
+    bool clearExistingBonus = false,
+  }) {
+    if (clearExistingBonus) {
+      currentBonusValue = additionalBonus;
+    } else {
+      currentBonusValue += additionalBonus;
+    }
+    currentValue += currentBonusValue;
+    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+  }
+
   //Method for updating current value (might noy be the final points of the round, just used for
   //ev comparison)
   void updateCurrentValue() {
@@ -121,6 +134,7 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length >= 7) {
       currentValue += 42;
     }
+    currentValue += currentBonusValue;
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
@@ -157,6 +171,7 @@ abstract class Player extends PositionComponent
     status = PlayerStatus.active;
     totalValue += currentValue;
     currentValue = 0;
+    currentBonusValue = 0;
     doubleChance = false;
     playerScore.updateText("Score: $currentValue");
   }

@@ -45,6 +45,7 @@ dependencies:
   flame_riverpod: ^5.4.17
   flame_splash_screen: ^0.3.1+2
   flutter_screenutil: ^5.9.3
+  flutter_svg: ^2.2.1
   
 
 dev_dependencies:
