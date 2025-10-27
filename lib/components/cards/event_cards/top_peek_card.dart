@@ -28,6 +28,7 @@ class TopPeekCard extends EventActionCard {
   @override
   Future<void> executeOnEvent() async {
     if (cardUser!.isCpu()) {
+      game.gameManager.buttonPressed = false;
       game.gameManager.expertPeek(cardUser as CpuPlayer);
     } else {
       Card peekCard = game.gameManager.deck.peek();
