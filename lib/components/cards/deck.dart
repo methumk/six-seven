@@ -30,7 +30,7 @@ enum EventCardEnum {
   Forecaster("Forcaster Card"),
   Freeze("Freeze Card"),
   IncomeTax("Income Tax Card"),
-  LuckySixSidedDie("Lucky  Die Card"),
+  LuckyDieCard("Lucky Die Card"),
   MagnifyingGlass("Magnifying Glass Card"),
   ReverseTurn("Reverse Turn Card"),
   SalesTax("Sales Tax Card"),
@@ -129,7 +129,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.Forecaster: 0,
       EventCardEnum.Freeze: 0,
       EventCardEnum.IncomeTax: 0,
-      EventCardEnum.LuckySixSidedDie: 0,
+      EventCardEnum.LuckyDieCard: 0,
       EventCardEnum.MagnifyingGlass: 0,
       EventCardEnum.ReverseTurn: 0,
       EventCardEnum.SalesTax: 0,
@@ -244,7 +244,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
-      // deckList.add(LuckySixSidedDieCard());
+      deckList.add(LuckyDieCard());
       // deckList.add(SunkProphet());
       // deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
@@ -271,8 +271,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      // eventCardsLeft[EventCardEnum.LuckySixSidedDie] =
-      //     eventCardsLeft[EventCardEnum.LuckySixSidedDie]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDieCard] =
+          eventCardsLeft[EventCardEnum.LuckyDieCard]! + 1;
       // eventCardsLeft[EventCardEnum.SunkProphet] =
       //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
       // eventCardsLeft[EventCardEnum.ChoiceDraw] =
