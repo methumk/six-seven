@@ -29,6 +29,7 @@ class ThiefCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
+    double currentHypotheticalValue = cardUser!.currentValue;
     if (!cardUser!.isCpu()) {
       await choosePlayer();
       // We got user input. Signal to choosePlayer event is now completed.
@@ -46,8 +47,6 @@ class ThiefCard extends EventActionCard {
       //the hypothetical value). Store that player as the chosen player.
       //Then compute the hypothetical value $aX + b$ for that player. Iterate through the active players, and if there is anoyhter active player with a higher
       //$aX+b$ value, store that player instead. After the iteration, the chosen player who is left will be chosen for the card.
-
-      double currentHypotheticalValue = cardUser!.currentValue;
 
       //We need to calculate X, the number card values of cardUser, here.
       //If there is more than one event action card, it might be better to
@@ -75,8 +74,15 @@ class ThiefCard extends EventActionCard {
           }
           double rivalHypotheticalValue =
               multipliers * numberCardsValue + plusMinusValues;
+          print(
+            "Current chosen player: ${affectedPlayer!.playerName}, total value: ${currentHypotheticalValue}",
+          );
+          print(
+            "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",
+          );
           if (rivalHypotheticalValue >= currentHypotheticalValue) {
             affectedPlayer = player;
+            currentHypotheticalValue = rivalHypotheticalValue;
           }
         }
       }
@@ -84,6 +90,9 @@ class ThiefCard extends EventActionCard {
 
     //For either human player or CPU player, the affectedUser is chosen. Proceed to steal the cards
 
+    print(
+      "chosen player: ${affectedPlayer!.playerName}, value: ${currentHypotheticalValue}",
+    );
     //If affectedPlayer is the same as the cardUser, then there's
     //nothing to steal. Return early
     if (affectedPlayer == cardUser) {
