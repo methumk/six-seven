@@ -270,34 +270,44 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Method for expert CPU peeking
 
   void expertPeek(CpuPlayer currentCPUPlayer) {
+    print("CPU is peeking now!");
     cd.Card peekCard = deck.peek();
     if (peekCard is cd.NumberCard) {
       print("Peeked card was a number card!");
       //if peeked number card is a duplicate and will bust, stay,
       //else hit
       if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard)) {
+        print("Peeked card was a duplicate number card. Stay!");
         _onStayPressed();
       } else {
+        print("Peeked card was not a duplicate number card. Hit!");
         _onHitPressed();
       }
     }
     //Plus cards are always good, hit them.
     else if (peekCard is cd.PlusCard) {
+      print("Peeked card was a plus card. Hit!");
       _onHitPressed();
     } else if (peekCard is cd.MinusCard) {
       //For minus card, AI Player will choose to hit anyways if E[Hit] >= n
       //because they can still continue getting points with more hits.
       //Else, they stay because E[Hit] < n, and hence it is not worth the risk
       //to hit more.
+      print(
+        "Peeked card was a number card. Comparing Expected Value to decide",
+      );
       EVBasedComparison(currentCPUPlayer);
     } else if (peekCard is cd.MultCard) {
       if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
+        print("Peeked card was a  Multiplier card with value <1. Stay!");
         _onStayPressed();
       } else {
+        print("Peeked card was a multiplier card with value >=1. Hit!");
         _onHitPressed();
       }
     } else {
       //TO DO: Handle event action cards case
+      _onHitPressed();
     }
     return;
   }
@@ -743,7 +753,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     buttonPressed = true;
     hud.disableHitAndStayBtns();
 
-    // Draw cards from deck and handl eevent
+    // Draw cards from deck and handle event
     await _handleDrawCardFromDeck(currentPlayerIndex);
 
     await Future.delayed(const Duration(seconds: 1));
