@@ -3,6 +3,7 @@ import 'package:flame/camera.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
@@ -140,7 +141,10 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     );
   }
 
-  Future<int> showRollDiceEvent() async {
+  Future<int> showRollDiceEvent({
+    bool isAi = false,
+    Difficulty aiDifficulty = Difficulty.expert,
+  }) async {
     pauseEngine();
     final dieScore = await showDialog<int>(
       context: context,
@@ -148,7 +152,7 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
       builder:
           (context) => AlertDialog(
             title: const Center(child: Text('Roll Dice')),
-            content: const LuckyDieWidget(),
+            content: LuckyDieWidget(isAi: isAi, aiDifficulty: aiDifficulty),
           ),
     );
     resumeEngine();

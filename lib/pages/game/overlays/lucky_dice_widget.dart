@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
 
 class LuckyDieWidget extends StatefulWidget {
   final double startSize;
   final double endSize;
   final Duration dropDuration;
   final Duration wobbleDuration;
+  final bool isAi;
+  final Difficulty aiDifficulty;
 
   const LuckyDieWidget({
     super.key,
@@ -16,6 +19,8 @@ class LuckyDieWidget extends StatefulWidget {
     this.endSize = 80,
     this.dropDuration = const Duration(seconds: 1),
     this.wobbleDuration = const Duration(milliseconds: 600),
+    this.isAi = false,
+    this.aiDifficulty = Difficulty.medium,
   });
 
   @override
@@ -26,11 +31,12 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
     with TickerProviderStateMixin {
   late AnimationController _dropController;
   late Animation<double> _sizeAnimation;
-  late Timer _timer;
+  Timer? _timer;
   int _currentFace = 0;
   int _totalScore = 0;
   late int _finalValue;
   bool _isRolling = false;
+  bool _aiShowLeaving = false;
   final Random _random = Random();
 
   // history slots: length 6, null means placeholder (gray)
@@ -47,16 +53,27 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
   @override
   void dispose() {
+    if (_timer != null && _timer!.isActive) {
+      _timer?.cancel();
+    }
+    _timer = null;
+
+    _dropController.stop();
     _dropController.dispose();
-    _timer.cancel();
+
     // dispose any remaining slot controllers
     for (final c in _slotControllers.values) {
       try {
+        c.stop();
         c.dispose();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint("Got error disposing $c - $e");
+      }
     }
+
     _slotControllers.clear();
     _slotAnimations.clear();
+
     super.dispose();
   }
 
@@ -74,15 +91,66 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
       begin: widget.startSize,
       end: widget.endSize,
     ).animate(CurvedAnimation(parent: _dropController, curve: Curves.easeIn));
+
+    if (widget.isAi) {
+      // Only launch simulate ai Turn after it's mounted
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _simulateAiTurn();
+      });
+    }
+  }
+
+  Future<void> _simulateAiTurn() async {
+    while (mounted) {
+      while (_isRolling) {
+        // Stay in this loop until rolling has finished
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+
+      // Think delay
+      await Future.delayed(Duration(milliseconds: 1500 + _random.nextInt(100)));
+
+      // If max rolls completed, redeem points
+      if (_historySlots.indexWhere((v) => v == null) == -1) {
+        if (mounted) {
+          // Toggle the redeem button
+          setState(() => _aiShowLeaving = true);
+          await Future.delayed(Duration(milliseconds: 500));
+          Navigator.of(context).pop(_totalScore);
+          return;
+        }
+      }
+
+      // Ai makes a decision
+      // hard or expert always rolls if it has the chance, easy (rolls 50%), medium (85%)
+      bool aiWantsToRoll =
+          widget.aiDifficulty == Difficulty.easy
+              ? _random.nextDouble() < 0.50
+              : widget.aiDifficulty == Difficulty.medium
+              ? _random.nextDouble() < 0.50
+              : true;
+
+      if (aiWantsToRoll) {
+        _startRoll();
+      } else {
+        if (mounted) {
+          // Toggle the redeem button
+          setState(() => _aiShowLeaving = true);
+          await Future.delayed(Duration(milliseconds: 500));
+          Navigator.of(context).pop(_totalScore);
+          return;
+        }
+      }
+    }
   }
 
   void _startRoll() {
     if (_isRolling) return;
-    _isRolling = true;
+    setState(() => _isRolling = true);
 
     // pick a final face 1..7
     _finalValue = _random.nextInt(7) + 1;
-    print("FINAL VALUE $_finalValue");
+    debugPrint("FINAL VALUE $_finalValue");
 
     // reset drop animation and start showing random faces during drop
     _dropController.reset();
@@ -92,8 +160,14 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         t.cancel();
         setState(() {
           _currentFace = _finalValue;
-          _totalScore += _finalValue >= 6 ? -1 : _finalValue;
+          _totalScore +=
+              _finalValue == 6
+                  ? -6
+                  : _finalValue == 7
+                  ? -7
+                  : _finalValue;
         });
+
         // Insert into history and run wobble there
         _placeIntoHistoryAndWobble(_finalValue);
       } else {
@@ -105,7 +179,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
     _dropController.forward().whenComplete(() {
       if (mounted) {
         // rolling finished
-        _isRolling = false;
+        setState(() => _isRolling = false);
       }
     });
   }
@@ -195,121 +269,135 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 490,
-      height: 210,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Expanded(
-            flex: 1,
-            child: Center(child: Text("Points Earned: $_totalScore")),
-          ),
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _sizeAnimation,
-                builder: (context, child) {
-                  return SizedBox(
-                    width: _sizeAnimation.value,
-                    height: _sizeAnimation.value,
-                    child: SvgPicture.asset(
-                      'assets/images/game_ui/dice_$_currentFace.svg',
-                    ),
-                  );
-                },
-              ),
+    return IgnorePointer(
+      ignoring: widget.isAi,
+      child: SizedBox(
+        width: 490,
+        height: 210,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Center(child: Text("Points Earned: $_totalScore")),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: FittedBox(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(_historySlots.length, (i) {
-                    final val = _historySlots[i];
-                    Widget child;
-                    if (val == null) {
-                      // placeholder gray
-                      child = SvgPicture.asset(
-                        'assets/images/game_ui/dice_gray.svg',
-                        width: 28,
-                      );
-                    } else {
-                      // if this slot is currently animating, wrap with rotation animation
-                      if (_slotAnimations.containsKey(i) &&
-                          _slotControllers.containsKey(i)) {
-                        child = AnimatedBuilder(
-                          animation: _slotAnimations[i]!,
-                          builder: (context, w) {
-                            return Transform.rotate(
-                              angle: _slotAnimations[i]!.value,
-                              child: SvgPicture.asset(
-                                'assets/images/game_ui/dice_$val.svg',
-                                width: 28,
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        // static final face
-                        child = SvgPicture.asset(
-                          'assets/images/game_ui/dice_$val.svg',
-                          width: 28,
-                        );
-                      }
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: child,
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _sizeAnimation,
+                  builder: (context, child) {
+                    return SizedBox(
+                      width: _sizeAnimation.value,
+                      height: _sizeAnimation.value,
+                      child: SvgPicture.asset(
+                        'assets/images/game_ui/dice_$_currentFace.svg',
+                      ),
                     );
-                  }),
+                  },
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Center(
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(_totalScore),
-                        child: const Text(
-                          'Redeem',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: FittedBox(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(_historySlots.length, (i) {
+                      final val = _historySlots[i];
+                      Widget child;
+                      if (val == null) {
+                        // placeholder gray
+                        child = SvgPicture.asset(
+                          'assets/images/game_ui/dice_gray.svg',
+                          width: 28,
+                        );
+                      } else {
+                        // if this slot is currently animating, wrap with rotation animation
+                        if (_slotAnimations.containsKey(i) &&
+                            _slotControllers.containsKey(i)) {
+                          child = AnimatedBuilder(
+                            animation: _slotAnimations[i]!,
+                            builder: (context, w) {
+                              return Transform.rotate(
+                                angle: _slotAnimations[i]!.value,
+                                child: SvgPicture.asset(
+                                  'assets/images/game_ui/dice_$val.svg',
+                                  width: 28,
+                                ),
+                              );
+                            },
+                          );
+                        } else {
+                          // static final face
+                          child = SvgPicture.asset(
+                            'assets/images/game_ui/dice_$val.svg',
+                            width: 28,
+                          );
+                        }
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: child,
+                      );
+                    }),
                   ),
-                  Expanded(
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed:
-                            (_isRolling ||
-                                    (_historySlots.indexWhere(
-                                          (v) => v == null,
-                                        ) ==
-                                        -1))
-                                ? null
-                                : _startRoll,
-                        child: const Text(
-                          'Roll',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Center(
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed:
+                              _aiShowLeaving
+                                  ? null
+                                  : () {
+                                    if (!_isRolling) {
+                                      Navigator.of(context).pop(_totalScore);
+                                    }
+                                  },
+                          child: Text(
+                            'Redeem',
+                            style: TextStyle(
+                              color: widget.isAi ? Colors.green : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed:
+                              (_isRolling ||
+                                      (_historySlots.indexWhere(
+                                            (v) => v == null,
+                                          ) ==
+                                          -1))
+                                  ? null
+                                  : _startRoll,
+                          child: Text(
+                            'Roll',
+                            style: TextStyle(
+                              color: widget.isAi ? Colors.green : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

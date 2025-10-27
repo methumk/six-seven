@@ -1,8 +1,8 @@
 //Lucky Six Dice Card: Roll a seven sided die. If it is 1-5, gain 3.67 points.
 //Else, lose 7 points. Can choose to roll up to 7 times.
 import 'dart:async';
-
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class LuckyDieCard extends EventActionCard {
@@ -27,14 +27,24 @@ class LuckyDieCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    int points = await game.showRollDiceEvent();
     Player? p = game.gameManager.getCurrentPlayer;
-
     if (p == null) {
       return;
     }
+
+    // Calculate difficulty
+    var difficulty = Difficulty.expert;
+    if (p is CpuPlayer) {
+      difficulty = p.difficulty;
+    }
+
+    // Set either AI or CPU interaction with dialogue
+    int points = await game.showRollDiceEvent(
+      isAi: p.isCpu(),
+      aiDifficulty: difficulty,
+    );
+
     p.updateBonusValue(points.toDouble());
-    return;
   }
 
   @override
