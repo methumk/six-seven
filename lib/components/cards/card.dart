@@ -335,7 +335,7 @@ class NumberCard extends Card {
 //Event Action Card Class
 abstract class EventActionCard extends Card {
   //Card User is the player who has the card
-  late Player? cardUser;
+  Player? cardUser;
   //Affected player (if applicable) is the player that is affected by the card.
   //Example: Player 1 gets the flip 3 card, so they are the card user.
   //They choose Player 2 to be forced to flip 3 cards. Hence player 2 is the affected player.
@@ -494,6 +494,7 @@ abstract class EventActionCard extends Card {
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
 
+    if (cardUser == null) return;
     // If draw effect running
     if (_onDrawEffect != null && !cardUser!.isCpu()) {
       // Set border back to black
