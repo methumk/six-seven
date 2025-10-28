@@ -59,6 +59,9 @@ import 'package:six_seven/utils/leaderboard.dart';
 //   }
 // }
 
+// When we want a different action that just rotating after dealing with an event card
+enum EventDifferentAction { none, allowSecondChoice }
+
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
   CardDeck deck = CardDeck();
@@ -511,7 +514,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // This manages drawing a card form deck and then putting it into player
-  Future<bool> _handleDrawCardFromDeck(int playerIndex) async {
+  Future<EventDifferentAction> _handleDrawCardFromDeck(int playerIndex) async {
     // draw from deck
     // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[playerIndex];
@@ -564,11 +567,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     } else {
       // Only if player is not double allow them to do additional hit stay
       if (card is TopPeekCard) {
-        return true;
+        return EventDifferentAction.allowSecondChoice;
       }
     }
 
-    return false;
+    return EventDifferentAction.none;
   }
 
   @override
@@ -760,9 +763,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     hud.disableHitAndStayBtns();
 
     // Draw cards from deck and handle event
-    bool additionalHitStay = await _handleDrawCardFromDeck(currentPlayerIndex);
+    var eventDifferentAction = await _handleDrawCardFromDeck(
+      currentPlayerIndex,
+    );
 
-    if (additionalHitStay) {
+    if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
       buttonPressed = false;
       hud.enableHitAndStayBtns();
       return;
