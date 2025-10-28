@@ -511,7 +511,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // This manages drawing a card form deck and then putting it into player
-  Future<void> _handleDrawCardFromDeck(int playerIndex) async {
+  Future<bool> _handleDrawCardFromDeck(int playerIndex) async {
     // draw from deck
     // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[playerIndex];
@@ -561,8 +561,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     if (currentPlayer.isDone) {
       donePlayers.add(currentPlayer);
+    } else {
+      // Only if player is not double allow them to do additional hit stay
+      if (card is TopPeekCard) {
+        return true;
+      }
     }
-    return;
+
+    return false;
   }
 
   @override
@@ -754,7 +760,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     hud.disableHitAndStayBtns();
 
     // Draw cards from deck and handle event
-    await _handleDrawCardFromDeck(currentPlayerIndex);
+    bool additionalHitStay = await _handleDrawCardFromDeck(currentPlayerIndex);
+
+    if (additionalHitStay) {
+      buttonPressed = false;
+      hud.enableHitAndStayBtns();
+      return;
+    }
 
     await Future.delayed(const Duration(seconds: 1));
 
