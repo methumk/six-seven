@@ -161,11 +161,12 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         setState(() {
           _currentFace = _finalValue;
           _totalScore +=
-              _finalValue == 6
+              2 *
+              (_finalValue == 6
                   ? -6
                   : _finalValue == 7
                   ? -7
-                  : _finalValue;
+                  : _finalValue);
         });
 
         // Insert into history and run wobble there
