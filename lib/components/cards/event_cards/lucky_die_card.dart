@@ -20,7 +20,7 @@ class LuckyDieCard extends EventActionCard {
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
       description:
-          "Roll a 7 sided die. Getting 6 or 7 loses 7 points. Otherwise, win 3.67 points. Max roll 7 times!",
+          "Roll a 7 sided die. Rolling a 1,2,3,4, or 5 gets you 2,4,6,8, or 10 points respectively. Rolling a 6 or 7 gets you -12 or -14 points respectively. Max roll 7 times!",
       descriptionTitle: "Lucky Die",
     );
   }
