@@ -234,7 +234,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= 15; i++) {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       // deckList.add(DoubleChanceCard());

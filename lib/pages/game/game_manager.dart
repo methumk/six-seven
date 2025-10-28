@@ -769,7 +769,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
       buttonPressed = false;
-      hud.enableHitAndStayBtns();
+      //If you are human player, need buttons reenabled to do another action. Else, should not
+      //have them enabled during a CPU's second turn
+      if (!getCurrentPlayer!.isCpu()) {
+        hud.enableHitAndStayBtns();
+      }
       return;
     }
 
