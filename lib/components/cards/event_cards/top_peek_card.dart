@@ -59,4 +59,9 @@ class TopPeekCard extends EventActionCard {
       "${cardType.label} the player that gets chosen is allowed to take a peek at the next card in the deck!",
     );
   }
+
+  @override
+  String toString() {
+    return "Top Peek";
+  }
 }

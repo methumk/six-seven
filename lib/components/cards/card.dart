@@ -330,6 +330,11 @@ class NumberCard extends Card {
     super.onTapDown(event);
     print("Tapping down");
   }
+
+  @override
+  String toString() {
+    return "Number Card $_value";
+  }
 }
 
 //Event Action Card Class
@@ -656,5 +661,10 @@ abstract class ValueActionCard extends Card {
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
     print("Tapping down");
+  }
+
+  @override
+  String toString() {
+    return "Value Action Card $_value";
   }
 }
