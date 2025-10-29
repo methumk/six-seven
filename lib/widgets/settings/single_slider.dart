@@ -36,6 +36,16 @@ class _SingleSliderData extends State<SingleSlider> {
   }
 
   @override
+  void didUpdateWidget(covariant SingleSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.startValue != widget.startValue) {
+      setState(() {
+        _value = widget.startValue;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(0.5),
@@ -62,7 +72,7 @@ class _SingleSliderData extends State<SingleSlider> {
                       widget.onChanged(castValue);
                       setState(() {
                         _value = castValue;
-                        print("UPDATING SLIDER value: $_value");
+                        // print("UPDATING SLIDER value: $_value");
                       });
                     }
                     : null,

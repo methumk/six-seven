@@ -19,11 +19,20 @@ class GameSetupSettingsNotifier extends Notifier<GameSetupSettings> {
   }
 
   void updateTotalPlayerCount(int v) {
-    state = state.copyWith(totalPlayerCount: v);
+    final newAiCount = state.aiPlayerCount.clamp(
+      GameSetupSettingsConstants.aiPlayerCountMin,
+      v - 1,
+    );
+
+    state = state.copyWith(totalPlayerCount: v, aiPlayerCount: newAiCount);
   }
 
   void updateAiPlayerCount(int v) {
-    state = state.copyWith(aiPlayerCount: v);
+    final clampedAiCount = v.clamp(
+      GameSetupSettingsConstants.aiPlayerCountMin,
+      state.totalPlayerCount - 1,
+    );
+    state = state.copyWith(aiPlayerCount: clampedAiCount);
   }
 
   void updateAiDifficulty(int v) {
