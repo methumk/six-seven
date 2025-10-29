@@ -114,6 +114,8 @@ class ThiefCard extends EventActionCard {
         cardUser?.dch.addCardtoHand(multCard);
       }
     }
+    affectedPlayer?.updateCurrentValue();
+    cardUser?.updateCurrentValue();
     return;
   }
 
