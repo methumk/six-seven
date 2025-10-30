@@ -293,16 +293,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard)) {
         print("Peeked card was a duplicate number card. Stay!");
-        _onStayPressed();
+        await _aiStays();
       } else {
         print("Peeked card was not a duplicate number card. Hit!");
-        _onHitPressed();
+        await _aiHits();
       }
     }
     //Plus cards are always good, hit them.
     else if (peekCard is cd.PlusCard) {
       print("Peeked card was a plus card. Hit!");
-      _onHitPressed();
+      await _aiHits();
     } else if (peekCard is cd.MinusCard) {
       //For minus card, AI Player will choose to hit anyways if E[Hit] >= n
       //because they can still continue getting points with more hits.
@@ -316,15 +316,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       await Future.delayed(const Duration(milliseconds: 1500));
       if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
         print("Peeked card was a  Multiplier card with value <1. Stay!");
-        _onStayPressed();
+        await _aiStays();
       } else {
         print("Peeked card was a multiplier card with value >=1. Hit!");
-        _onHitPressed();
+        await _aiHits();
       }
     } else {
       await Future.delayed(const Duration(milliseconds: 1500));
       //TO DO: Handle event action cards case
-      _onHitPressed();
+      await _aiHits();
     }
     return;
   }
@@ -338,9 +338,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
     await Future.delayed(const Duration(milliseconds: 1500));
     if (failureProb < failureTolerance) {
-      _onHitPressed();
+      await _aiHits();
     } else {
-      _onStayPressed();
+      await _aiStays();
     }
   }
 
@@ -434,10 +434,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     if (valueHit >= currentPlayer.currentValue) {
       print("Expected value is higher than current points. ");
-      _onHitPressed();
+      await _aiHits();
     } else {
       print("Current points exceed expected value. Stay!");
-      _onStayPressed();
+      await _aiStays();
     }
     return;
   }
@@ -587,6 +587,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     } else {
       // Only if player is not double allow them to do additional hit stay
       if (card is TopPeekCard) {
+        print("ALLOWING SECOND CHANCE");
         return EventDifferentAction.allowSecondChoice;
       }
     }
@@ -741,9 +742,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // Set up on stay pressed handler
-  Future<void> _onStayPressed() async {
+  Future<void> _aiStays() async {
+    print("_aiStays");
+    if (getCurrentPlayer != null && !getCurrentPlayer!.isCpu()) {
+      print("HUMAN CANNOT STAY FOR CPU");
+      return;
+    }
     if (animatePlayerRotation || buttonPressed) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
+      print(
+        "ANIMATION DISABLED UNTIL CURR FINISHED $animatePlayerRotation || BUTTON ALREADY PRESSED $buttonPressed",
+      );
       return;
     }
 
@@ -768,14 +776,18 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     _rotatePlayers();
   }
 
-  //Public method to call _onStayPressed.
-  Future<void> callOnStayPressed() => _onStayPressed();
-
   // Set up on hit pressed handler
   // Handles rotation, and other functionality
-  Future<void> _onHitPressed() async {
+  Future<void> _aiHits() async {
+    print("_aiHits");
+    if (getCurrentPlayer != null && !getCurrentPlayer!.isCpu()) {
+      print("HUMAN CANNOT HIT FOR CPU");
+      return;
+    }
     if (animatePlayerRotation || buttonPressed) {
-      print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
+      print(
+        "ANIMATION DISABLED UNTIL CURR FINISHED $animatePlayerRotation || BUTTON ALREADY PRESSED $buttonPressed",
+      );
       return;
     }
 
@@ -788,11 +800,94 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
-      buttonPressed = false;
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
-      if (!getCurrentPlayer!.isCpu()) {
-        hud.enableHitAndStayBtns();
+      print("!!!!Enabled second chance");
+      buttonPressed = false;
+      game.gameManager.expertPeek(getCurrentPlayer! as CpuPlayer);
+      return;
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (donePlayers.length == totalPlayerCount) {
+      await handleNewRound();
+      return;
+    }
+
+    // Rotate the players and disable hit/stay when running
+    _rotatePlayers();
+  }
+
+  // Set up on stay pressed handler
+  Future<void> _onStayPressed() async {
+    print("_onStayPressed");
+    if (getCurrentPlayer != null && getCurrentPlayer!.isCpu()) {
+      print("USER CANNOT STAY FOR CPU");
+      return;
+    }
+    if (animatePlayerRotation || buttonPressed) {
+      print(
+        "ANIMATION DISABLED UNTIL CURR FINISHED $animatePlayerRotation || BUTTON ALREADY PRESSED $buttonPressed",
+      );
+      return;
+    }
+
+    buttonPressed = true;
+    hud.disableHitAndStayBtns();
+
+    Player currentPlayer = players[currentPlayerIndex];
+    currentPlayer.handleStay();
+
+    // On stay update pot
+    await pot.addToPot(currentPlayer.currentValue);
+
+    donePlayers.add(currentPlayer);
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (donePlayers.length == totalPlayerCount) {
+      await handleNewRound();
+      return;
+    }
+
+    // Rotate the players and disable hit/stay when running
+    _rotatePlayers();
+  }
+
+  // Set up on hit pressed handler
+  // Handles rotation, and other functionality
+  Future<void> _onHitPressed() async {
+    print("_onHitPressed");
+    if (getCurrentPlayer != null && getCurrentPlayer!.isCpu()) {
+      print("USER CANNOT HIT FOR CPU");
+      return;
+    }
+    if (animatePlayerRotation || buttonPressed) {
+      print(
+        "ANIMATION DISABLED UNTIL CURR FINISHED $animatePlayerRotation || BUTTON ALREADY PRESSED $buttonPressed",
+      );
+      return;
+    }
+
+    buttonPressed = true;
+    hud.disableHitAndStayBtns();
+
+    // Draw cards from deck and handle event
+    var eventDifferentAction = await _handleDrawCardFromDeck(
+      currentPlayerIndex,
+    );
+
+    if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
+      //If you are human player, need buttons reenabled to do another action. Else, should not
+      //have them enabled during a CPU's second turn
+      if (getCurrentPlayer == null) {
+        print("BIG ERROR - CURRENT PLAYER WAS NULL ON ROTATION");
+      } else {
+        print("!!!!Enabled second chance");
+        buttonPressed = false;
+        if (!getCurrentPlayer!.isCpu()) {
+          hud.enableHitAndStayBtns();
+        }
       }
       return;
     }
@@ -809,7 +904,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   //Public method to call _onHitPressed
-  Future<void> callOnHitPressed() => _onHitPressed();
+  // Future<void> callOnHitPressed() => _onHitPressed();
 
   Future<void> _rotatePlayers() async {
     //Get the next player to be rotated to

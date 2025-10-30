@@ -27,10 +27,10 @@ class TopPeekCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    if (cardUser!.isCpu()) {
-      game.gameManager.buttonPressed = false;
-      game.gameManager.expertPeek(cardUser as CpuPlayer);
-    } else {
+    if (!cardUser!.isCpu()) {
+      // game.gameManager.buttonPressed = false;
+      // game.gameManager.expertPeek(cardUser as CpuPlayer);
+      // } else {
       Card peekCard = game.gameManager.deck.peek();
       game.world.add(peekCard);
 
@@ -41,16 +41,17 @@ class TopPeekCard extends EventActionCard {
 
       //Reset peek card size
       peekCard.resetSize();
-      game.gameManager.buttonPressed = false;
-      game.gameManager.hud.enableHitAndStayBtns();
-      String decision = await game.gameManager.hud.waitForHitOrStay();
-      if (decision == 'hit') {
-        await game.gameManager.callOnHitPressed();
-      } else if (decision == 'stay') {
-        await game.gameManager.callOnStayPressed();
-      }
+      // game.gameManager.buttonPressed = false;
+      // game.gameManager.hud.enableHitAndStayBtns();
+      // String decision = await game.gameManager.hud.waitForHitOrStay();
+      // if (decision == 'hit') {
+      //   await game.gameManager.callOnHitPressed();
+      // } else if (decision == 'stay') {
+      //   await game.gameManager.callOnStayPressed();
+      // }
     }
-    return;
+
+    resolveEventCompleter();
   }
 
   @override
