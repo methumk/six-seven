@@ -165,6 +165,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     turnStarterPlayerIndex = -1;
   }
 
+  void flipRotationDirection() {
+    if (rotationDirection == PlayerRotation.clockWise) {
+      rotationDirection = PlayerRotation.counterClockWise;
+    } else {
+      rotationDirection = PlayerRotation.clockWise;
+    }
+    print("\nChanged rotation direction to $rotationDirection \n");
+  }
+
   int getNextPlayer(int player) {
     if (rotationDirection == PlayerRotation.counterClockWise) {
       player = (player + 1) % totalPlayerCount;

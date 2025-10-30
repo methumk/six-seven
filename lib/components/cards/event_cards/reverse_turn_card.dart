@@ -24,8 +24,11 @@ class ReverseTurnCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    //To do: implement
-    return;
+    // TODO: show animation for changing direction order
+    game.gameManager.flipRotationDirection();
+
+    // Resolve event complete to stop waiting
+    resolveEventCompleter();
   }
 
   @override
