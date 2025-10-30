@@ -1045,9 +1045,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     buttonPressed = false;
     if (players[currentPlayerIndex].isCpu()) {
       hud.disableHitAndStayBtns();
-      print(
-        "Next player $currentPlayerIndex from player $currentPlayerIndex is CPU",
-      );
+      print("Current player$currentPlayerIndex is CPU");
       await aiTurn(players[currentPlayerIndex] as CpuPlayer);
       // print("next bottom index: ${nextPlayerBottomIndex}");
     } else {
