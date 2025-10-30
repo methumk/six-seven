@@ -790,7 +790,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       );
       return;
     }
-
     buttonPressed = true;
     hud.disableHitAndStayBtns();
 

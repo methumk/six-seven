@@ -68,39 +68,39 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     }
   }
 
-  Future<void> showRoundPointsDialog(List<Player> players) async {
-    print("Round points dialog");
-    // Pause the game ending
-    pauseEngine();
-    final currentPointsMessage = List.generate(
-      players.length,
-      (i) =>
-          "Player ${i}'s points earned from this round: ${players[i].currentValue}",
-    ).join('\n');
+  // Future<void> showRoundPointsDialog(List<Player> players) async {
+  //   print("Round points dialog");
+  //   // Pause the game ending
+  //   pauseEngine();
+  //   final currentPointsMessage = List.generate(
+  //     players.length,
+  //     (i) =>
+  //         "Player ${i}'s points earned from this round: ${players[i].currentValue}",
+  //   ).join('\n');
 
-    final totalPointsMessage = List.generate(
-      players.length,
-      (i) => "Player ${i}'s total points: ${players[i].totalValue}",
-    ).join('\n');
+  //   final totalPointsMessage = List.generate(
+  //     players.length,
+  //     (i) => "Player ${i}'s total points: ${players[i].totalValue}",
+  //   ).join('\n');
 
-    final message = "$currentPointsMessage\n$totalPointsMessage";
-    // Show Flutter dialog
-    await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Center(child: const Text('Leaderboard')),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('ok'),
-              ),
-            ],
-          ),
-    );
-    resumeEngine();
-  }
+  //   final message = "$currentPointsMessage\n$totalPointsMessage";
+  //   // Show Flutter dialog
+  //   await showDialog<bool>(
+  //     context: context,
+  //     builder:
+  //         (context) => AlertDialog(
+  //           title: Center(child: const Text('Leaderboard')),
+  //           content: Text(message),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () => Navigator.of(context).pop(true),
+  //               child: const Text('ok'),
+  //             ),
+  //           ],
+  //         ),
+  //   );
+  //   resumeEngine();
+  // }
 
   Future<void> showLeaderboard(
     // BuildContext context,

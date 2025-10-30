@@ -12,6 +12,9 @@ class Leaderboard<T> {
   // Get top N
   List<T> topN(int n) => _set.take(n).toList();
 
+  // Get bottom N
+  List<T> bottomN(int n) => topN(n).reversed.toList();
+
   void add(T value) {
     _set.add(value);
   }

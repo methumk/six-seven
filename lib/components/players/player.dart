@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
+import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
@@ -214,11 +215,29 @@ abstract class Player extends PositionComponent
       } else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
+        DoubleChanceCard? doubleChanceCard = findDoubleChance();
+        if (doubleChanceCard != null) {
+          game.gameManager.deck.addToDiscard([doubleChanceCard]);
+        } else {
+          print(
+            "You had doubleChance = True, but you did not have a Double Chance Card. This should not happen. Please Debug",
+          );
+        }
       } else {
         bust();
       }
     } else {
       nch.addCardtoHand(nc);
+    }
+  }
+
+  //Method for finding double chance card
+  DoubleChanceCard? findDoubleChance() {
+    for (cd.Card card in dch.eventHand) {
+      if (card is DoubleChanceCard) {
+        dch.eventHand.remove(card);
+        return card;
+      }
     }
   }
 
