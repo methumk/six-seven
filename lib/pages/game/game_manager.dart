@@ -758,7 +758,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print("ANIMATION DISABLED UNTIL CURR FINISHED || BUTTON ALREADY PRESSED");
       return;
     }
-
     buttonPressed = true;
     hud.disableHitAndStayBtns();
 
