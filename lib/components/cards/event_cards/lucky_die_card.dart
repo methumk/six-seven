@@ -47,7 +47,7 @@ class LuckyDieCard extends EventActionCard {
     p.updateBonusValue(points.toDouble());
 
     // Resolve event complete to stop waiting
-    game.gameManager.runningEvent?.eventCompleted.resolve();
+    resolveEventCompleter();
   }
 
   @override
