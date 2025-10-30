@@ -234,17 +234,17 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 15; i++) {
+    for (int i = 1; i <= 50; i++) {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       // deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
-      deckList.add(ThiefCard());
+      // deckList.add(ThiefCard());
       // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
-      deckList.add(LuckyDieCard());
+      // deckList.add(LuckyDieCard());
       // deckList.add(SunkProphet());
       // deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
@@ -259,8 +259,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
       // eventCardsLeft[EventCardEnum.MagnifyingGlass] =
       //     eventCardsLeft[EventCardEnum.MagnifyingGlass]! + 1;
-      eventCardsLeft[EventCardEnum.Thief] =
-          eventCardsLeft[EventCardEnum.Thief]! + 1;
+      // eventCardsLeft[EventCardEnum.Thief] =
+      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
       eventCardsLeft[EventCardEnum.TopPeek] =
           eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // eventCardsLeft[EventCardEnum.Cribber] =
@@ -271,8 +271,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      eventCardsLeft[EventCardEnum.LuckyDie] =
-          eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      // eventCardsLeft[EventCardEnum.LuckyDie] =
+      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
       // eventCardsLeft[EventCardEnum.SunkProphet] =
       //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
       // eventCardsLeft[EventCardEnum.ChoiceDraw] =

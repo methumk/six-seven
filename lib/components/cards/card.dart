@@ -525,7 +525,7 @@ abstract class EventActionCard extends Card {
   //Method for finishing event completer
   void finishEventCompleter() {
     //Resolve event completer
-    game.gameManager.runningEvent!.eventCompleted.resolve();
+    game.gameManager.runningEvent?.eventCompleted.resolve();
 
     //Make buttons unclickale
     game.gameManager.makePlayersUnclickable();
