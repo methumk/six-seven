@@ -330,6 +330,11 @@ class NumberCard extends Card {
     super.onTapDown(event);
     print("Tapping down");
   }
+
+  @override
+  String toString() {
+    return "Number Card $_value";
+  }
 }
 
 //Event Action Card Class
@@ -522,10 +527,18 @@ abstract class EventActionCard extends Card {
     return;
   }
 
+  void resolveEventCompleter() {
+    if (game.gameManager.runningEvent != null) {
+      if (game.gameManager.runningEvent!.eventCompleted != null) {
+        game.gameManager.runningEvent!.eventCompleted.resolve();
+      }
+    }
+  }
+
   //Method for finishing event completer
   void finishEventCompleter() {
     //Resolve event completer
-    game.gameManager.runningEvent?.eventCompleted.resolve();
+    resolveEventCompleter();
 
     //Make buttons unclickale
     game.gameManager.makePlayersUnclickable();
@@ -656,5 +669,10 @@ abstract class ValueActionCard extends Card {
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
     print("Tapping down");
+  }
+
+  @override
+  String toString() {
+    return "Value Action Card $_value";
   }
 }

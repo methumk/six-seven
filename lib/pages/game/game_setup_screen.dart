@@ -66,14 +66,12 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                                             .totalPlayerCountMax
                                             .toDouble(),
                                     startValue:
-                                        GameSetupSettingsConstants
-                                            .defTotalPlayerCount
-                                            .toDouble(),
-                                    onChanged:
-                                        (value) =>
-                                            dataNotifier.updateTotalPlayerCount(
-                                              value.toInt(),
-                                            ),
+                                        data.totalPlayerCount.toDouble(),
+                                    onChanged: (value) {
+                                      dataNotifier.updateTotalPlayerCount(
+                                        value.toInt(),
+                                      );
+                                    },
                                   ),
                                   SingleSlider(
                                     settingName: "Total AI Players",
@@ -84,13 +82,12 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                                             .toDouble(),
                                     maxRange:
                                         data.totalPlayerCount.toDouble() - 1,
-                                    startValue:
-                                        GameSetupSettingsConstants
-                                            .defAiPlayerCount
-                                            .toDouble(),
-                                    onChanged:
-                                        (value) => dataNotifier
-                                            .updateAiPlayerCount(value.toInt()),
+                                    startValue: data.aiPlayerCount.toDouble(),
+                                    onChanged: (value) {
+                                      dataNotifier.updateAiPlayerCount(
+                                        value.toInt(),
+                                      );
+                                    },
                                   ),
                                   SingleSlider(
                                     settingName: "AI Difficulty",

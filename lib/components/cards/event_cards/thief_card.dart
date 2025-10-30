@@ -125,4 +125,9 @@ class ThiefCard extends EventActionCard {
       "${cardType.label} you get to choose a player to steal all their value action cards!",
     );
   }
+
+  @override
+  String toString() {
+    return "Thief Card";
+  }
 }

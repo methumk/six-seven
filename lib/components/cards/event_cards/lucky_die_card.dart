@@ -45,6 +45,9 @@ class LuckyDieCard extends EventActionCard {
     );
 
     p.updateBonusValue(points.toDouble());
+
+    // Resolve event complete to stop waiting
+    resolveEventCompleter();
   }
 
   @override
@@ -52,5 +55,10 @@ class LuckyDieCard extends EventActionCard {
     print(
       "${cardType.label} player of choice gets to roll a lucky seven sided die! A roll that is between 1 and 5 earns you 3.67 points, while a roll of 6 or 7 makes you lose 7 points!",
     );
+  }
+
+  @override
+  String toString() {
+    return "Lucky Die";
   }
 }
