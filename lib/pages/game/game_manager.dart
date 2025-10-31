@@ -803,7 +803,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //have them enabled during a CPU's second turn
       print("!!!!Enabled second chance");
       buttonPressed = false;
-      game.gameManager.expertPeek(getCurrentPlayer! as CpuPlayer);
+      aiTurn(getCurrentPlayer! as CpuPlayer);
       return;
     }
 
