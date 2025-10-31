@@ -24,4 +24,9 @@ class PlusCard extends ValueActionCard {
       description: "Current value gets increased by $value",
     );
   }
+
+  @override
+  String toString() {
+    return "Plus Card +$value";
+  }
 }
