@@ -207,10 +207,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Calculate pot distribution before resetting and showing leaderboard
     if (lp.status == PlayerStatus.bust) {
-      double distributedPot = roundDouble(
-        pot.totalScore / (totalPlayerCount - 1),
-        2,
-      );
+      double distributedPot = pot.totalScore / (totalPlayerCount - 1);
       for (int i = 0; i < totalPlayerCount; ++i) {
         if (i != currentPlayerIndex) {
           potDistrib[players[i]] = distributedPot;
@@ -812,7 +809,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
-      print("!!!!Enabled second chance");
+      print("!!!!Enabled second action");
       buttonPressed = false;
       aiTurn(getCurrentPlayer! as CpuPlayer);
       return;
@@ -893,7 +890,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       if (getCurrentPlayer == null) {
         print("BIG ERROR - CURRENT PLAYER WAS NULL ON ROTATION");
       } else {
-        print("!!!!Enabled second chance");
+        print("!!!!Enabled second action");
         buttonPressed = false;
         if (!getCurrentPlayer!.isCpu()) {
           hud.enableHitAndStayBtns();
