@@ -31,7 +31,17 @@ class ThiefCard extends EventActionCard {
   Future<void> executeOnEvent() async {
     double currentHypotheticalValue = cardUser!.currentValue;
     if (!cardUser!.isCpu()) {
-      await choosePlayer();
+      bool validChoice = false;
+      while (!validChoice) {
+        await choosePlayer();
+        if (!affectedPlayer!.isDone) {
+          validChoice = true;
+        } else {
+          print(
+            "Player you chose is already done! PLease choose another player",
+          );
+        }
+      }
       // We got user input. Signal to choosePlayer event is now completed.
       //Then proceed with action using that input (stealingFromPlayer set)
       //after the if statements
@@ -72,6 +82,12 @@ class ThiefCard extends EventActionCard {
               plusMinusValues -= minusCard.value;
             }
           }
+          //If numberCardsValue is $0$ because there are no number cards in user's hand yet,
+          //Treat number cards value as $1$ such that multipliers can affect it
+          if (numberCardsValue == 0) {
+            numberCardsValue = 1;
+          }
+          //Calculate rival hypothetical value and compare it to the current hypothetical value
           double rivalHypotheticalValue =
               multipliers * numberCardsValue + plusMinusValues;
           print(
@@ -84,6 +100,7 @@ class ThiefCard extends EventActionCard {
             affectedPlayer = player;
             currentHypotheticalValue = rivalHypotheticalValue;
           }
+          finishEventCompleter();
         }
       }
     }
