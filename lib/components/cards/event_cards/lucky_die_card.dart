@@ -2,7 +2,7 @@
 //Else, lose 7 points. Can choose to roll up to 7 times.
 import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
-import 'package:six_seven/components/cards/deck.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 
