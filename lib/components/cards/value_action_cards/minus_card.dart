@@ -24,4 +24,9 @@ class MinusCard extends ValueActionCard {
       description: "Current value gets decreased by $value",
     );
   }
+
+  @override
+  String toString() {
+    return "Minus Card -$value";
+  }
 }

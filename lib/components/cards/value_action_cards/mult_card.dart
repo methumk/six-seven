@@ -24,4 +24,9 @@ class MultCard extends ValueActionCard {
       description: "Current value gets multiplied by $value",
     );
   }
+
+  @override
+  String toString() {
+    return "Mult Card x$value";
+  }
 }

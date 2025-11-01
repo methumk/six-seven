@@ -670,9 +670,4 @@ abstract class ValueActionCard extends Card {
     super.onTapDown(event);
     print("Tapping down");
   }
-
-  @override
-  String toString() {
-    return "Value Action Card $_value";
-  }
 }
