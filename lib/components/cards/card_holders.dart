@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
@@ -261,6 +262,20 @@ class DynamicCardHolder extends PositionComponent {
       remove(mc);
       _updateCardPositionOnMinusRemoval();
     }
+  }
+
+  DoubleChanceCard? removeDoubleChanceCardInHand() {
+    DoubleChanceCard? doubleChanceCard;
+    for (EventActionCard card in eventHand) {
+      if (card is DoubleChanceCard) {
+        doubleChanceCard = card;
+        eventHand.remove(card);
+        //Remove it visually from game tree
+        remove(card);
+        break;
+      }
+    }
+    return doubleChanceCard;
   }
 
   void removeAllMinusHand() {
