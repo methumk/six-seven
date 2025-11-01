@@ -56,6 +56,16 @@ abstract class Card extends RoundedBorderComponent
   EventCompleter inputSelect = EventCompleter();
   EventCompleter drawAnimation = EventCompleter();
 
+  // Control tapping and dragging
+  bool tapUpEnabled = true;
+  bool tapDownEnabled = true;
+  bool dragEnabled = true;
+
+  // Completer to determine which card was picked
+  // Completer<Card>? onTap;
+  void Function()? onTapUpSelector;
+  void Function()? onTapDownSelector;
+
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
     anchor = Anchor.bottomCenter;
@@ -67,6 +77,20 @@ abstract class Card extends RoundedBorderComponent
   double executeOnStay(double currentValue);
   void description();
 
+  void toggleTap(bool toggle) {
+    tapUpEnabled = toggle;
+    tapDownEnabled = toggle;
+  }
+
+  void toggleDrag(bool toggle) {
+    dragEnabled = toggle;
+  }
+
+  void toggleAllUserCardMovement(bool toggle) {
+    toggleTap(toggle);
+    toggleDrag(toggle);
+  }
+
   void onDragEndReturnTo(Vector2 returnPos, int priority) {
     if (deckReturnTo == null) {
       deckReturnTo = returnPos.clone();
@@ -76,10 +100,14 @@ abstract class Card extends RoundedBorderComponent
     savePriority = priority;
   }
 
-  //Returns your bbc into a normal chinese cock
   void resetSize() {
     size = Card.cardSize;
     scale = Vector2.all(1.0);
+  }
+
+  void resetCardSettings() {
+    resetSize();
+    toggleAllUserCardMovement(true);
   }
 
   void dragEndReturnEffect() {
@@ -171,6 +199,42 @@ abstract class Card extends RoundedBorderComponent
     );
 
     add(_onDrawEffect!);
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    if (!dragEnabled) return;
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    if (!dragEnabled) return;
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    if (!dragEnabled) return;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    if (!tapDownEnabled) return;
+    if (onTapDownSelector != null) {
+      onTapDownSelector!();
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+    if (!tapUpEnabled) return;
+    if (onTapUpSelector != null) {
+      onTapUpSelector!();
+    }
   }
 }
 
@@ -308,6 +372,7 @@ class NumberCard extends Card {
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (!dragEnabled) return;
     // paint.color = Colors.red;
     fillColor = Colors.red;
   }
@@ -315,12 +380,14 @@ class NumberCard extends Card {
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
+    if (!dragEnabled) return;
     position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    if (!dragEnabled) return;
     fillColor = Colors.white;
     dragEndReturnEffect();
   }
@@ -328,7 +395,11 @@ class NumberCard extends Card {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
+    if (!tapDownEnabled) return;
     print("Tapping down");
+    if (onTapDownSelector != null) {
+      onTapDownSelector!();
+    }
   }
 
   @override
@@ -469,18 +540,21 @@ abstract class EventActionCard extends Card {
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (!dragEnabled) return;
     fillColor = Colors.red;
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
+    if (!dragEnabled) return;
     position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    if (!dragEnabled) return;
     fillColor = Colors.white;
     dragEndReturnEffect();
   }
@@ -488,17 +562,20 @@ abstract class EventActionCard extends Card {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-
+    if (!tapDownEnabled) return;
     if (_onDrawEffect != null) {
       // Show a highlight on tap down
       setBorderColor(Colors.blue);
+    }
+    if (onTapDownSelector != null) {
+      onTapDownSelector!();
     }
   }
 
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
-
+    if (!tapUpEnabled) return;
     if (cardUser == null) return;
     // If draw effect running
     if (_onDrawEffect != null && !cardUser!.isCpu()) {
@@ -512,6 +589,9 @@ abstract class EventActionCard extends Card {
 
       // Mark draw animation as resolved to unblock
       drawAnimation.resolve();
+    }
+    if (onTapUpSelector != null) {
+      onTapUpSelector!();
     }
   }
 
@@ -649,18 +729,21 @@ abstract class ValueActionCard extends Card {
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (!dragEnabled) return;
     fillColor = Colors.red;
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
+    if (!dragEnabled) return;
     position += event.localDelta;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    if (!dragEnabled) return;
     fillColor = Colors.white;
     dragEndReturnEffect();
   }
@@ -668,6 +751,10 @@ abstract class ValueActionCard extends Card {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
+    if (!tapDownEnabled) return;
     print("Tapping down");
+    if (onTapDownSelector != null) {
+      onTapDownSelector!();
+    }
   }
 }
