@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class FreezeCard extends EventActionCard {
-  FreezeCard();
+  FreezeCard() {
+    eventEnum = EventCardEnum.Freeze;
+  }
 
   //No special execute on stay function
   @override

@@ -2,9 +2,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class RedeemerCard extends HandEventActionCard {
-  RedeemerCard();
+  RedeemerCard() {
+    eventEnum = EventCardEnum.Redeemer;
+  }
 
   @override
   double executeOnStay(double currentValue) {

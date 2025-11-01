@@ -2,9 +2,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class PolarizerCard extends EventActionCard {
-  PolarizerCard();
+  PolarizerCard() {
+    eventEnum = EventCardEnum.Polarizer;
+  }
 
   @override
   double executeOnStay(double currentValue) {

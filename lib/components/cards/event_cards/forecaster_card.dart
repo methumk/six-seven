@@ -2,9 +2,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class ForecasterCard extends EventActionCard {
-  ForecasterCard();
+  ForecasterCard() {
+    eventEnum = EventCardEnum.Forecaster;
+  }
 
   @override
   double executeOnStay(double currentValue) {

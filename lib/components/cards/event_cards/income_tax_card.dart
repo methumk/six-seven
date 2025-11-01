@@ -2,9 +2,13 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class IncomeTax extends EventActionCard {
-  IncomeTax();
+  IncomeTax() {
+    eventEnum = EventCardEnum.IncomeTax;
+  }
+
   @override
   double executeOnStay(double currentValue) {
     print("This function does nothing");

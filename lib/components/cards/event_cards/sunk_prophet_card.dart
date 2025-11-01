@@ -5,9 +5,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class SunkProphet extends EventActionCard {
-  SunkProphet();
+  SunkProphet() {
+    eventEnum = EventCardEnum.SunkProphet;
+  }
 
   @override
   double executeOnStay(double currentValue) {

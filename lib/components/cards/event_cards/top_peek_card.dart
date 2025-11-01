@@ -1,9 +1,12 @@
 // Top peek: Can see the next card in the deck before making decision
 import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/deck.dart';
 
 class TopPeekCard extends EventActionCard {
-  TopPeekCard();
+  TopPeekCard() {
+    eventEnum = EventCardEnum.TopPeek;
+  }
 
   //No special execute on stay
   @override
