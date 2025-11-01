@@ -28,6 +28,7 @@ class DoubleChanceCard extends HandEventActionCard {
   Future<void> executeOnEvent() async {
     if (!cardUser!.doubleChance) {
       cardUser?.doubleChance = true;
+      affectedPlayer = cardUser;
     } else {
       //See if there are any readily available players.
       List<Player> worstPlayers = game.gameManager.endGameLeaderBoard.bottomN(
@@ -46,6 +47,8 @@ class DoubleChanceCard extends HandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the double chance card.");
+        game.gameManager.deck.addToDiscard([this]);
+        finishEventCompleter();
         return;
       }
       //Else, there is an available player to give double chance to.
@@ -53,15 +56,26 @@ class DoubleChanceCard extends HandEventActionCard {
       //player available, in terms of total score, to give the double chance to
       //All that is left is to check if they are not CPU
       else if (!cardUser!.isCpu()) {
-        await choosePlayer();
+        bool validChoice = false;
+        while (!validChoice) {
+          await choosePlayer();
+          //If chosen player is active and has double chance, it is valid!
+          if (!affectedPlayer!.doubleChance && !affectedPlayer!.isDone) {
+            validChoice = true;
+          } else {
+            print("Chosen player is not valid. Please try again");
+          }
+        }
         // We got user input. Signal to choosePlayer event is now completed.
         //Then proceed with action using that input (stealingFromPlayer set)
         //after the if statements
-        finishEventCompleter();
       }
+      //If user is CPU, they already have an affectplayer, don't need a case for it
     }
     //Give double chance to affected player
     affectedPlayer!.doubleChance = true;
+    affectedPlayer?.onHit(this);
+    finishEventCompleter();
     return;
   }
 
