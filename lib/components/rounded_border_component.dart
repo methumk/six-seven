@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 
 class RoundedBorderComponent extends PositionComponent {
@@ -47,5 +50,26 @@ class RoundedBorderComponent extends PositionComponent {
           ..style = PaintingStyle.stroke
           ..strokeWidth = borderWidth;
     canvas.drawRRect(rrect, borderPaint);
+  }
+
+  Future<void> moveTo(
+    Vector2 target,
+    double duration, {
+    Curve curve = Curves.easeInOut,
+  }) async {
+    final completer = Completer<void>();
+
+    // Remove existing MoveEffect if any
+    removeWhere((c) => c is MoveEffect);
+
+    add(
+      MoveEffect.to(
+        target,
+        EffectController(duration: duration, curve: curve),
+        onComplete: completer.complete,
+      ),
+    );
+
+    return completer.future;
   }
 }
