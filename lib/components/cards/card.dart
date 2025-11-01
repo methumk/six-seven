@@ -487,50 +487,6 @@ abstract class EventActionCard extends Card {
     add(_bodyDescriptionBorder);
   }
 
-  // Future<void> drawFromDeckAnimation({required bool isInfinite}) async {
-  //   //The effect controller for the third parameter in tbe _onDrawEffect depends
-  //   //on whether the cardUser is human or CPU. If human, it should repeat forever until onTapUp is registered,
-  //   //else it repeates 3 times
-  //   final scaleController =
-  //       isInfinite
-  //           ? EffectController(
-  //             duration: 0.7,
-  //             reverseDuration: 0.5,
-  //             curve: Curves.easeInOut,
-  //             infinite: true,
-  //           )
-  //           : EffectController(
-  //             duration: 0.7,
-  //             reverseDuration: 0.5,
-  //             curve: Curves.easeInOut,
-  //             repeatCount: 3,
-  //           );
-
-  //   _onDrawEffect = SequenceEffect(
-  //     [
-  //       MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
-  //       ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
-  //       ScaleEffect.by(Vector2.all(1.1), scaleController),
-  //     ],
-  //     onComplete: () {
-  //       // Set border back to black
-  //       setBorderColor(Colors.black);
-
-  //       // Remove components and draw effect
-  //       _onDrawEffect!.removeFromParent();
-  //       _onDrawEffect = null;
-  //       removeFromParent();
-
-  //       // Mark draw animation as resolved to unblock
-  //       drawAnimation.resolve();
-  //     },
-  //   );
-  //   //Each time you add _onDrawEffect, it takes the scale from before and multiplies it by the
-  //   //current scale effect. So You must reset scale by making it [1.0, 1.0].
-  //   scale = Vector2.all(1.0);
-  //   add(_onDrawEffect!);
-  // }
-
   @override
   double executeOnStay(double currentValue) {
     print("Check which event action cards have executions on player stay");
