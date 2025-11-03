@@ -225,7 +225,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
-      // deckList.add(LuckyDieCard());
+      deckList.add(LuckyDieCard());
       // deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
