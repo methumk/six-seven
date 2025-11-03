@@ -122,13 +122,15 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
       }
 
       // Ai makes a decision
-      // hard or expert always rolls if it has the chance, easy (rolls 50%), medium (85%)
+      // hard or expert continues to roll if its total roll points exceeds the expected value of
+      // rolling seven times, else it stops. For other difficulties, they decide their choice based on
+      // just probability: easy (rolls 50%), medium (85%)
       bool aiWantsToRoll =
           widget.aiDifficulty == Difficulty.easy
               ? _random.nextDouble() < 0.50
               : widget.aiDifficulty == Difficulty.medium
               ? _random.nextDouble() < 0.50
-              : true;
+              : (_totalScore >= 7 * evRoll() ? false : true);
 
       if (aiWantsToRoll) {
         _startRoll();
@@ -142,6 +144,11 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         }
       }
     }
+  }
+
+  //Calculates expected value of a single roll
+  double evRoll() {
+    return (1 + 2 + 3 + 4 + 5) / 7 - 6 / 7 - 7 / 7;
   }
 
   void _startRoll() {
@@ -161,7 +168,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         setState(() {
           _currentFace = _finalValue;
           _totalScore +=
-              2 *
+              1 *
               (_finalValue == 6
                   ? -6
                   : _finalValue == 7
