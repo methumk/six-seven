@@ -34,6 +34,7 @@ abstract class Card extends RoundedBorderComponent
   late CardType cardType;
   static final Vector2 cardSize = Vector2(80, 140);
   static final Vector2 halfCardSize = cardSize / 2;
+  late final Color defaultBorderColor;
 
   // For every card give it this value, but only events have it set
   EventCardEnum eventEnum = EventCardEnum.None;
@@ -73,6 +74,7 @@ abstract class Card extends RoundedBorderComponent
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
     anchor = Anchor.bottomCenter;
+    defaultBorderColor = Colors.black;
   }
 
   //TO DO: Add players as param inputs for executeOnEvent
@@ -112,6 +114,7 @@ abstract class Card extends RoundedBorderComponent
   void resetCardSettings() {
     resetSize();
     toggleAllUserCardMovement(true);
+    setBorderColor(defaultBorderColor);
   }
 
   void dragEndReturnEffect() {
