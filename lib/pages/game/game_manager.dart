@@ -32,6 +32,7 @@ import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/pot/pot.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
@@ -582,17 +583,23 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       deck.addToDiscard([runningEvent as cd.Card]);
     }
 
+    runningEvent = null;
+    EventDifferentAction returnType = EventDifferentAction.none;
+
     if (currentPlayer.isDone) {
       donePlayers.add(currentPlayer);
     } else {
       // Only if player is not double allow them to do additional hit stay
       if (card is TopPeekCard) {
-        print("ALLOWING SECOND CHANCE");
-        return EventDifferentAction.allowSecondChoice;
+        print("Top Peek Card drawn - showing top card and allow second choice");
+        returnType = EventDifferentAction.allowSecondChoice;
+      } else if (card is ChoiceDraw && card.drawEventCardAgain) {
+        print("Choice Draw - needs to draw event card again");
+        return await _handleDrawCardFromDeck(currentPlayerIndex);
       }
     }
 
-    return EventDifferentAction.none;
+    return returnType;
   }
 
   @override
