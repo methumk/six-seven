@@ -208,10 +208,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Calculate pot distribution before resetting and showing leaderboard
     if (lp.status == PlayerStatus.bust) {
-      double distributedPot = roundDouble(
-        pot.totalScore / (totalPlayerCount - 1),
-        2,
-      );
+      double distributedPot = pot.totalScore / (totalPlayerCount - 1);
       for (int i = 0; i < totalPlayerCount; ++i) {
         if (i != currentPlayerIndex) {
           potDistrib[players[i]] = distributedPot;
@@ -252,7 +249,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   Future<void> aiTurn(CpuPlayer currentCPUPlayer) async {
     // print("Setting difficulty: ${game.setupSettings.aiDifficulty}");
     // print("Difficulty of current AI: ${currentCPUPlayer.difficulty}");
-    await Future.delayed(const Duration(milliseconds: 2500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
       //Easy difficulty: has a risk tolerance of 45%, so
@@ -290,9 +287,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       print("Peeked card was a number card!");
       //if peeked number card is a duplicate and will bust, stay,
       //else hit
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // await Future.delayed(const Duration(milliseconds: 1500));
 
-      if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard)) {
+      if (currentCPUPlayer.isPeekedNumberCardDuplicate(peekCard) &&
+          !currentCPUPlayer.doubleChance) {
         print("Peeked card was a duplicate number card. Stay!");
         await _aiStays();
       } else {
@@ -314,7 +312,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       );
       await EVBasedComparison(currentCPUPlayer);
     } else if (peekCard is cd.MultCard) {
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // await Future.delayed(const Duration(milliseconds: 1500));
       if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
         print("Peeked card was a  Multiplier card with value <1. Stay!");
         await _aiStays();
@@ -323,7 +321,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         await _aiHits();
       }
     } else {
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // await Future.delayed(const Duration(milliseconds: 1500));
       //TO DO: Handle event action cards case
       await _aiHits();
     }
@@ -337,8 +335,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double failureTolerance,
   ) async {
     double failureProb = calculateFailureProbability(currentCPUPlayer);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (failureProb < failureTolerance) {
+    // await Future.delayed(const Duration(milliseconds: 1500));
+    if (currentCPUPlayer.doubleChance) {
+      await _aiHits();
+    } else if (failureProb < failureTolerance) {
       await _aiHits();
     } else {
       await _aiStays();
@@ -419,6 +419,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   //Hard and Expert AI players compare E[X+n] to n
   Future<void> EVBasedComparison(Player currentPlayer) async {
+    //if current player has double chance card, might as well hit
+    //(May adjust to account for sales tax/income tax cards, minus cards, etc)
+    if (currentPlayer.doubleChance) {
+      print("Player has double chance. Hit");
+      await _aiHits();
+      return;
+    }
     double ev = calculateEVCumulative(currentPlayer);
     double failureProb = calculateFailureProbability(currentPlayer);
     double successProb = 1 - failureProb;
@@ -431,7 +438,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("Expected value of hit E[hit] = E[current value + X]: ${valueHit}");
     print("Current Value: ${currentPlayer.currentValue}");
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    // await Future.delayed(const Duration(milliseconds: 1500));
 
     if (valueHit >= currentPlayer.currentValue) {
       print("Expected value is higher than current points. ");
@@ -542,7 +549,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 
-    if (card is cd.HandEventActionCard || card is! cd.EventActionCard) {
+    if (card is! cd.EventActionCard) {
       // Instant events or all other cards except event action
       currentPlayer.onHit(card);
     } else {
@@ -575,12 +582,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       // Execute action
       await runningEvent!.executeOnEvent();
-
       // Wait for event execution to complete
       await runningEvent!.eventCompleted.wait();
-
-      //After event is done, add card to discard pile
-      deck.addToDiscard([runningEvent as cd.Card]);
+      //If card is not handeventaction card or if it is a discarded handEventAction card, after event is done, add card to discard pile
+      if (runningEvent is cd.EventActionCard &&
+          runningEvent is! cd.HandEventActionCard) {
+        deck.addToDiscard([runningEvent as cd.Card]);
+      }
     }
 
     runningEvent = null;
@@ -772,7 +780,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     await pot.addToPot(currentPlayer.currentValue);
 
     donePlayers.add(currentPlayer);
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (donePlayers.length == totalPlayerCount) {
       await handleNewRound();
@@ -808,13 +816,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     if (eventDifferentAction == EventDifferentAction.allowSecondChoice) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
-      print("!!!!Enabled second chance");
+      print("!!!!Enabled second action");
       buttonPressed = false;
       aiTurn(getCurrentPlayer! as CpuPlayer);
       return;
     }
 
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (donePlayers.length == totalPlayerCount) {
       await handleNewRound();
@@ -849,7 +857,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     await pot.addToPot(currentPlayer.currentValue);
 
     donePlayers.add(currentPlayer);
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (donePlayers.length == totalPlayerCount) {
       await handleNewRound();
@@ -889,7 +897,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       if (getCurrentPlayer == null) {
         print("BIG ERROR - CURRENT PLAYER WAS NULL ON ROTATION");
       } else {
-        print("!!!!Enabled second chance");
+        print("!!!!Enabled second action");
         buttonPressed = false;
         if (!getCurrentPlayer!.isCpu()) {
           hud.enableHitAndStayBtns();

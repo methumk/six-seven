@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 
 class LeaderboardWidget extends StatefulWidget {
@@ -42,7 +43,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
         final pcl = widget.currentLeaderboard[j];
         if (ptl.playerName == pcl.playerName) {
           double potBonus = widget.potDistrib[ptl] ?? 0;
-          ptl.totalValue += ptl.currentValue + potBonus;
+          ptl.totalValue += roundDouble(ptl.currentValue + potBonus, 2);
           _combinedLeaderboard.updateFor(ptl);
           break;
         }
@@ -198,7 +199,7 @@ class LeaderboardRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              player.totalValue.toString(),
+              roundDouble(player.totalValue, 2).toString(),
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -207,8 +208,8 @@ class LeaderboardRow extends StatelessWidget {
             flex: 2,
             child: Text(
               player.currentValue > 0
-                  ? '+${player.currentValue}'
-                  : '${player.currentValue}',
+                  ? '+${roundDouble(player.currentValue, 2)}'
+                  : '${roundDouble(player.currentValue, 2)}',
               textAlign: TextAlign.center,
               style: TextStyle(color: _getColorValue(player.currentValue)),
             ),
@@ -216,7 +217,9 @@ class LeaderboardRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              potEarning > 0 ? '+${potEarning}' : '${potEarning}',
+              potEarning > 0
+                  ? '+${roundDouble(potEarning, 2)}'
+                  : '${roundDouble(potEarning, 2)}',
               textAlign: TextAlign.center,
               style: TextStyle(color: _getColorValue(potEarning)),
             ),

@@ -112,7 +112,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.Freeze: 0,
       EventCardEnum.IncomeTax: 0,
       EventCardEnum.LuckyDie: 0,
-      EventCardEnum.MagnifyingGlass: 0,
       EventCardEnum.ReverseTurn: 0,
       EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
@@ -126,7 +125,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //TO DO: implement
     };
 
-    // initNumberCards();
+    initNumberCards();
     initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
@@ -219,9 +218,9 @@ class CardDeck extends PositionComponent with TapCallbacks {
     for (int i = 1; i <= 50; i++) {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
-      // deckList.add(DoubleChanceCard());
+      deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
-      // deckList.add(ThiefCard());
+      deckList.add(ThiefCard());
       // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
@@ -237,12 +236,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
       // eventCardsLeft[EventCardEnum.FlipThree] =
       //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
-      // eventCardsLeft[EventCardEnum.DoubleChance] =
-      //     eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
-      // eventCardsLeft[EventCardEnum.MagnifyingGlass] =
-      //     eventCardsLeft[EventCardEnum.MagnifyingGlass]! + 1;
-      // eventCardsLeft[EventCardEnum.Thief] =
-      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.DoubleChance] =
+          eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
       eventCardsLeft[EventCardEnum.TopPeek] =
           eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // eventCardsLeft[EventCardEnum.Cribber] =

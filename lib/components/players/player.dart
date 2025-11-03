@@ -161,6 +161,7 @@ abstract class Player extends PositionComponent
     nch.removeAllCards();
     game.gameManager.deck.addToDiscard(dch.addHand);
     game.gameManager.deck.addToDiscard(dch.multHand);
+    game.gameManager.deck.addToDiscard(dch.eventHand);
     for (var minusCardList in dch.minusHandMap.values) {
       game.gameManager.deck.addToDiscard(minusCardList);
     }
@@ -179,6 +180,9 @@ abstract class Player extends PositionComponent
 
   //Method for hitting
   void onHit(cd.Card newCard) {
+    //Reset size; this call is useful for handEventActionCards
+    //such as Double Chance card
+    newCard.resetSize();
     print("You hit and got a card:");
     newCard.description();
     if (newCard is cd.NumberCard) {
@@ -215,7 +219,7 @@ abstract class Player extends PositionComponent
       } else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
-        DoubleChanceCard? doubleChanceCard = findDoubleChance();
+        DoubleChanceCard? doubleChanceCard = dch.removeDoubleChanceCardInHand();
         if (doubleChanceCard != null) {
           game.gameManager.deck.addToDiscard([doubleChanceCard]);
         } else {
@@ -228,16 +232,6 @@ abstract class Player extends PositionComponent
       }
     } else {
       nch.addCardtoHand(nc);
-    }
-  }
-
-  //Method for finding double chance card
-  DoubleChanceCard? findDoubleChance() {
-    for (cd.Card card in dch.eventHand) {
-      if (card is DoubleChanceCard) {
-        dch.eventHand.remove(card);
-        return card;
-      }
     }
   }
 

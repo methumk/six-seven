@@ -422,7 +422,7 @@ abstract class EventActionCard extends Card {
   //Affected player (if applicable) is the player that is affected by the card.
   //Example: Player 1 gets the flip 3 card, so they are the card user.
   //They choose Player 2 to be forced to flip 3 cards. Hence player 2 is the affected player.
-  late Player? affectedPlayer;
+  Player? affectedPlayer;
 
   EventActionCard() : super(cardType: CardType.eventActionCard) {
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
