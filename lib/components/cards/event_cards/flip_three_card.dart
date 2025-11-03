@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 
 class FlipThreeCard extends EventActionCard {
-  FlipThreeCard();
+  FlipThreeCard() {
+    eventEnum = EventCardEnum.FlipThree;
+  }
 
   //No special execute on stay
   @override

@@ -2,9 +2,12 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 
 class ReverseTurnCard extends EventActionCard {
-  ReverseTurnCard();
+  ReverseTurnCard() {
+    eventEnum = EventCardEnum.ReverseTurn;
+  }
 
   @override
   double executeOnStay(double currentValue) {

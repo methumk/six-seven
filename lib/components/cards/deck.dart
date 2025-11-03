@@ -21,42 +21,25 @@ import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
-
-enum EventCardEnum {
-  ChoiceDraw("Choice Draw Card"),
-  Cribber("Cribber Card"),
-  DoubleChance("Double Chance Card"),
-  FlipThree("Flip Three Card"),
-  Forecaster("Forcaster Card"),
-  Freeze("Freeze Card"),
-  IncomeTax("Income Tax Card"),
-  LuckyDie("Lucky Die Card"),
-  ReverseTurn("Reverse Turn Card"),
-  SalesTax("Sales Tax Card"),
-  SunkProphet("Sunk Prophet Card"),
-  Thief("Thief Card"),
-  Polarizer("Polarizer Card"),
-  Redeemer("Redeemer Card"),
-  TopPeek("Top Peek Card");
-
-  final String label;
-  const EventCardEnum(this.label);
-}
+import 'package:six_seven/data/enums/event_cards.dart';
 
 class CardDeck extends PositionComponent with TapCallbacks {
   late List<Card> deckList;
-  late Map<int, int> numberCardsLeft;
   late List<Card> discardPile;
+  late Map<int, int> numberCardsLeft;
   late Map<int, int> plusMinusCardsLeft;
+  late Map<double, int> multCardsLeft;
+  late Map<EventCardEnum, int> eventCardsLeft;
   //Hash map of Numerical values assigned to each event card for EV calculation
   //case when you are only player left in round
   late Map<EventCardEnum, double> eventNumericalEVAlone;
   //case when other players still in round
   late Map<EventCardEnum, double> eventNumericalEVNotAlone;
-  late Map<double, int> multCardsLeft;
-  late Map<EventCardEnum, int> eventCardsLeft;
   late final SpriteComponent deckComponent;
   late final SpriteComponent discardComponent;
+
+  int get deckListLength => deckList.length;
+  int get discardLength => discardPile.length;
 
   CardDeck() {
     deckList = [];
@@ -244,7 +227,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(SalesTax());
       // deckList.add(LuckyDieCard());
       // deckList.add(SunkProphet());
-      // deckList.add(ChoiceDraw());
+      deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
       // deckList.add(PolarizerCard());
       // deckList.add(RedeemerCard());
@@ -267,12 +250,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      // eventCardsLeft[EventCardEnum.LuckyDie] =
-      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDie] =
+          eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
       // eventCardsLeft[EventCardEnum.SunkProphet] =
       //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
-      // eventCardsLeft[EventCardEnum.ChoiceDraw] =
-      //     eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       // eventCardsLeft[EventCardEnum.ReverseTurn] =
       //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
       // eventCardsLeft[EventCardEnum.Polarizer] =
@@ -316,10 +299,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
   Card draw() {
     //First, check if deck is empty. Then refill before drawing
     if (deckList.isEmpty) {
+      print("DECK IS EMPTY - refilling!");
       refill();
     }
 
     Card newCard = deckList.removeLast();
+
     if (newCard is NumberCard) {
       double value = newCard.value;
       //Decrement cardsLeft
@@ -327,15 +312,45 @@ class CardDeck extends PositionComponent with TapCallbacks {
     } else if (newCard is PlusCard) {
       double value = newCard.value;
       plusMinusCardsLeft[value.toInt()] =
-          plusMinusCardsLeft[value.toInt()]! + 1;
+          plusMinusCardsLeft[value.toInt()]! - 1;
     } else if (newCard is MinusCard) {
       double value = newCard.value;
       plusMinusCardsLeft[-1 * value.toInt()] =
-          plusMinusCardsLeft[-1 * value.toInt()]! + 1;
+          plusMinusCardsLeft[-1 * value.toInt()]! - 1;
+    } else if (newCard is MultCard) {
+      multCardsLeft[newCard.value] = multCardsLeft[newCard.value]! - 1;
     } else {
-      //Potential data structure for event action cards, multiplication cards
+      eventCardsLeft[newCard.eventEnum] =
+          eventCardsLeft[newCard.eventEnum]! - 1;
     }
     return newCard;
+  }
+
+  // Stores card at front of the deck (aka, last item)
+  void putCardBack(Card c, {int index = -1}) {
+    if (index >= deckList.length || index == -1) {
+      deckList.add(c);
+    } else {
+      deckList.insert(index, c);
+    }
+
+    if (c is NumberCard) {
+      double value = c.value;
+      //Decrement cardsLeft
+      numberCardsLeft[value.toInt()] = numberCardsLeft[value.toInt()]! + 1;
+    } else if (c is PlusCard) {
+      double value = c.value;
+      plusMinusCardsLeft[value.toInt()] =
+          plusMinusCardsLeft[value.toInt()]! + 1;
+    } else if (c is MinusCard) {
+      double value = c.value;
+      plusMinusCardsLeft[-1 * value.toInt()] =
+          plusMinusCardsLeft[-1 * value.toInt()]! + 1;
+    } else if (c is MultCard) {
+      multCardsLeft[c.value] = multCardsLeft[c.value]! + 1;
+    } else {
+      eventCardsLeft[c.eventEnum] = eventCardsLeft[c.eventEnum]! + 1;
+    }
   }
 
   void addToDiscard(List<Card> newTrash) {

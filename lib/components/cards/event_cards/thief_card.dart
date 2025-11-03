@@ -6,9 +6,13 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 
 class ThiefCard extends EventActionCard {
-  ThiefCard();
+  ThiefCard() {
+    eventEnum = EventCardEnum.Thief;
+  }
+
   //No special execute on stay
   @override
   double executeOnStay(double currentValue) {

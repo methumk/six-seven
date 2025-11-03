@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class DoubleChanceCard extends HandEventActionCard {
-  DoubleChanceCard();
+  DoubleChanceCard() {
+    eventEnum = EventCardEnum.DoubleChance;
+  }
 
   //No special execute on stay
   @override
