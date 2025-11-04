@@ -12,7 +12,7 @@ import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
-import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
+import 'package:six_seven/components/cards/event_cards/discarder_card.dart';
 import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
 import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
@@ -116,7 +116,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
       EventCardEnum.Thief: 0,
-      EventCardEnum.Polarizer: 0,
+      EventCardEnum.Discarder: 0,
       EventCardEnum.Redeemer: 0,
       EventCardEnum.TopPeek: 0,
     };
@@ -220,7 +220,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
       // deckList.add(TopPeekCard());
-      // deckList.add(ThiefCard());
+      deckList.add(ThiefCard());
       // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
@@ -229,7 +229,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
-      // deckList.add(PolarizerCard());
+      // deckList.add(DiscarderCard());
       // deckList.add(RedeemerCard());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
@@ -238,8 +238,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
       eventCardsLeft[EventCardEnum.DoubleChance] =
           eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
-      // eventCardsLeft[EventCardEnum.Thief] =
-      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
       // eventCardsLeft[EventCardEnum.TopPeek] =
       //     eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // eventCardsLeft[EventCardEnum.Cribber] =
@@ -258,8 +258,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       // eventCardsLeft[EventCardEnum.ReverseTurn] =
       //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
-      // eventCardsLeft[EventCardEnum.Polarizer] =
-      //     eventCardsLeft[EventCardEnum.Polarizer]! + 1;
+      // eventCardsLeft[EventCardEnum.Discarder] =
+      //     eventCardsLeft[EventCardEnum.Discarder]! + 1;
       // eventCardsLeft[EventCardEnum.Redeemer] =
       //     eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }

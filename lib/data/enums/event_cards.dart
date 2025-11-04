@@ -12,7 +12,7 @@ enum EventCardEnum {
   SalesTax("Sales Tax Card"),
   SunkProphet("Sunk Prophet Card"),
   Thief("Thief Card"),
-  Polarizer("Polarizer Card"),
+  Discarder("Discarder Card"),
   Redeemer("Redeemer Card"),
   TopPeek("Top Peek Card"),
   None("Not Event Card");

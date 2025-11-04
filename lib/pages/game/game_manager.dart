@@ -14,7 +14,6 @@ import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
-import 'package:six_seven/components/cards/event_cards/polarizer_card.dart';
 import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
 import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
 import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';

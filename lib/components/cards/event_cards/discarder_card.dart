@@ -4,9 +4,9 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
-class PolarizerCard extends EventActionCard {
-  PolarizerCard() {
-    eventEnum = EventCardEnum.Polarizer;
+class DiscarderCard extends EventActionCard {
+  DiscarderCard() {
+    eventEnum = EventCardEnum.Discarder;
   }
 
   @override
@@ -20,9 +20,8 @@ class PolarizerCard extends EventActionCard {
     super.onLoad();
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
-      description:
-          "User can choose to reverse the polarity for any of the value action cards in their hand.",
-      descriptionTitle: "PolarizerCard",
+      description: "You must remove one event or operator card from your hand.",
+      descriptionTitle: "Discarder",
     );
   }
 
