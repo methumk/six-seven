@@ -202,8 +202,8 @@ class ChoiceDraw extends EventActionCard {
       final completer = Completer<Card>();
       for (final card in cards) {
         card.tapUpEnabled = true;
-        card.onTapUpSelector = () async {
-          if (!completer.isCompleted) completer.complete(card);
+        card.onTapUpSelector = (Card c) async {
+          if (!completer.isCompleted) completer.complete(c);
         };
       }
 

@@ -68,8 +68,8 @@ abstract class Card extends RoundedBorderComponent
 
   // Completer to determine which card was picked
   // Completer<Card>? onTap;
-  void Function()? onTapUpSelector;
-  void Function()? onTapDownSelector;
+  void Function(Card)? onTapUpSelector;
+  void Function(Card)? onTapDownSelector;
 
   Card({required this.cardType})
     : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
@@ -231,7 +231,7 @@ abstract class Card extends RoundedBorderComponent
     super.onTapDown(event);
     if (!tapDownEnabled) return;
     if (onTapDownSelector != null) {
-      onTapDownSelector!();
+      onTapDownSelector!(this);
     }
   }
 
@@ -240,7 +240,7 @@ abstract class Card extends RoundedBorderComponent
     super.onTapUp(event);
     if (!tapUpEnabled) return;
     if (onTapUpSelector != null) {
-      onTapUpSelector!();
+      onTapUpSelector!(this);
     }
   }
 }
@@ -405,7 +405,17 @@ class NumberCard extends Card {
     if (!tapDownEnabled) return;
     print("Tapping down");
     if (onTapDownSelector != null) {
-      onTapDownSelector!();
+      onTapDownSelector!(this);
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+    if (!tapUpEnabled) return;
+    print("Tapping up");
+    if (onTapUpSelector != null) {
+      onTapUpSelector!(this);
     }
   }
 
@@ -531,7 +541,7 @@ abstract class EventActionCard extends Card {
       setBorderColor(Colors.blue);
     }
     if (onTapDownSelector != null) {
-      onTapDownSelector!();
+      onTapDownSelector!(this);
     }
   }
 
@@ -554,7 +564,7 @@ abstract class EventActionCard extends Card {
       drawAnimation.resolve();
     }
     if (onTapUpSelector != null) {
-      onTapUpSelector!();
+      onTapUpSelector!(this);
     }
   }
 
@@ -717,7 +727,17 @@ abstract class ValueActionCard extends Card {
     if (!tapDownEnabled) return;
     print("Tapping down");
     if (onTapDownSelector != null) {
-      onTapDownSelector!();
+      onTapDownSelector!(this);
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+    if (!tapUpEnabled) return;
+    print("Tapping Up");
+    if (onTapUpSelector != null) {
+      onTapUpSelector!(this);
     }
   }
 }
