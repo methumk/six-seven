@@ -164,7 +164,11 @@ class ChoiceDraw extends EventActionCard {
   @override
   Future<void> executeOnEvent() async {
     // If current player is null, return out
-    if (game.gameManager.getCurrentPlayer == null) return;
+    if (game.gameManager.getCurrentPlayer == null) {
+      resolveEventCompleter();
+      return;
+    }
+
     Player currPlayer = game.gameManager.getCurrentPlayer!;
 
     List<Card> cards = [];
@@ -202,8 +206,8 @@ class ChoiceDraw extends EventActionCard {
       final completer = Completer<Card>();
       for (final card in cards) {
         card.tapUpEnabled = true;
-        card.onTapUpSelector = () async {
-          if (!completer.isCompleted) completer.complete(card);
+        card.onTapUpSelector = (Card c) async {
+          if (!completer.isCompleted) completer.complete(c);
         };
       }
 
