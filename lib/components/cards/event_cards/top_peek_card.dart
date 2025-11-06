@@ -21,7 +21,7 @@ class TopPeekCard extends EventActionCard {
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
       description:
-          "The player that gets chosen is allowed to take a peek at the next card in the deck!",
+          "The card user is allowed to take a peek at the next card in the deck!",
       descriptionTitle: "Top Peek",
     );
   }
@@ -58,7 +58,7 @@ class TopPeekCard extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} the player that gets chosen is allowed to take a peek at the next card in the deck!",
+      "${cardType.label} the card user is allowed to take a peek at the next card in the deck!",
     );
   }
 
