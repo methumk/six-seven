@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 
 class MultCard extends ValueActionCard {
-  MultCard({required super.value});
+  MultCard({required super.value}) {
+    cardType = CardType.valueActionMultCard;
+  }
 
   @override
-  double executeOnStay(double currentValue) {
-    currentValue *= value;
-    return currentValue;
+  double executeOnStay(double cv) {
+    return cv * value;
   }
 
   @override

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 
 class MinusCard extends ValueActionCard {
-  MinusCard({required super.value});
+  MinusCard({required super.value}) {
+    cardType = CardType.valueActionMinusCard;
+  }
 
   @override
   double executeOnStay(double currentValue) {
