@@ -276,6 +276,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         await EVBasedComparison(currentCPUPlayer);
       }
     }
+    //If deck is empty, refill it
+    if (deck.deckList.isEmpty) {
+      deck.refill();
+    }
   }
   //Method for expert CPU peeking
 
