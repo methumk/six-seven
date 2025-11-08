@@ -33,7 +33,6 @@ class ThiefCard extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    double currentHypotheticalValue = cardUser!.currentValue;
     if (!cardUser!.isCpu()) {
       bool validChoice = false;
       while (!validChoice) {
@@ -56,41 +55,65 @@ class ThiefCard extends EventActionCard {
       //to just get the most optimal play for CPU regardless of CPU difficulty
       //Optimal play: let $X$ be the current value of all the number cards of the CPU card user.
       //Then for each active player not equal to the CPU card user, let $a$ be the cumulative multiplier
-      //effect derived from multiplying every multiplier card from that active player, and let $b$ be the cumulative
-      //sum value derived from summing every plus/minus card from that active player (CPU isn't stealing yet, it is looking at
-      //the hypothetical value). Store that player as the chosen player.
+      //effect derived from multiplying every multiplier card from that active player ON TOP of the multiplier cards from card user,
+      // and let $b$ be the cumulative sum value derived from summing every plus/minus card from that active player  ON TOP OF
+      //the plus minus cards from the card user. (CPU isn't stealing yet, it is looking at
+      //the hypothetical value it will get from stealing.). Store that player as the chosen player.
       //Then compute the hypothetical value $aX + b$ for that player. Iterate through the active players, and if there is anoyhter active player with a higher
       //$aX+b$ value, store that player instead. After the iteration, the chosen player who is left will be chosen for the card.
 
-      //We need to calculate X, the number card values of cardUser, here.
-      //If there is more than one event action card, it might be better to
-      //have this be an attribute for player instead. -Sean
       double numberCardsValue = 0;
       for (NumberCard numberCard in cardUser!.numberHand) {
         numberCardsValue += numberCard.value;
       }
+      //If numberCardsValue is $0$ because there are no number cards in user's hand yet,
+      //Treat number cards value as $1$ such that multipliers can affect it
+      if (numberCardsValue == 0) {
+        numberCardsValue = 1;
+      }
+      double currentMultValue = 1;
+      for (MultCard multCard in cardUser!.multHand) {
+        currentMultValue *= multCard.value;
+      }
+
+      double currentPlusValue = 0;
+      for (PlusCard plusCard in cardUser!.addHand) {
+        currentPlusValue += plusCard.value;
+      }
+
+      double currentMinusValue = 0;
+      for (List<MinusCard> minusCardList in cardUser!.minusHandMap.values) {
+        for (MinusCard minusCard in minusCardList) {
+          currentMinusValue -= minusCard.value;
+        }
+      }
+
+      double currentHypotheticalValue =
+          currentMultValue * numberCardsValue + currentPlusValue;
 
       affectedPlayer = cardUser;
       for (Player player in game.gameManager.players) {
-        if (!player.isDone) {
+        if (!player.isDone && player != cardUser) {
           double multipliers = 1;
           double plusMinusValues = 0;
           for (MultCard multCard in player.multHand) {
             multipliers *= multCard.value;
           }
+          //Add current multipliers of card user
+          multipliers *= currentMultValue;
           for (PlusCard plusCard in player.addHand) {
             plusMinusValues += plusCard.value;
           }
+          //Add current plus values of card user
+          plusMinusValues += currentPlusValue;
           for (List<MinusCard> minusCardList in player.minusHandMap.values) {
             for (MinusCard minusCard in minusCardList) {
               plusMinusValues -= minusCard.value;
             }
           }
-          //If numberCardsValue is $0$ because there are no number cards in user's hand yet,
-          //Treat number cards value as $1$ such that multipliers can affect it
-          if (numberCardsValue == 0) {
-            numberCardsValue = 1;
-          }
+          //Add current minus values of card user
+          plusMinusValues -= currentMinusValue;
+
           //Calculate rival hypothetical value and compare it to the current hypothetical value
           double rivalHypotheticalValue =
               multipliers * numberCardsValue + plusMinusValues;
@@ -111,9 +134,7 @@ class ThiefCard extends EventActionCard {
 
     //For either human player or CPU player, the affectedUser is chosen. Proceed to steal the cards
 
-    print(
-      "chosen player: ${affectedPlayer!.playerName}, value: ${currentHypotheticalValue}",
-    );
+    print("chosen player: ${affectedPlayer!.playerName}");
     //If affectedPlayer is the same as the cardUser, then there's
     //nothing to steal. Return early
     if (affectedPlayer == cardUser) {

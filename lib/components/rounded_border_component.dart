@@ -66,7 +66,11 @@ class RoundedBorderComponent extends PositionComponent {
       MoveEffect.to(
         target,
         EffectController(duration: duration, curve: curve),
-        onComplete: completer.complete,
+        onComplete: () {
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        },
       ),
     );
 
