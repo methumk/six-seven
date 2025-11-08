@@ -441,9 +441,14 @@ class DynamicCardHolder extends PositionComponent {
   }
 
   void removeEventCard(EventActionCard ec, {bool updateDeckPosition = true}) {
-    remove(ec);
-    eventHand.remove(ec);
-    _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    bool removed = eventHand.remove(ec);
+    if (removed) {
+      remove(ec);
+    }
+
+    if (removed && updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    }
   }
 
   void removeAllEventHand({bool updateDeckPosition = true}) {
@@ -457,9 +462,14 @@ class DynamicCardHolder extends PositionComponent {
   }
 
   void removePlusCard(PlusCard c, {bool updateDeckPosition = true}) {
-    remove(c);
-    addHand.remove(c);
-    _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
+    bool removed = addHand.remove(c);
+    if (removed) {
+      remove(c);
+    }
+
+    if (removed && updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
+    }
   }
 
   void removeAllAddHand({bool updateDeckPosition = true}) {
@@ -529,9 +539,11 @@ class DynamicCardHolder extends PositionComponent {
   }
 
   void removeMultCard(MultCard c, {bool updateDeckPosition = true}) {
-    remove(c);
-    multHand.remove(c);
-    if (updateDeckPosition) {
+    bool removed = multHand.remove(c);
+    if (removed) {
+      remove(c);
+    }
+    if (removed && updateDeckPosition) {
       _updateDeckPositionsOnCardRemoval(CardType.valueActionMultCard);
     }
   }
