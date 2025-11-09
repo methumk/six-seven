@@ -230,8 +230,8 @@ class ChoiceDraw extends EventActionCard {
     if (selected is NumberCard) {
       print('Selected card is number getting added to number hand $selected');
       currPlayer.nch.addCardtoHand(selected);
-    } else if (selected is HandEventActionCard || selected is ValueActionCard) {
-      print('Selected card is getting added to DCH hand $selected');
+    } else if (selected is ValueActionCard) {
+      print('Value action getting added to DCH hand $selected');
       currPlayer.dch.addCardtoHand(selected);
     } else {
       print("Selected card is event card $selected");
