@@ -18,7 +18,10 @@ import 'package:six_seven/utils/event_completer.dart';
 enum CardType {
   numberCard("Number card of value: "),
   valueActionCard("Value Action Card of value: "),
-  eventActionCard("Event Action Card with effect: ");
+  eventActionCard("Event Action Card with effect: "),
+  valueActionMinusCard("Minus Card: "),
+  valueActionPlusCard("Plus card: "),
+  valueActionMultCard("Mult Card: ");
 
   final String label;
   const CardType(this.label);

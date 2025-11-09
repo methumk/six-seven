@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -162,50 +163,190 @@ class DynamicCardHolder extends PositionComponent {
     }
   }
 
-  void _updateCardPositionOnMinusRemoval() {
-    // Curr priority starts at number of add cards
-    currCardPriority = addHand.length;
+  // Call this after you have removed the card from the array
+  // Order of rendering is Add/Minus/Mult/Event
+  void _updateDeckPositionsOnCardRemoval(CardType cardType) {
+    int cardTypeIndex = 0;
+    int cardPriority = 0;
+    // Vector2 cardPos = Vector2(position.x + Card.halfCardSize.x, 0);
 
-    // Update minus hand position
-    for (final c in minusHandMap.entries) {
-      final minusList = minusHandMap[c.key];
-      if (minusList != null) {
+    if (cardType == CardType.valueActionMinusCard) {
+      cardTypeIndex = 1;
+      cardPriority = addHand.length;
+      // cardPos.x = cardPos.x + (addHand.length * cardPosOffset.x);
+    } else if (cardType == CardType.valueActionMultCard) {
+      cardTypeIndex = 2;
+      cardPriority = addHand.length + minusHandLength;
+      // cardPos.x = cardPos.x + (cardPriority * cardPosOffset.x);
+    } else if (cardType == CardType.eventActionCard) {
+      cardTypeIndex = 3;
+      cardPriority = addHand.length + minusHandLength + multHand.length;
+      // cardPos.x = cardPos.x + (cardPriority * cardPosOffset.x);
+    }
+
+    // update add cards
+    if (cardTypeIndex == 0) {
+      for (final c in addHand) {
+        c.position = Vector2(
+          position.x + Card.halfCardSize.x + (++cardPriority * cardPosOffset.x),
+          0,
+        );
+        c.priority = cardPriority;
+        c.onDragEndReturnTo(c.position, c.priority);
+      }
+    }
+
+    // update minus cards
+    if (cardTypeIndex <= 1) {
+      for (final c in minusHandMap.entries) {
+        final minusList = minusHandMap[c.key];
+        if (minusList == null) continue;
+
+        // Update all minus cards
         for (MinusCard mc in minusList) {
           mc.position = Vector2(
             position.x +
                 Card.halfCardSize.x +
-                (++currCardPriority * cardPosOffset.x),
+                (++cardPriority * cardPosOffset.x),
             0,
           );
-          mc.priority = currCardPriority;
+          mc.priority = cardPriority;
           mc.onDragEndReturnTo(mc.position, mc.priority);
         }
       }
     }
 
-    // mult hand position update
-    for (var mtc in multHand) {
-      mtc.position = Vector2(
-        position.x +
-            Card.halfCardSize.x +
-            (++currCardPriority * cardPosOffset.x),
-        0,
-      );
-      mtc.priority = currCardPriority;
-      mtc.onDragEndReturnTo(mtc.position, mtc.priority);
+    // update mult cards
+    if (cardTypeIndex <= 2) {
+      for (final c in multHand) {
+        c.position = Vector2(
+          position.x + Card.halfCardSize.x + (++cardPriority * cardPosOffset.x),
+          0,
+        );
+        c.priority = cardPriority;
+        c.onDragEndReturnTo(c.position, c.priority);
+      }
     }
 
-    // Event hand position update
-    for (var eac in eventHand) {
-      eac.position = Vector2(
-        position.x +
-            Card.halfCardSize.x +
-            (++currCardPriority * cardPosOffset.x),
-        0,
-      );
-      eac.priority = currCardPriority;
-      eac.onDragEndReturnTo(eac.position, eac.priority);
+    // update event cards
+    if (cardTypeIndex <= 3) {
+      for (final c in eventHand) {
+        c.position = Vector2(
+          position.x + Card.halfCardSize.x + (++cardPriority * cardPosOffset.x),
+          0,
+        );
+        c.priority = cardPriority;
+        c.onDragEndReturnTo(c.position, c.priority);
+      }
     }
+
+    // Update priority
+    currCardPriority = cardPriority;
+  }
+
+  // Returns the entire deck as a single list
+  // Order is minus first, then event,  then mult, then add,
+  List<Card> getAsSingleList() {
+    List<Card> allCards = [];
+    minusHandMap.forEach((key, minusList) {
+      for (var c in minusList) {
+        allCards.add(c);
+      }
+    });
+    for (var c in eventHand) {
+      allCards.add(c);
+    }
+    for (var c in multHand) {
+      allCards.add(c);
+    }
+    for (var c in addHand) {
+      allCards.add(c);
+    }
+
+    return allCards;
+  }
+
+  int getTotalHandLength() {
+    return addHand.length +
+        multHand.length +
+        eventHand.length +
+        minusHandLength;
+  }
+
+  bool isEmpty() {
+    return getTotalHandLength() == 0;
+  }
+
+  // Attaches a top up selector function to all cards in the hand
+  void setCardSelectedOnTapUp(void Function(Card)? onTapUpSelector) {
+    for (var c in addHand) {
+      c.onTapUpSelector = onTapUpSelector;
+    }
+    for (var c in multHand) {
+      c.onTapUpSelector = onTapUpSelector;
+    }
+    for (var c in eventHand) {
+      c.onTapUpSelector = onTapUpSelector;
+    }
+    minusHandMap.forEach((key, value) {
+      for (var c in value) {
+        c.onTapUpSelector = onTapUpSelector;
+      }
+    });
+  }
+
+  // Attaches a top up selector function to all cards in the hand
+  void setCardSelectedOnTapDown(void Function(Card)? onTapDownSelector) {
+    for (var c in addHand) {
+      c.onTapDownSelector = onTapDownSelector;
+    }
+    for (var c in multHand) {
+      c.onTapDownSelector = onTapDownSelector;
+    }
+    for (var c in eventHand) {
+      c.onTapDownSelector = onTapDownSelector;
+    }
+    minusHandMap.forEach((key, value) {
+      for (var c in value) {
+        c.onTapDownSelector = onTapDownSelector;
+      }
+    });
+  }
+
+  // Removes tap up selector attached to all cards in the card holder
+  void clearCardSelectedOnTapUp() {
+    for (var c in addHand) {
+      c.onTapUpSelector = null;
+    }
+    for (var c in multHand) {
+      c.onTapUpSelector = null;
+    }
+    for (var c in eventHand) {
+      c.onTapUpSelector = null;
+    }
+    minusHandMap.forEach((key, value) {
+      for (var c in value) {
+        c.onTapUpSelector = null;
+      }
+    });
+  }
+
+  // Removes tap down selector attached to all cards in the card holder
+  void clearCardSelectedOnTapDown() {
+    for (var c in addHand) {
+      c.onTapDownSelector = null;
+    }
+    for (var c in multHand) {
+      c.onTapDownSelector = null;
+    }
+    for (var c in eventHand) {
+      c.onTapDownSelector = null;
+    }
+    minusHandMap.forEach((key, value) {
+      for (var c in value) {
+        c.onTapDownSelector = null;
+      }
+    });
   }
 
   void addCardtoHand(Card c) {
@@ -230,23 +371,115 @@ class DynamicCardHolder extends PositionComponent {
     add(c);
   }
 
-  void removeEventCard(EventActionCard ec) {
-    remove(ec);
-    eventHand.remove(ec);
+  // Change border color of cards in deck to show that they are selectable
+  // NOTE: this does not make them selectable, just changes the UI element
+  // Toggleing selectable false will update all settings back to regular card settings
+  void toggleCardShowSelectable(
+    bool selectable, {
+    Color? selectColor,
+    bool changePlusCards = true,
+    bool changeMultCards = true,
+    bool changeMinusCards = true,
+    bool changeEventCards = true,
+  }) {
+    if (selectable && selectColor == null) return;
+    if (changePlusCards) {
+      for (var c in addHand) {
+        if (selectable) {
+          c.setBorderColor(selectColor!);
+        } else {
+          c.resetCardSettings();
+        }
+      }
+    }
+    if (changeMultCards) {
+      for (var c in multHand) {
+        if (selectable) {
+          c.setBorderColor(selectColor!);
+        } else {
+          c.resetCardSettings();
+        }
+      }
+    }
+    if (changeMinusCards) {
+      minusHandMap.forEach((key, value) {
+        for (var c in value) {
+          if (selectable) {
+            c.setBorderColor(selectColor!);
+          } else {
+            c.resetCardSettings();
+          }
+        }
+      });
+    }
+    if (changeEventCards) {
+      for (var c in eventHand) {
+        if (selectable) {
+          c.setBorderColor(selectColor!);
+        } else {
+          c.resetCardSettings();
+        }
+      }
+    }
   }
 
-  void removeAllEventHand() {
+  // Removes a card by reference
+  void removeCard(Card c) {
+    if (c is PlusCard) {
+      print("REMOVING PLUS CARD");
+      removePlusCard(c);
+    } else if (c is MultCard) {
+      print("REMOVING MULT CARD");
+      removeMultCard(c);
+    } else if (c is MinusCard) {
+      print("REMOVING MINUS CARD");
+      removeSingleMinusCard(c.value);
+    } else if (c is EventActionCard) {
+      print("REMOVING EVENT ACTION CARD");
+      removeEventCard(c);
+    }
+  }
+
+  void removeEventCard(EventActionCard ec, {bool updateDeckPosition = true}) {
+    bool removed = eventHand.remove(ec);
+    if (removed) {
+      remove(ec);
+    }
+
+    if (removed && updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    }
+  }
+
+  void removeAllEventHand({bool updateDeckPosition = true}) {
     for (final c in eventHand) {
       remove(c);
     }
     eventHand.clear();
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    }
   }
 
-  void removeAlladdHand() {
+  void removePlusCard(PlusCard c, {bool updateDeckPosition = true}) {
+    bool removed = addHand.remove(c);
+    if (removed) {
+      remove(c);
+    }
+
+    if (removed && updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
+    }
+  }
+
+  void removeAllAddHand({bool updateDeckPosition = true}) {
     for (final c in addHand) {
       remove(c);
     }
     addHand.clear();
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
+    }
   }
 
   bool minusCardInHand(double numberValue) =>
@@ -254,17 +487,24 @@ class DynamicCardHolder extends PositionComponent {
       minusHandMap[numberValue]!.isNotEmpty;
 
   // Removes card from hand and updates all other card positions
-  void removeSingleMinusCard(double minusValue) {
+  void removeSingleMinusCard(
+    double minusValue, {
+    bool updateDeckPosition = true,
+  }) {
     final minusList = minusHandMap[minusValue];
     if (minusList != null && minusList.isNotEmpty) {
       var mc = minusList.removeLast();
       minusHandLength--;
       remove(mc);
-      _updateCardPositionOnMinusRemoval();
+      if (updateDeckPosition) {
+        _updateDeckPositionsOnCardRemoval(CardType.valueActionMinusCard);
+      }
     }
   }
 
-  DoubleChanceCard? removeDoubleChanceCardInHand() {
+  DoubleChanceCard? removeDoubleChanceCardInHand({
+    bool updateDeckPosition = true,
+  }) {
     DoubleChanceCard? doubleChanceCard;
     for (EventActionCard card in eventHand) {
       if (card is DoubleChanceCard) {
@@ -275,10 +515,14 @@ class DynamicCardHolder extends PositionComponent {
         break;
       }
     }
+
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    }
     return doubleChanceCard;
   }
 
-  void removeAllMinusHand() {
+  void removeAllMinusHand({bool updateDeckPosition = true}) {
     for (final c in minusHandMap.entries) {
       final minusList = minusHandMap[c.key];
       if (minusList != null) {
@@ -289,24 +533,44 @@ class DynamicCardHolder extends PositionComponent {
     }
     minusHandMap.clear();
     minusHandLength = 0;
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
+    }
   }
 
-  void removeAllMultHand() {
+  void removeMultCard(MultCard c, {bool updateDeckPosition = true}) {
+    bool removed = multHand.remove(c);
+    if (removed) {
+      remove(c);
+    }
+    if (removed && updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionMultCard);
+    }
+  }
+
+  void removeAllMultHand({bool updateDeckPosition = true}) {
     for (final c in multHand) {
       remove(c);
     }
     multHand.clear();
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionMultCard);
+    }
   }
 
-  void removeAllValueHands() {
-    removeAlladdHand();
-    removeAllMinusHand();
-    removeAllMultHand();
+  void removeAllValueHands({bool updateDeckPosition = true}) {
+    removeAllAddHand(updateDeckPosition: false);
+    removeAllMinusHand(updateDeckPosition: false);
+    removeAllMultHand(updateDeckPosition: false);
+    // This will update everything
+    if (updateDeckPosition) {
+      _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
+    }
   }
 
   void removeAllCards() {
-    removeAllValueHands();
-    removeAllEventHand();
-    currCardPriority = 0;
+    removeAllValueHands(updateDeckPosition: false);
+    removeAllEventHand(updateDeckPosition: false);
+    _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
   }
 }

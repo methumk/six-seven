@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 
 class PlusCard extends ValueActionCard {
-  PlusCard({required super.value});
+  PlusCard({required super.value}) {
+    cardType = CardType.valueActionPlusCard;
+  }
 
   @override
-  double executeOnStay(double currentValue) {
-    currentValue += value;
-    return currentValue;
+  double executeOnStay(double cv) {
+    return cv + value;
   }
 
   @override

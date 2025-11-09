@@ -145,6 +145,131 @@ abstract class Player extends PositionComponent
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
+  // calculates the potential score if the given cards were added
+  double calculatePlayerScoreWithCardsAdd({
+    Set<cd.NumberCard> ncs = const {},
+    List<MultCard> mlc = const [],
+    List<PlusCard> pcs = const [],
+    List<MinusCard> mnc = const [],
+    List<cd.EventActionCard> eac = const [],
+  }) {
+    double potentialScore = 0;
+
+    // Calculate number set
+    for (double numberValue in nch.numHandSet) {
+      potentialScore += numberValue;
+    }
+    for (var c in ncs) {
+      potentialScore += c.value;
+    }
+
+    // Calculate mult card
+    for (MultCard multCard in dch.multHand) {
+      potentialScore = multCard.executeOnStay(potentialScore);
+    }
+    for (var c in mlc) {
+      potentialScore = c.executeOnStay(potentialScore);
+    }
+
+    // Calculate plus cards
+    for (PlusCard addCard in dch.addHand) {
+      potentialScore = addCard.executeOnStay(potentialScore);
+    }
+    for (var c in pcs) {
+      potentialScore = c.executeOnStay(potentialScore);
+    }
+
+    // Calculate minus card
+    for (var minusValue in dch.minusHandMap.entries) {
+      for (int i = 1; i <= minusValue.value.length; i++) {
+        potentialScore -= minusValue.key;
+      }
+    }
+    for (var c in mnc) {
+      potentialScore -= c.value;
+    }
+
+    // Number hand bonus
+    //If player flipped 6 cards, get bonus 6.7 points (multiplier not included)
+    if (nch.numHandSet.length + ncs.length == 6) {
+      potentialScore += 6.7;
+    }
+    //Else if player  flipped >= 7 cards, get bonus 6*7 = 42 points (multiplier not included)
+    if (nch.numHandSet.length + ncs.length >= 7) {
+      potentialScore += 42;
+    }
+
+    return potentialScore + currentBonusValue;
+  }
+
+  // calculates potential score if the given cards were removed
+  double calculatePlayerScoreWithCardsRemoved({
+    Set<double>? numCards,
+    List<MultCard>? multCards,
+    List<PlusCard>? plusCards,
+    Map<double, List<MinusCard>> minusCards = const {},
+  }) {
+    double potentialScore = 0;
+
+    var newNumSet = Set.from(nch.numHandSet)..removeAll(numCards ?? {});
+    for (double numberValue in newNumSet) {
+      potentialScore += numberValue;
+    }
+    //You must do mult cards before add card
+    for (MultCard multCard in dch.multHand) {
+      // if (multCards == null) {
+      //   potentialScore = multCard.executeOnStay(potentialScore);
+      //   print("MULT CARDS PROVIDED NULL | $potentialScore");
+      // } else {
+      //   if (!multCards.contains(multCard)) {
+      //     potentialScore = multCard.executeOnStay(potentialScore);
+      //     print("INCLUDING $multCard | $potentialScore");
+      //   } else {
+      //     print("NOT INCLUDING $multCard | $potentialScore");
+      //   }
+      // }
+      if (multCards == null || !multCards.contains(multCard)) {
+        potentialScore = multCard.executeOnStay(potentialScore);
+      }
+    }
+    for (PlusCard addCard in dch.addHand) {
+      // if (plusCards == null) {
+      //   potentialScore = addCard.executeOnStay(potentialScore);
+      //   print("PLUS CARDS PROVIDED NULL  | $potentialScore");
+      // } else {
+      //   if (!plusCards.contains(addCard)) {
+      //     potentialScore = addCard.executeOnStay(potentialScore);
+      //     print("INCLUDING $addCard | $potentialScore");
+      //   } else {
+      //     print("NOT INCLUDING $addCard | $potentialScore");
+      //   }
+      // }
+      if (plusCards == null || !plusCards.contains(addCard)) {
+        potentialScore = addCard.executeOnStay(potentialScore);
+      }
+    }
+    for (var minusValue in dch.minusHandMap.entries) {
+      int newLength =
+          minusCards[minusValue.key] == null
+              ? 0
+              : minusCards[minusValue.key]!.length;
+      for (int i = 0; i < minusValue.value.length - newLength; i++) {
+        potentialScore -= minusValue.key;
+      }
+    }
+
+    //If player flipped 6 cards, get bonus 6.7 points (multiplier not included)
+    if (newNumSet.length == 6) {
+      potentialScore += 6.7;
+    }
+    //Else if player  flipped >= 7 cards, get bonus 6*7 = 42 points (multiplier not included)
+    if (newNumSet.length >= 7) {
+      potentialScore += 42;
+    }
+
+    return potentialScore += currentBonusValue;
+  }
+
   //Method for handling when player stays
   void handleStay() {
     print("Handling stay");
