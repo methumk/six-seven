@@ -902,9 +902,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     Player currentPlayer = players[currentPlayerIndex];
     currentPlayer.handleStay();
 
-    // On stay update pot
-    await pot.addToPot(currentPlayer.currentValue);
-
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -1196,6 +1193,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   Future<void> _onRotationFinished() async {
     // For debugging, just make new line to separate turns
     print("Rotation Finished\n");
+    print("num cards left in deck: ${deck.deckList.length}");
 
     animatePlayerRotation = false;
     buttonPressed = false;
