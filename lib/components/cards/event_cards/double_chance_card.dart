@@ -30,7 +30,7 @@ class DoubleChanceCard extends HandEventActionCard {
   @override
   Future<void> executeOnEvent() async {
     if (!cardUser!.doubleChance) {
-      cardUser?.doubleChance = true;
+      cardUser?.grantDoubleChance();
       affectedPlayer = cardUser;
     } else {
       //See if there are any readily available players.
@@ -76,7 +76,7 @@ class DoubleChanceCard extends HandEventActionCard {
       //If user is CPU, they already have an affectplayer, don't need a case for it
     }
     //Give double chance to affected player
-    affectedPlayer!.doubleChance = true;
+    affectedPlayer!.grantDoubleChance();
     affectedPlayer?.onHit(this);
     finishEventCompleter();
     return;
