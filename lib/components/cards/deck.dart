@@ -215,14 +215,14 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 50; i++) {
+    for (int i = 1; i <= 10; i++) {
       deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
-      // deckList.add(TopPeekCard());
+      deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
       // deckList.add(CribberCard());
-      // deckList.add(ForecasterCard());
+      deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
       deckList.add(LuckyDieCard());
@@ -230,7 +230,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
       // deckList.add(DiscarderCard());
-      // deckList.add(RedeemerCard());
+      deckList.add(RedeemerCard());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
           eventCardsLeft[EventCardEnum.Freeze]! + 1;
@@ -240,12 +240,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
       eventCardsLeft[EventCardEnum.Thief] =
           eventCardsLeft[EventCardEnum.Thief]! + 1;
-      // eventCardsLeft[EventCardEnum.TopPeek] =
-      //     eventCardsLeft[EventCardEnum.TopPeek]! + 1;
+      eventCardsLeft[EventCardEnum.TopPeek] =
+          eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // eventCardsLeft[EventCardEnum.Cribber] =
       //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
-      // eventCardsLeft[EventCardEnum.Forecaster] =
-      //     eventCardsLeft[EventCardEnum.Forecaster]! + 1;
+      eventCardsLeft[EventCardEnum.Forecaster] =
+          eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       // eventCardsLeft[EventCardEnum.IncomeTax] =
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
@@ -260,8 +260,8 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
       // eventCardsLeft[EventCardEnum.Discarder] =
       //     eventCardsLeft[EventCardEnum.Discarder]! + 1;
-      // eventCardsLeft[EventCardEnum.Redeemer] =
-      //     eventCardsLeft[EventCardEnum.Redeemer]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 

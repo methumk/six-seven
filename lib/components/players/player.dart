@@ -43,7 +43,12 @@ abstract class Player extends PositionComponent
   List<MultCard> get multHand => dch.multHand;
   Map<double, List<MinusCard>> get minusHandMap => dch.minusHandMap;
 
+  //Bool for if player has double chance
   bool doubleChance = false;
+  //bool for if player has redeemer
+  bool hasRedeemer = false;
+  //bool for it player had busted but redeemed 67%
+  bool redeemerUsed = false;
   late int playerNum;
 
   // UI Fields
@@ -90,6 +95,7 @@ abstract class Player extends PositionComponent
       multCard.description();
     }
     print("Player has a double chance card? ${doubleChance}");
+    print("Player has a redeemer card: ${hasRedeemer}");
     print("Tentative points from this round: $currentValue");
     print("Total points excluding this round: ${totalValue}");
   }
@@ -108,7 +114,7 @@ abstract class Player extends PositionComponent
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
-  //Method for updating current value (might noy be the final points of the round, just used for
+  //Method for updating current value (might not be the final points of the round, just used for
   //ev comparison)
   void updateCurrentValue() {
     currentValue = 0;
@@ -273,7 +279,7 @@ abstract class Player extends PositionComponent
     updateCurrentValue();
 
     //Remove all cards from player's hand
-    handRemoval(saveScoreToPot: false);
+    handRemoval(saveScoreToPot: true);
   }
 
   //Method for discarding cards on bust/staying
@@ -300,6 +306,8 @@ abstract class Player extends PositionComponent
     currentValue = 0;
     currentBonusValue = 0;
     doubleChance = false;
+    hasRedeemer = false;
+    redeemerUsed = false;
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
@@ -318,7 +326,12 @@ abstract class Player extends PositionComponent
       // Only some event cards get added
       dch.addCardtoHand(newCard);
     }
-    updateCurrentValue();
+    if (redeemerUsed) {
+      redeemerUsed = false;
+      return;
+    } else {
+      updateCurrentValue();
+    }
   }
 
   //Method for when player busts
@@ -328,30 +341,58 @@ abstract class Player extends PositionComponent
     handRemoval(saveScoreToPot: true);
   }
 
-  //Grant player a double chance status
+  //Grant player double chance status
   void grantDoubleChance() {
     doubleChance = true;
   }
 
+  //Grant player redeemer status
+  void grantRedeemer() {
+    hasRedeemer = true;
+  }
+
   //sub-method for hitting a number card
   void hitNumberCard(cd.NumberCard nc) {
+    //If the number card was a duplicate, check for the following special cases (below)
     if (nch.numHandSet.contains(nc.value)) {
+      //If there was a minus card of the same magnitude, discard the minus card and the duplicate number card
       if (dch.minusCardInHand(nc.value)) {
         print(
           "You got a duplicate card, but you also have a minus card of the same value (${nc.value}) in magnitude! Hence that minus card cancels out the duplicate!",
         );
         dch.removeSingleMinusCard(nc.value);
-      } else if (doubleChance) {
+      } //If player had double chance, discard it along with the duplicate
+      else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
         doubleChance = false;
         DoubleChanceCard? doubleChanceCard = dch.removeDoubleChanceCardInHand();
         if (doubleChanceCard != null) {
           game.gameManager.deck.addToDiscard([doubleChanceCard]);
-        } else {
+        } //The following line is there for debugging purpose
+        else {
           print(
             "You had doubleChance = True, but you did not have a Double Chance Card. This should not happen. Please Debug",
           );
         }
+      } //If player had redeemer, let them redeem 67% of points
+      else if (hasRedeemer) {
+        print(
+          "You got a duplicate number card and busted, but your redeemer card allowed you to redeem 67% of your current value of points!",
+        );
+
+        redeemerUsed = true;
+        //Another niche for redeemer: if player was last, they are treated as if they stayed, and thus get access to the entire pot!
+        //Make status bool true
+        status = PlayerStatus.stay;
+        //Update current value to reflect final points accrued in this round
+        updateCurrentValue();
+        //make current value 67% after the updateCurrentValue call method
+        print("Current Value before 67%: ${currentValue}");
+        currentValue *= .67;
+        playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+        print("Current value after 67%: ${currentValue}");
+        //Remove all cards from player's hand
+        handRemoval(saveScoreToPot: true);
       } else {
         bust();
       }
