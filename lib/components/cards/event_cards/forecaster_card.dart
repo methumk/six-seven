@@ -49,7 +49,7 @@ class ForecasterCard extends EventActionCard {
       print("Drew card $c");
     }
     cards.shuffle();
-    if (game.gameManager.getCurrentPlayer!.isCpu()) {
+    if (!game.gameManager.getCurrentPlayer!.isCpu()) {
       // Drawing 3 cards should show the cards in an animation in center
       await game.world.addAll(cards);
 

@@ -125,7 +125,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //TO DO: implement
     };
 
-    // initNumberCards();
+    initNumberCards();
     initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
@@ -225,15 +225,15 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
-      // deckList.add(LuckyDieCard());
+      deckList.add(LuckyDieCard());
       // deckList.add(SunkProphet());
-      // deckList.add(ChoiceDraw());
+      deckList.add(ChoiceDraw());
       // deckList.add(ReverseTurnCard());
       deckList.add(DiscarderCard());
       deckList.add(RedeemerCard());
       //Add to eventCardsLeft
-      // eventCardsLeft[EventCardEnum.Freeze] =
-      //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
+      eventCardsLeft[EventCardEnum.Freeze] =
+          eventCardsLeft[EventCardEnum.Freeze]! + 1;
       // eventCardsLeft[EventCardEnum.FlipThree] =
       //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
       eventCardsLeft[EventCardEnum.DoubleChance] =
@@ -250,12 +250,12 @@ class CardDeck extends PositionComponent with TapCallbacks {
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      // eventCardsLeft[EventCardEnum.LuckyDie] =
-      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDie] =
+          eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
       // eventCardsLeft[EventCardEnum.SunkProphet] =
       //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
-      // eventCardsLeft[EventCardEnum.ChoiceDraw] =
-      //     eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       // eventCardsLeft[EventCardEnum.ReverseTurn] =
       //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
       eventCardsLeft[EventCardEnum.Discarder] =
