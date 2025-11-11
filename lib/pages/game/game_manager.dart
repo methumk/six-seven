@@ -435,9 +435,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     //ev is the expected value of the hit itself given it was a success.
     //So we multiply it by success probability. Then we add the event you fail
-    //and get a duplicate, so that value is $0$. For semantics, we still multiply $0$
+    //and get a duplicate: if you don't have a redeemer card, your points for the round become $0$,
+    //so that value is $0$. If you DO have a redeemer card, you get to redeem 67% of your points, so
+    //so your points become .67 * current value.
     //by failureProb.
-    double valueHit = ev * successProb + 0 * failureProb;
+    late double valueHit;
+    if (currentPlayer.hasRedeemer) {
+      valueHit =
+          ev * successProb + .67 * currentPlayer.currentValue * failureProb;
+    } else {
+      valueHit = ev * successProb + 0 * failureProb;
+    }
     print("Expected value of hit E[hit] = E[current value + X]: ${valueHit}");
     print("Current Value: ${currentPlayer.currentValue}");
 
@@ -460,6 +468,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         calculateEVMultCards() * calculateEVNumberCards(currentPlayer) +
         calculateEVPlusMinusValueCards() +
         calculateEVEventCards();
+    if (currentPlayer.numberHand.length == 5) {
+      print(
+        "CPU has 5 number cards! EV of getting 6 number card bonus: ${probOfNonduplicateNumberCard(currentPlayer) * 6.7} ",
+      );
+      evCumulative += probOfNonduplicateNumberCard(currentPlayer) * 6.7;
+    } else if (currentPlayer.numberHand.length >= 6) {
+      print(
+        "CPU has >= 6 number cards! EV of getting 7+ number card bonus: ${probOfNonduplicateNumberCard(currentPlayer) * 21.67} ",
+      );
+      evCumulative += probOfNonduplicateNumberCard(currentPlayer) * 21.67;
+    }
     return evCumulative;
   }
 
@@ -495,11 +514,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double evNumberCard = 0;
 
     for (int number in deck.numberCardsLeft.keys) {
-      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
       //If number card is a number that the player already has, skip it
       if (currentPlayer.numHandSet.contains(number)) {
         continue;
       }
+      int amountOfSpecificNumberCardInDeck = deck.numberCardsLeft[number]!;
+
       evNumberCard +=
           number * (amountOfSpecificNumberCardInDeck / numCardsLeft);
       // totalNumberCards += amountOfSpecificNumberCardInDeck;
@@ -508,6 +528,26 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //of "0" so is commented here for semantic reasons
     //evNumberCard += 0 * (numCardsLeft - totalNumberCards) / numCardsLeft;
     return evNumberCard;
+  }
+
+  //Calculates the probability of getting a non-duplicate number card.
+  //This method is primarily used for when player has 5+ number cards.
+  //Specifically: If a player has 6 number cards, they will get a bonus +6.7
+  //points on stay, and if a player has 7+ number cards, bonus is +21.67.
+  //So when a CPU starts having 5 number cards, this method is called.
+  double probOfNonduplicateNumberCard(Player currentPlayer) {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+    int numNonduplicateCards = 0;
+
+    for (int number in deck.numberCardsLeft.keys) {
+      //If number card is a number that the player already has, skip it
+      if (currentPlayer.numHandSet.contains(number)) {
+        continue;
+      }
+      numNonduplicateCards += deck.numberCardsLeft[number]!;
+    }
+    return numNonduplicateCards / numCardsLeft;
   }
 
   //Expected Value for value action cards
@@ -1199,7 +1239,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     buttonPressed = false;
     if (players[currentPlayerIndex].isCpu()) {
       hud.disableHitAndStayBtns();
-      print("Current player$currentPlayerIndex is CPU");
+      print("Current player${currentPlayerIndex + 1} is CPU");
       await aiTurn(players[currentPlayerIndex] as CpuPlayer);
       // print("next bottom index: ${nextPlayerBottomIndex}");
     } else {
