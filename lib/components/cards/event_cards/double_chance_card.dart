@@ -77,7 +77,7 @@ class DoubleChanceCard extends HandEventActionCard {
     }
     //Give double chance to affected player
     affectedPlayer!.grantDoubleChance();
-    affectedPlayer?.onHit(this);
+    await affectedPlayer?.onHit(this);
     finishEventCompleter();
     return;
   }

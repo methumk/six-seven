@@ -13,6 +13,7 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
+import 'package:six_seven/components/players/overlays.dart/player_action_text.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
@@ -55,6 +56,7 @@ abstract class Player extends PositionComponent
   late final String playerName;
   late PlayerButton button;
   late final GlowableText playerScore;
+  late final PlayerActionText playerActionText;
 
   Player({required this.playerNum, required this.currSlot})
     : super(anchor: Anchor.bottomCenter) {
@@ -271,10 +273,14 @@ abstract class Player extends PositionComponent
   }
 
   //Method for handling when player stays
-  void handleStay() {
+  Future<void> handleStay() async {
     print("Handling stay");
     //Make status bool true
     status = PlayerStatus.stay;
+
+    // Set text as staying
+    await playerActionText.setAsStaying();
+
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
 
@@ -300,7 +306,7 @@ abstract class Player extends PositionComponent
   }
 
   //Method for resetting certain attributes
-  void resetRound() {
+  Future<void> resetRound() async {
     status = PlayerStatus.active;
     totalValue += currentValue;
     currentValue = 0;
@@ -309,17 +315,23 @@ abstract class Player extends PositionComponent
     hasRedeemer = false;
     redeemerUsed = false;
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+    await playerActionText.removeText();
   }
 
   //Method for hitting
-  void onHit(cd.Card newCard) {
+  Future<void> onHit(cd.Card newCard) async {
+    // Only show CPU is hitting for now
+    if (isCpu()) {
+      await playerActionText.setAsHitting();
+    }
+
     //Reset size; this call is useful for handEventActionCards
     //such as Double Chance card
     newCard.resetSize();
     print("You hit and got a card:");
     newCard.description();
     if (newCard is cd.NumberCard) {
-      hitNumberCard(newCard);
+      await hitNumberCard(newCard);
     } else if (newCard is cd.ValueActionCard) {
       dch.addCardtoHand(newCard);
     } else {
@@ -335,10 +347,11 @@ abstract class Player extends PositionComponent
   }
 
   //Method for when player busts
-  void bust() {
+  Future<void> bust() async {
     print("Bust!");
     status = PlayerStatus.bust;
     handRemoval(saveScoreToPot: true);
+    await playerActionText.setAsBusted();
   }
 
   //Grant player double chance status
@@ -352,7 +365,7 @@ abstract class Player extends PositionComponent
   }
 
   //sub-method for hitting a number card
-  void hitNumberCard(cd.NumberCard nc) {
+  Future<void> hitNumberCard(cd.NumberCard nc) async {
     //If the number card was a duplicate, check for the following special cases (below)
     if (nch.numHandSet.contains(nc.value)) {
       //If there was a minus card of the same magnitude, discard the minus card and the duplicate number card
@@ -394,7 +407,7 @@ abstract class Player extends PositionComponent
         //Remove all cards from player's hand
         handRemoval(saveScoreToPot: true);
       } else {
-        bust();
+        await bust();
       }
     } else {
       nch.addCardtoHand(nc);
@@ -455,6 +468,8 @@ abstract class Player extends PositionComponent
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
+    playerActionText = PlayerActionText(position: Vector2(0, -80));
+    add(playerActionText);
   }
 
   @override
