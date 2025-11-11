@@ -15,7 +15,7 @@ class PlayerActionText extends TextComponent {
   static const double endScale = 1.0;
   static const double appearDuration = 0.3; // seconds
   static const double disappearDuration = 0.2;
-  static const int holdHitTimeMs = 300;
+  static const int holdHitTimeMs = 850;
 
   static const String stayText = "Stay!";
   static const String hitText = "Hit!";
