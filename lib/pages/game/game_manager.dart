@@ -232,7 +232,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     for (int i = 0; i < totalPlayerCount; i++) {
-      players[i].resetRound();
+      await players[i].resetRound();
 
       PlayerSlot currSlot = _getSetUpPosIndex(i);
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
@@ -574,7 +574,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     if (card is! cd.EventActionCard) {
       // Instant events or all other cards except event action
-      currentPlayer.onHit(card);
+      await currentPlayer.onHit(card);
     } else {
       // Event Card
       // overridable
@@ -802,7 +802,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     hud.disableHitAndStayBtns();
 
     Player currentPlayer = players[currentPlayerIndex];
-    currentPlayer.handleStay();
+    await currentPlayer.handleStay();
 
     // On stay update pot
     await pot.addToPot(currentPlayer.currentValue);
@@ -900,7 +900,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     hud.disableHitAndStayBtns();
 
     Player currentPlayer = players[currentPlayerIndex];
-    currentPlayer.handleStay();
+    await currentPlayer.handleStay();
 
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(milliseconds: 500));

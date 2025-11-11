@@ -78,7 +78,7 @@ class RedeemerCard extends HandEventActionCard {
     }
     //Give redeemer to affected player
     affectedPlayer!.grantRedeemer();
-    affectedPlayer?.onHit(this);
+    await affectedPlayer?.onHit(this);
     finishEventCompleter();
     return;
   }
