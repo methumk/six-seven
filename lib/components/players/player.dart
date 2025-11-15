@@ -476,4 +476,9 @@ abstract class Player extends PositionComponent
   void update(double dt) {
     super.update(dt);
   }
+
+  @override
+  String toString() {
+    return "Player(isAi: ${isCpu()}, #:$playerNum, cv: $currentValue, bv: $currentBonusValue, tv: $totalValue)";
+  }
 }
