@@ -139,9 +139,9 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length == 6) {
       currentValue += 6.7;
     }
-    //Else if player  flipped >= 7 cards, get bonus 6*7 = 42 points (multiplier not included)
+    //Else if player  flipped >= 7 cards, get bonus 21.67 points (multiplier not included)
     if (nch.numHandSet.length >= 7) {
-      currentValue += 42;
+      currentValue += 21.67;
     }
     currentValue += currentBonusValue;
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
@@ -349,6 +349,8 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   Future<void> bust() async {
     print("Bust!");
+    currentValue = 0;
+    currentBonusValue = 0;
     status = PlayerStatus.bust;
     handRemoval(saveScoreToPot: true);
     await playerActionText.setAsBusted();
