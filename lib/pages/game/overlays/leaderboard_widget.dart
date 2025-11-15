@@ -38,13 +38,14 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
 
     // Update total values and create new combined leader board (previous total + current total)
     for (int i = 0; i < widget.totalPlayer; ++i) {
+      final ptl = widget.totalLeaderboard[i];
       for (int j = 0; j < widget.totalPlayer; ++j) {
-        final ptl = widget.totalLeaderboard[i];
         final pcl = widget.currentLeaderboard[j];
-        if (ptl.playerName == pcl.playerName) {
+        if (ptl.playerNum == pcl.playerNum) {
           double potBonus = widget.potDistrib[ptl] ?? 0;
           ptl.totalValue += roundDouble(ptl.currentValue + potBonus, 2);
-          _combinedLeaderboard.updateFor(ptl);
+          // _combinedLeaderboard.updateFor(ptl);
+          _combinedLeaderboard.add(ptl);
           break;
         }
       }
@@ -53,8 +54,8 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
     // Determine the rank changes
     _combinedList = _combinedLeaderboard.topN(widget.totalPlayer);
     for (int i = 0; i < widget.totalPlayer; ++i) {
+      final pcomb = _combinedList[i];
       for (int j = 0; j < widget.totalPlayer; ++j) {
-        final pcomb = _combinedList[i];
         final pprev = widget.totalLeaderboard[j];
         if (pcomb.playerName == pprev.playerName) {
           _rankChange[pcomb.playerName] = j - i;

@@ -217,6 +217,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       potDistrib[lp] = pot.totalScore;
     }
 
+    // update current and end game leaderboards
+    currentLeaderBoard.updateEntireLeaderboard();
+    endGameLeaderBoard.updateEntireLeaderboard();
+
     // clear variable fields
     pot.reset();
     donePlayers.clear();
@@ -232,6 +236,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     for (int i = 0; i < totalPlayerCount; i++) {
+      // The leaderboard widget already accounts the total value with pot, so update current value to 0
+      // reset round will then do currentValue + totalValue, which will be double counting if we don't set current value to 0
+      players[i].currentValue = 0;
+
       await players[i].resetRound();
 
       PlayerSlot currSlot = _getSetUpPosIndex(i);
@@ -240,6 +248,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       players[i].currSlot = currSlot;
       players[i].moveToSlot = currSlot;
     }
+
+    // Update the current position
+    currentLeaderBoard.updateEntireLeaderboard();
+    endGameLeaderBoard.updateEntireLeaderboard();
 
     buttonPressed = false;
     hud.enableHitAndStayBtns();

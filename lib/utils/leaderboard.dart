@@ -15,14 +15,22 @@ class Leaderboard<T> {
   // Get bottom N
   List<T> bottomN(int n) => topN(n).reversed.toList();
 
-  void add(T value) {
-    _set.add(value);
+  void add(T obj) {
+    _set.add(obj);
   }
 
-  // Update the value in the object first, and this will reorder it for you
-  void updateFor(T obj) {
-    _set.remove(obj);
-    _set.add(obj);
+  bool remove(T obj) {
+    return _set.remove(obj);
+  }
+
+  // This will clear the entire leaderboard and store the contents back in in it's proper order
+  // This assumes all items are already in the leaderboard and their values have been updated internally
+  void updateEntireLeaderboard() {
+    var list = topN(_set.length);
+    _set.clear();
+    for (T o in list) {
+      _set.add(o);
+    }
   }
 
   int getLeaderboardRank(T obj) {
