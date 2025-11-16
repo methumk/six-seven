@@ -386,10 +386,10 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   Future<void> bust() async {
     print("Bust!");
+    handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
     status = PlayerStatus.bust;
-    handRemoval(saveScoreToPot: true);
     await playerActionText.setAsBusted();
   }
 
