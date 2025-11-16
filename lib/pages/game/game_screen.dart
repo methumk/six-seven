@@ -9,6 +9,7 @@ import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/overlays/leaderboard_widget.dart';
 import 'package:six_seven/pages/game/overlays/lucky_dice_widget.dart';
+import 'package:six_seven/pages/game/overlays/sunk_prophet_widget.dart';
 
 class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   final BuildContext context;
@@ -144,15 +145,19 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   Future<int> showRollDiceEvent({
     bool isAi = false,
     Difficulty aiDifficulty = Difficulty.expert,
+    bool isLuckyDie = false,
   }) async {
     pauseEngine();
-    final dieScore = await showDialog<int>(
+    int? dieScore = await showDialog<int>(
       context: context,
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
             title: const Center(child: Text('Roll Dice')),
-            content: LuckyDieWidget(isAi: isAi, aiDifficulty: aiDifficulty),
+            content:
+                isLuckyDie
+                    ? LuckyDieWidget(isAi: isAi, aiDifficulty: aiDifficulty)
+                    : SunkProphetWidget(isAi: isAi, aiDifficulty: aiDifficulty),
           ),
     );
     resumeEngine();
