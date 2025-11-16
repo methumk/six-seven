@@ -83,7 +83,6 @@ class FreezeCard extends EventActionCard {
     print("Chosen player: ${affectedPlayer!.playerName}");
     await affectedPlayer!.handleStay();
     game.gameManager.donePlayers.add(affectedPlayer!);
-    await game.gameManager.pot.addToPot(affectedPlayer!.currentValue);
     finishEventCompleter();
     return;
   }
