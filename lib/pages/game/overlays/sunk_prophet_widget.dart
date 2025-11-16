@@ -5,15 +5,14 @@ import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 
-class LuckyDieWidget extends StatefulWidget {
+class SunkProphetWidget extends StatefulWidget {
   final double startSize;
   final double endSize;
   final Duration dropDuration;
   final Duration wobbleDuration;
   final bool isAi;
   final Difficulty aiDifficulty;
-
-  const LuckyDieWidget({
+  const SunkProphetWidget({
     super.key,
     this.startSize = 200,
     this.endSize = 80,
@@ -24,10 +23,10 @@ class LuckyDieWidget extends StatefulWidget {
   });
 
   @override
-  State<LuckyDieWidget> createState() => _LuckyDieWidgetState();
+  State<SunkProphetWidget> createState() => _SunkProphetWidgetState();
 }
 
-class _LuckyDieWidgetState extends State<LuckyDieWidget>
+class _SunkProphetWidgetState extends State<SunkProphetWidget>
     with TickerProviderStateMixin {
   late AnimationController _dropController;
   late Animation<double> _sizeAnimation;
@@ -38,7 +37,14 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
   bool _isRolling = false;
   bool _aiShowLeaving = false;
   final Random _random = Random();
+  //Bool for if player rolled a six or seven
+  bool sixOrSevenRolled = false;
 
+  //Bool for if player finished a roll
+  bool _finishedARoll = true;
+  //Int for number of rolls player has made: when player rolls 7 failures, they
+  //will automatically quit
+  int numRolls = 0;
   // history slots: length 6, null means placeholder (gray)
   static const _historySlotLength = 7;
   final List<int?> _historySlots = List<int?>.filled(
@@ -122,15 +128,9 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
       }
 
       // Ai makes a decision
-      // hard or expert continues to roll if its total roll points exceeds the expected value of
-      // rolling seven times, else it stops. For other difficulties, they decide their choice based on
-      // just probability: easy (rolls 50%), medium (85%)
-      bool aiWantsToRoll =
-          widget.aiDifficulty == Difficulty.easy
-              ? _random.nextDouble() < 0.50
-              : widget.aiDifficulty == Difficulty.medium
-              ? _random.nextDouble() < 0.50
-              : (_totalScore >= 7 * evRoll() ? false : true);
+      // Sunk prophet forces AI to roll until they roll a 6 or 7. Hence they are forced to roll
+      //until this happens, or they rolled seven times in a roll with no 6 or 7.
+      bool aiWantsToRoll = sixOrSevenRolled ? false : true;
 
       if (aiWantsToRoll) {
         _startRoll();
@@ -148,12 +148,17 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
   //Calculates expected value of a single roll
   double evRoll() {
-    return (1 + 2 + 3 + 4 + 5) / 7 - 6 / 7 - 7 / 7;
+    return -(1 + 2 + 3 + 4 + 5) / 7 + 6 / 7 + 7 / 7;
   }
 
   void _startRoll() {
     if (_isRolling) return;
-    setState(() => _isRolling = true);
+    //Increment number of rolls by 1
+    numRolls += 1;
+    setState(() {
+      _finishedARoll = true;
+      _isRolling = true;
+    });
 
     // pick a final face 1..7
     _finalValue = _random.nextInt(7) + 1;
@@ -167,13 +172,14 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         t.cancel();
         setState(() {
           _currentFace = _finalValue;
-          _totalScore +=
-              1 *
-              (_finalValue == 6
-                  ? -6
-                  : _finalValue == 7
-                  ? -7
-                  : _finalValue);
+          int pointsFromRoll = 0;
+          if (_finalValue == 6 || _finalValue == 7) {
+            pointsFromRoll = _finalValue;
+            sixOrSevenRolled = true;
+          } else {
+            pointsFromRoll = -_finalValue;
+          }
+          _totalScore += 1 * pointsFromRoll;
         });
 
         // Insert into history and run wobble there
@@ -188,6 +194,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
       if (mounted) {
         // rolling finished
         setState(() => _isRolling = false);
+        setState(() => _finishedARoll = true);
       }
     });
   }
@@ -301,10 +308,10 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                       child:
                           _currentFace < 6
                               ? SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_white_dots.svg',
+                                'assets/images/game_ui/dice_${_currentFace}_red_dots.svg',
                               )
                               : SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_red_dots.svg',
+                                'assets/images/game_ui/dice_${_currentFace}_white_dots.svg',
                               ),
                     );
                   },
@@ -338,11 +345,11 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                                 child:
                                     val < 6
                                         ? SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                          'assets/images/game_ui/dice_${val}_red_dots.svg',
                                           width: 28,
                                         )
                                         : SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                          'assets/images/game_ui/dice_${val}_white_dots.svg',
                                           width: 28,
                                         ),
                               );
@@ -353,11 +360,11 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                           child =
                               val < 6
                                   ? SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                    'assets/images/game_ui/dice_${val}_red_dots.svg',
                                     width: 28,
                                   )
                                   : SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                    'assets/images/game_ui/dice_${val}_white_dots.svg',
                                     width: 28,
                                   );
                         }
@@ -381,19 +388,36 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                       child: Center(
                         child: ElevatedButton(
                           onPressed:
-                              _aiShowLeaving
+                              (!_aiShowLeaving &&
+                                      !sixOrSevenRolled &&
+                                      numRolls < 7 &&
+                                      _finishedARoll)
                                   ? null
                                   : () {
                                     if (!_isRolling) {
                                       Navigator.of(context).pop(_totalScore);
                                     }
                                   },
-                          child: Text(
-                            'Redeem',
-                            style: TextStyle(
-                              color: widget.isAi ? Colors.green : Colors.black,
-                            ),
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.resolveWith<
+                              Color
+                            >((Set<WidgetState> states) {
+                              if (states.contains(WidgetState.disabled)) {
+                                return Colors.grey.shade400;
+                              }
+                              return widget.isAi ? Colors.green : Colors.black;
+                            }),
+                            foregroundColor:
+                                WidgetStateProperty.resolveWith<Color>((
+                                  Set<WidgetState> states,
+                                ) {
+                                  if (states.contains(WidgetState.disabled)) {
+                                    return Colors.black45;
+                                  }
+                                  return Colors.white;
+                                }),
                           ),
+                          child: const Text('Redeem'),
                         ),
                       ),
                     ),

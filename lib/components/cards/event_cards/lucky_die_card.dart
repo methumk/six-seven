@@ -45,6 +45,7 @@ class LuckyDieCard extends EventActionCard {
     int points = await game.showRollDiceEvent(
       isAi: p.isCpu(),
       aiDifficulty: difficulty,
+      isLuckyDie: true,
     );
 
     p.updateBonusValue(points.toDouble());
