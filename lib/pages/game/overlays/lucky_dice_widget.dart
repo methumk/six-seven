@@ -298,9 +298,14 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                     return SizedBox(
                       width: _sizeAnimation.value,
                       height: _sizeAnimation.value,
-                      child: SvgPicture.asset(
-                        'assets/images/game_ui/dice_$_currentFace.svg',
-                      ),
+                      child:
+                          _currentFace < 6
+                              ? SvgPicture.asset(
+                                'assets/images/game_ui/dice_${_currentFace}_white_dots.svg',
+                              )
+                              : SvgPicture.asset(
+                                'assets/images/game_ui/dice_${_currentFace}_red_dots.svg',
+                              ),
                     );
                   },
                 ),
@@ -330,19 +335,31 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                             builder: (context, w) {
                               return Transform.rotate(
                                 angle: _slotAnimations[i]!.value,
-                                child: SvgPicture.asset(
-                                  'assets/images/game_ui/dice_$val.svg',
-                                  width: 28,
-                                ),
+                                child:
+                                    val < 6
+                                        ? SvgPicture.asset(
+                                          'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                          width: 28,
+                                        )
+                                        : SvgPicture.asset(
+                                          'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                          width: 28,
+                                        ),
                               );
                             },
                           );
                         } else {
                           // static final face
-                          child = SvgPicture.asset(
-                            'assets/images/game_ui/dice_$val.svg',
-                            width: 28,
-                          );
+                          child =
+                              val < 6
+                                  ? SvgPicture.asset(
+                                    'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                    width: 28,
+                                  )
+                                  : SvgPicture.asset(
+                                    'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                    width: 28,
+                                  );
                         }
                       }
 
