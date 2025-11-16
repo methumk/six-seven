@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/players/cpu_player.dart';
+import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class SunkProphet extends EventActionCard {
@@ -31,8 +33,28 @@ class SunkProphet extends EventActionCard {
 
   @override
   Future<void> executeOnEvent() async {
-    //To do: implement
-    return;
+    Player? p = game.gameManager.getCurrentPlayer;
+    if (p == null) {
+      return;
+    }
+
+    // Calculate difficulty
+    var difficulty = Difficulty.expert;
+    if (p is CpuPlayer) {
+      difficulty = p.difficulty;
+    }
+
+    // Set either AI or CPU interaction with dialogue
+    int points = await game.showRollDiceEvent(
+      isAi: p.isCpu(),
+      aiDifficulty: difficulty,
+      isLuckyDie: false,
+    );
+
+    p.updateBonusValue(points.toDouble());
+
+    // Resolve event complete to stop waiting
+    resolveEventCompleter();
   }
 
   @override
