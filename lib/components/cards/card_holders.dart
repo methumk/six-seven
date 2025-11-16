@@ -78,6 +78,9 @@ class DynamicCardHolder extends PositionComponent {
   int minusHandLength = 0;
   Map<double, List<MinusCard>> minusHandMap = {};
 
+  // Get the total value card length
+  int get valueCardLength => minusHandLength + addHand.length + multHand.length;
+
   DynamicCardHolder() : super(anchor: Anchor.bottomLeft);
 
   @override

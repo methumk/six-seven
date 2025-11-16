@@ -107,6 +107,7 @@ abstract class Player extends PositionComponent
     double additionalBonus, {
     bool clearExistingBonus = false,
   }) {
+    currentValue -= currentBonusValue;
     if (clearExistingBonus) {
       currentBonusValue = additionalBonus;
     } else {

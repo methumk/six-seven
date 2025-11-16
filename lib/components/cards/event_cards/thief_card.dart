@@ -31,8 +31,29 @@ class ThiefCard extends EventActionCard {
     );
   }
 
+  bool canUseThiefCard() {
+    int count = 0;
+    for (var player in game.gameManager.players) {
+      if (!player.isDone &&
+          player.playerName != cardUser!.playerName &&
+          player.dch.valueCardLength > 0) {
+        count++;
+      }
+    }
+    return count > 0;
+  }
+
   @override
   Future<void> executeOnEvent() async {
+    bool canUse = canUseThiefCard();
+    // TODO: if you can't use show text visualization that we can't use the card
+    if (!canUse) {
+      print("No players to select for thief!");
+      finishEventCompleter();
+    } else {
+      print("Thief card can be used $canUse");
+    }
+
     if (!cardUser!.isCpu()) {
       bool validChoice = false;
       while (!validChoice) {

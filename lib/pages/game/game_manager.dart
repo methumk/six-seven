@@ -1067,7 +1067,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Method for making player buttons clickable
   void makePlayersClickable() {
     for (Player player in players) {
-      player.button.buttonClickStatus = true;
+      if (player.isDone == false) {
+        player.button.buttonClickStatus = true;
+      }
     }
     return;
   }
