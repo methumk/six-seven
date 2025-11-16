@@ -572,11 +572,11 @@ abstract class EventActionCard extends Card {
   }
 
   //Method for initiating player selection process
-  Future<void> choosePlayer() async {
+  Future<void> choosePlayer({bool Function(Player?)? buttonClickVerf}) async {
     print("Choose a player to be affected by eventAction card:");
     // Wait for user to select input
     // We expect input to be set when this is resolved
-    game.gameManager.makePlayersClickable();
+    game.gameManager.makePlayersClickable(buttonClickVerf);
     game.gameManager.runningEvent!.inputSelect.init();
     await game.gameManager.runningEvent!.inputSelect.wait();
     print("The player has been chosen!");
