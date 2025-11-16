@@ -306,6 +306,42 @@ abstract class Player extends PositionComponent
     dch.removeAllCards();
   }
 
+  // Will remove all plus cards from current hand and pass it to the transferTo player
+  // NOTE: don't forget to update current value for both players manually
+  void transferAddHand(Player transferToP, {bool updateDeckPosition = false}) {
+    if (transferToP != this) {
+      var remd = dch.removeAllAddHand(updateDeckPosition: updateDeckPosition);
+      for (var c in remd) {
+        transferToP.dch.addCardtoHand(c);
+      }
+    }
+  }
+
+  // Will remove all minus cards from current hand and pass it to the transferTo player
+  // NOTE: don't forget to update current value for both players manually
+  void transferMinusHand(
+    Player transferToP, {
+    bool updateDeckPosition = false,
+  }) {
+    if (transferToP != this) {
+      var remd = dch.removeAllMinusHand(updateDeckPosition: updateDeckPosition);
+      for (var c in remd) {
+        transferToP.dch.addCardtoHand(c);
+      }
+    }
+  }
+
+  // Will remove all mult cards from current hand and pass it to the transferTo player
+  // NOTE: don't forget to update current value for both players manually
+  void transferMultHand(Player transferToP, {bool updateDeckPosition = false}) {
+    if (transferToP != this) {
+      var remd = dch.removeAllMultHand(updateDeckPosition: updateDeckPosition);
+      for (var c in remd) {
+        transferToP.dch.addCardtoHand(c);
+      }
+    }
+  }
+
   //Method for resetting certain attributes
   Future<void> resetRound() async {
     status = PlayerStatus.active;
