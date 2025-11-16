@@ -143,11 +143,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
         deckList.add(NumberCard(value: i.toDouble()));
         numberCardsLeft[i] = numberCardsLeft[i]! + 1;
       }
-      //Let's have two minus cards of the same value for now
-      for (int j = 1; j <= 2; j++) {
-        deckList.add(MinusCard(value: i.toDouble()));
-        plusMinusCardsLeft[-1 * i] = plusMinusCardsLeft[-1 * i]! + 1;
-      }
     }
   }
 
@@ -160,6 +155,13 @@ class CardDeck extends PositionComponent with TapCallbacks {
       for (int j = 1; j <= max(2, cardCeiling - i); j++) {
         deckList.add(PlusCard(value: i.toDouble()));
         plusMinusCardsLeft[i] = plusMinusCardsLeft[i]! + 1;
+      }
+    }
+    //Let's have two minus cards of the same value for now
+    for (int i = 1; i <= 13; i++) {
+      for (int j = 1; j <= 2; j++) {
+        deckList.add(MinusCard(value: i.toDouble()));
+        plusMinusCardsLeft[-1 * i] = plusMinusCardsLeft[-1 * i]! + 1;
       }
     }
     //Add the mult cards (since this is digital, we can easily make x.5's, etc)
@@ -215,53 +217,53 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 50; i++) {
-      // deckList.add(FreezeCard());
+    for (int i = 1; i <= 10; i++) {
+      deckList.add(FreezeCard());
       // // deckList.add(FlipThreeCard());
-      // deckList.add(DoubleChanceCard());
-      // deckList.add(TopPeekCard());
-      // deckList.add(ThiefCard());
+      deckList.add(DoubleChanceCard());
+      deckList.add(TopPeekCard());
+      deckList.add(ThiefCard());
       // // deckList.add(CribberCard());
-      // deckList.add(ForecasterCard());
+      deckList.add(ForecasterCard());
       // deckList.add(IncomeTax());
       // deckList.add(SalesTax());
       deckList.add(LuckyDieCard());
-      // deckList.add(SunkProphet());
-      // deckList.add(ChoiceDraw());
+      deckList.add(SunkProphet());
+      deckList.add(ChoiceDraw());
       // // deckList.add(ReverseTurnCard());
-      // deckList.add(DiscarderCard());
-      // deckList.add(RedeemerCard());
+      deckList.add(DiscarderCard());
+      deckList.add(RedeemerCard());
       //Add to eventCardsLeft
-      // eventCardsLeft[EventCardEnum.Freeze] =
-      //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
+      eventCardsLeft[EventCardEnum.Freeze] =
+          eventCardsLeft[EventCardEnum.Freeze]! + 1;
       // // eventCardsLeft[EventCardEnum.FlipThree] =
       // //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
-      // eventCardsLeft[EventCardEnum.DoubleChance] =
-      //     eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
-      // eventCardsLeft[EventCardEnum.Thief] =
-      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
-      // eventCardsLeft[EventCardEnum.TopPeek] =
-      //     eventCardsLeft[EventCardEnum.TopPeek]! + 1;
+      eventCardsLeft[EventCardEnum.DoubleChance] =
+          eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.TopPeek] =
+          eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // // eventCardsLeft[EventCardEnum.Cribber] =
       // //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
-      // eventCardsLeft[EventCardEnum.Forecaster] =
-      //     eventCardsLeft[EventCardEnum.Forecaster]! + 1;
+      eventCardsLeft[EventCardEnum.Forecaster] =
+          eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       // eventCardsLeft[EventCardEnum.IncomeTax] =
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
       eventCardsLeft[EventCardEnum.LuckyDie] =
           eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
-      // eventCardsLeft[EventCardEnum.SunkProphet] =
-      //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
-      // eventCardsLeft[EventCardEnum.ChoiceDraw] =
-      //     eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.SunkProphet] =
+          eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
       // // eventCardsLeft[EventCardEnum.ReverseTurn] =
       // //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
-      // eventCardsLeft[EventCardEnum.Discarder] =
-      //     eventCardsLeft[EventCardEnum.Discarder]! + 1;
-      // eventCardsLeft[EventCardEnum.Redeemer] =
-      //     eventCardsLeft[EventCardEnum.Redeemer]! + 1;
+      eventCardsLeft[EventCardEnum.Discarder] =
+          eventCardsLeft[EventCardEnum.Discarder]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 
