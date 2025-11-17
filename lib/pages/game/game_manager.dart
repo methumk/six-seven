@@ -1072,8 +1072,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Button click verf is a bool function if you need to pass custom logic before enabling a players button
   void makePlayersClickable(bool Function(Player?)? buttonClickVerf) {
     for (Player player in players) {
+      //If buttonClickVerf is null, just need to check if player is not done.
+      //Else, need to check if player is not done, AND buttonCLickVerf(Player) is true
       if (player.isDone == false &&
-          (buttonClickVerf != null && buttonClickVerf(player) == true)) {
+          (buttonClickVerf == null || buttonClickVerf(player) == true)) {
         player.button.buttonClickStatus = true;
       }
     }
