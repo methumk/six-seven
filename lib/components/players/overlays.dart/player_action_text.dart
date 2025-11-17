@@ -13,9 +13,9 @@ class PlayerActionText extends TextAnimations {
   static const double fontSize = 40;
   static const double startScale = 0.0;
   static const double endScale = 1.0;
-  static const double appearDuration = 0.3; // seconds
-  static const double disappearDuration = 0.2;
-  static const int holdHitTimeMs = 1200;
+  static const double appearDurationSec = 0.3;
+  static const double initRemoveAnimationSec = 0.2;
+  static const int holdHitTimeMs = 800;
 
   static const String stayText = "Stay!";
   static const String hitText = "Hit!";
@@ -45,10 +45,10 @@ class PlayerActionText extends TextAnimations {
       ),
     ),
     showInitialRemoveAnimation: showRemoveAnimation,
-    textAppearForSec: appearDuration,
+    textAppearForSec: appearDurationSec,
     startScale: Vector2.all(startScale),
     endScale: Vector2.all(endScale),
-    disappearDuration: disappearDuration,
+    initRemoveAnimationSec: initRemoveAnimationSec,
     holdTextForMs: holdTextForMs,
   );
 
@@ -66,11 +66,12 @@ class PlayerActionText extends TextAnimations {
       ),
     ),
     showInitialRemoveAnimation: showRemoveAnimation,
-    textAppearForSec: appearDuration,
+    textAppearForSec: appearDurationSec,
     startScale: Vector2.all(startScale),
     endScale: Vector2.all(endScale),
-    disappearDuration: disappearDuration,
+    initRemoveAnimationSec: initRemoveAnimationSec,
     holdTextForMs: holdTextForMs,
+    shrinkAndRemoveAtEndSec: 0.3,
   );
 
   Future<void> setAsHitting({
@@ -87,10 +88,11 @@ class PlayerActionText extends TextAnimations {
       ),
     ),
     showInitialRemoveAnimation: showRemoveAnimation,
-    textAppearForSec: appearDuration,
+    textAppearForSec: appearDurationSec,
     startScale: Vector2.all(startScale),
     endScale: Vector2.all(endScale),
-    disappearDuration: disappearDuration,
+    initRemoveAnimationSec: initRemoveAnimationSec,
     holdTextForMs: holdTextForMs,
+    shrinkAndRemoveAtEndSec: 0.3,
   );
 }

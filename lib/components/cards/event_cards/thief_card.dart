@@ -1,16 +1,25 @@
 //Thief: lets you choose a player and then steal all of their value action cards
 import 'dart:async';
-
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
+import 'package:six_seven/components/players/overlays.dart/event_announcement_text.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class ThiefCard extends EventActionCard {
+  Color announcementColor = Colors.blue;
+  late EventAnnouncementText playerStealingAnnouncement;
   ThiefCard() {
     eventEnum = EventCardEnum.Thief;
+
+    // Adding to world, so 0 will be center
+    playerStealingAnnouncement = EventAnnouncementText(
+      position: Vector2.all(0),
+    );
   }
 
   //No special execute on stay
@@ -29,6 +38,7 @@ class ThiefCard extends EventActionCard {
           "You get to choose a player to steal all their value action cards!",
       descriptionTitle: "Thief",
     );
+    game.world.add(playerStealingAnnouncement);
   }
 
   bool _canUseThiefOnPlayer(Player? p) {
@@ -167,6 +177,17 @@ class ThiefCard extends EventActionCard {
       finishEventCompleter();
       return;
     }
+
+    // Show chosen player as announcement
+    await playerStealingAnnouncement.setGrowingText(
+      "Player ${cardUser!.playerNum} stealing Player ${affectedPlayer!.playerNum} value cards!",
+      45,
+      announcementColor,
+      appearDurationSec: 1.3,
+      showInitRemoveAnimation: false,
+      holdTextForMs: 800,
+      shrinkAndRemoveAtEndSec: .9,
+    );
 
     // Steal all value cards besides event
     affectedPlayer!.transferAddHand(cardUser!, updateDeckPosition: true);

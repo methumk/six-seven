@@ -35,13 +35,13 @@ class TextAnimations extends TextComponent {
   }
 
   /// Shrinks text and optionally removes it
-  Future<void> _shrinkAndRemove(double disappearDuration) async {
+  Future<void> _shrinkAndRemove(double disappearDurationSec) async {
     // Wait for current animation to finish
     if (_currentAnimation != null) {
       await _currentAnimation;
     }
 
-    _currentAnimation = _animateScale(Vector2.all(0), disappearDuration);
+    _currentAnimation = _animateScale(Vector2.all(0), disappearDurationSec);
     await _currentAnimation;
     text = "";
     size = Vector2.all(0);
@@ -55,16 +55,17 @@ class TextAnimations extends TextComponent {
     double textAppearForSec = 1.0,
     Vector2? startScale,
     Vector2? endScale,
-    double? disappearDuration,
+    double? initRemoveAnimationSec,
     int? holdTextForMs,
+    double? shrinkAndRemoveAtEndSec,
   }) async {
     if (text == newText) return; // skip if same text
 
     // Optionally show animation of old text being shrunk and removed
     if (showInitialRemoveAnimation &&
-        disappearDuration != null &&
-        disappearDuration > 0) {
-      await _shrinkAndRemove(disappearDuration);
+        initRemoveAnimationSec != null &&
+        initRemoveAnimationSec > 0) {
+      await _shrinkAndRemove(initRemoveAnimationSec);
     }
 
     // Update text style and text
@@ -80,11 +81,22 @@ class TextAnimations extends TextComponent {
     await _currentAnimation;
     _currentAnimation = null;
 
-    // Remove text (no animation)
+    // if hold text set then text will remove after holding
     if (holdTextForMs != null) {
+      // Do delay then chose to shrink or just remove
       await Future.delayed(Duration(milliseconds: holdTextForMs));
-      text = "";
-      size = Vector2.all(0);
+
+      // If shrink not enable then manually clear
+      if (shrinkAndRemoveAtEndSec == null) {
+        // this is already handled in shrink and remove
+        text = "";
+        size = Vector2.all(0);
+      }
+    }
+
+    // Shrink and remove text if desired
+    if (shrinkAndRemoveAtEndSec != null) {
+      await _shrinkAndRemove(shrinkAndRemoveAtEndSec);
     }
   }
   // =========================================================
