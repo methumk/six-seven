@@ -1065,9 +1065,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   //Method for making player buttons clickable
-  void makePlayersClickable() {
+  // Button click verf is a bool function if you need to pass custom logic before enabling a players button
+  void makePlayersClickable(bool Function(Player?)? buttonClickVerf) {
     for (Player player in players) {
-      if (player.isDone == false) {
+      if (player.isDone == false &&
+          (buttonClickVerf != null && buttonClickVerf(player) == true)) {
         player.button.buttonClickStatus = true;
       }
     }

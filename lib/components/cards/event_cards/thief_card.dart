@@ -31,12 +31,17 @@ class ThiefCard extends EventActionCard {
     );
   }
 
+  bool _canUseThiefOnPlayer(Player? p) {
+    return p != null &&
+        !p.isDone &&
+        p.playerName != cardUser!.playerName &&
+        p.dch.valueCardLength > 0;
+  }
+
   bool canUseThiefCard() {
     int count = 0;
     for (var player in game.gameManager.players) {
-      if (!player.isDone &&
-          player.playerName != cardUser!.playerName &&
-          player.dch.valueCardLength > 0) {
+      if (_canUseThiefOnPlayer(player)) {
         count++;
       }
     }
@@ -46,10 +51,10 @@ class ThiefCard extends EventActionCard {
   @override
   Future<void> executeOnEvent() async {
     bool canUse = canUseThiefCard();
-    // TODO: if you can't use show text visualization that we can't use the card
     if (!canUse) {
       print("No players to select for thief!");
       finishEventCompleter();
+      return;
     } else {
       print("Thief card can be used $canUse");
     }
@@ -57,19 +62,19 @@ class ThiefCard extends EventActionCard {
     if (!cardUser!.isCpu()) {
       bool validChoice = false;
       while (!validChoice) {
-        await choosePlayer();
+        await choosePlayer(buttonClickVerf: _canUseThiefOnPlayer);
         if (!affectedPlayer!.isDone) {
           validChoice = true;
         } else {
           print(
-            "Player you chose is already done! PLease choose another player",
+            "Player you chose is already done! Please choose another player",
           );
         }
       }
-      // We got user input. Signal to choosePlayer event is now completed.
-      //Then proceed with action using that input (stealingFromPlayer set)
-      //after the if statements
-      finishEventCompleter();
+      // // We got user input. Signal to choosePlayer event is now completed.
+      // //Then proceed with action using that input (stealingFromPlayer set)
+      // //after the if statements
+      // finishEventCompleter();
     } else {
       print("card user is CPU: employing CPU action");
       //Since there's going to be a lot of event action cards, probably best
@@ -148,7 +153,6 @@ class ThiefCard extends EventActionCard {
             affectedPlayer = player;
             currentHypotheticalValue = rivalHypotheticalValue;
           }
-          finishEventCompleter();
         }
       }
     }
@@ -158,28 +162,23 @@ class ThiefCard extends EventActionCard {
     print("chosen player: ${affectedPlayer!.playerName}");
     //If affectedPlayer is the same as the cardUser, then there's
     //nothing to steal. Return early
-    if (affectedPlayer == cardUser) {
+    if (affectedPlayer == cardUser || affectedPlayer == null) {
+      print("exiting early!");
+      finishEventCompleter();
       return;
     }
 
-    //Else, steal all the value cards
-    if (affectedPlayer?.addHand != null) {
-      final List<PlusCard> addHand = affectedPlayer!.addHand;
-      while (addHand.isNotEmpty) {
-        PlusCard addCard = addHand.removeLast();
-        cardUser?.dch.addCardtoHand(addCard);
-      }
-    }
-    if (affectedPlayer?.multHand != null) {
-      final List<MultCard> multHand = affectedPlayer!.multHand;
-      while (multHand.isNotEmpty) {
-        MultCard multCard = multHand.removeLast();
-        cardUser?.dch.addCardtoHand(multCard);
-      }
-    }
+    // Steal all value cards besides event
+    affectedPlayer!.transferAddHand(cardUser!, updateDeckPosition: true);
+    affectedPlayer!.transferMinusHand(cardUser!, updateDeckPosition: true);
+    affectedPlayer!.transferMultHand(cardUser!, updateDeckPosition: true);
+
+    // Update current status
     affectedPlayer?.updateCurrentValue();
     cardUser?.updateCurrentValue();
-    return;
+
+    // Signal to event completer
+    finishEventCompleter();
   }
 
   @override

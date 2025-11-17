@@ -475,19 +475,39 @@ class DynamicCardHolder extends PositionComponent {
     }
   }
 
-  void removeAllAddHand({bool updateDeckPosition = true}) {
+  List<PlusCard> removeAllAddHand({bool updateDeckPosition = true}) {
+    List<PlusCard> remd = [];
+
     for (final c in addHand) {
       remove(c);
+      remd.add(c);
     }
     addHand.clear();
     if (updateDeckPosition) {
       _updateDeckPositionsOnCardRemoval(CardType.valueActionPlusCard);
     }
+    return remd;
   }
 
   bool minusCardInHand(double numberValue) =>
       minusHandMap.containsKey(numberValue) &&
       minusHandMap[numberValue]!.isNotEmpty;
+
+  // Returns the entire minus card hand as a list
+  // NOTE: this doesn't remove the cards from the hand, so these will be references
+  List<MinusCard> getAllMinusCards() {
+    List<MinusCard> mcs = [];
+
+    for (final c in minusHandMap.entries) {
+      final minusList = minusHandMap[c.key];
+      if (minusList != null) {
+        for (MinusCard mc in minusList) {
+          mcs.add(mc);
+        }
+      }
+    }
+    return mcs;
+  }
 
   // Removes card from hand and updates all other card positions
   void removeSingleMinusCard(
@@ -525,12 +545,14 @@ class DynamicCardHolder extends PositionComponent {
     return doubleChanceCard;
   }
 
-  void removeAllMinusHand({bool updateDeckPosition = true}) {
+  List<MinusCard> removeAllMinusHand({bool updateDeckPosition = true}) {
+    List<MinusCard> remd = [];
     for (final c in minusHandMap.entries) {
       final minusList = minusHandMap[c.key];
       if (minusList != null) {
         for (MinusCard mc in minusList) {
           remove(mc);
+          remd.add(mc);
         }
       }
     }
@@ -539,6 +561,7 @@ class DynamicCardHolder extends PositionComponent {
     if (updateDeckPosition) {
       _updateDeckPositionsOnCardRemoval(CardType.eventActionCard);
     }
+    return remd;
   }
 
   void removeMultCard(MultCard c, {bool updateDeckPosition = true}) {
@@ -551,14 +574,17 @@ class DynamicCardHolder extends PositionComponent {
     }
   }
 
-  void removeAllMultHand({bool updateDeckPosition = true}) {
+  List<MultCard> removeAllMultHand({bool updateDeckPosition = true}) {
+    List<MultCard> remd = [];
     for (final c in multHand) {
       remove(c);
+      remd.add(c);
     }
     multHand.clear();
     if (updateDeckPosition) {
       _updateDeckPositionsOnCardRemoval(CardType.valueActionMultCard);
     }
+    return remd;
   }
 
   void removeAllValueHands({bool updateDeckPosition = true}) {
