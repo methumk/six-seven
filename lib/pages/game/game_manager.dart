@@ -621,6 +621,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // draw from deck
     // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[playerIndex];
+
+    // Show current player decided to hit
+    await currentPlayer.playerActionText.setAsHitting();
+
     final card = deck.draw();
     print("Got card: $card ${card.cardType}");
 

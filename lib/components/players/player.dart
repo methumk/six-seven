@@ -357,11 +357,6 @@ abstract class Player extends PositionComponent
 
   //Method for hitting
   Future<void> onHit(cd.Card newCard) async {
-    // Only show CPU is hitting for now
-    if (isCpu()) {
-      await playerActionText.setAsHitting();
-    }
-
     //Reset size; this call is useful for handEventActionCards
     //such as Double Chance card
     newCard.resetSize();
