@@ -400,6 +400,8 @@ abstract class Player extends PositionComponent
         //Another niche for redeemer: if player was last, they are treated as if they stayed, and thus get access to the entire pot!
         //Make status bool true
         status = PlayerStatus.stay;
+        // Set text as staying
+        await playerActionText.setAsStaying();
         //Update current value to reflect final points accrued in this round
         updateCurrentValue();
         //make current value 67% after the updateCurrentValue call method
