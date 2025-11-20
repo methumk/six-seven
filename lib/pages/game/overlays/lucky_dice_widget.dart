@@ -133,7 +133,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
               : (_totalScore >= 7 * evRoll() ? false : true);
 
       if (aiWantsToRoll) {
-        _startRoll();
+        await _startRoll();
       } else {
         if (mounted) {
           // Toggle the redeem button
@@ -151,7 +151,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
     return (1 + 2 + 3 + 4 + 5) / 7 - 6 / 7 - 7 / 7;
   }
 
-  void _startRoll() {
+  Future<void> _startRoll() async {
     if (_isRolling) return;
     setState(() => _isRolling = true);
 
@@ -161,6 +161,9 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
     // reset drop animation and start showing random faces during drop
     _dropController.reset();
+    // Create a completer to await the end of the timer logic
+    final completer = Completer<void>();
+
     // _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (t) {
       if (_dropController.isCompleted) {
@@ -178,18 +181,23 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
         // Insert into history and run wobble there
         _placeIntoHistoryAndWobble(_finalValue);
+        completer.complete();
       } else {
         setState(() {
           _currentFace = _random.nextInt(7) + 1;
         });
       }
     });
-    _dropController.forward().whenComplete(() {
-      if (mounted) {
-        // rolling finished
-        setState(() => _isRolling = false);
-      }
-    });
+    // Await the animation
+    await _dropController.forward();
+
+    // Wait for the timer logic to complete
+    await completer.future;
+
+    if (mounted) {
+      // rolling finished
+      setState(() => _isRolling = false);
+    }
   }
 
   // Find first null slot, or shift-left and append if full.
