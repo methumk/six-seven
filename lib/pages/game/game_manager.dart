@@ -28,6 +28,7 @@ import 'package:six_seven/components/cards/value_action_cards/plus_card.dart'
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
+import 'package:six_seven/components/players/overlays.dart/text_animations.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/pot/pot.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
@@ -133,6 +134,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Pot
   late final Pot pot;
 
+  // current Round, ones based
+  int currentRound = 1;
+  double roundFontSize = 60;
+  Color roundTextColor = Colors.green;
+  List<Shadow> roundTextShadowColor = [
+    const Shadow(offset: Offset(-2, 2), blurRadius: 3, color: Colors.white),
+  ];
+
+  // TextAnimations
+  late TextAnimations roundOverTextAnimation;
+
   Player? get getCurrentPlayer =>
       players.isNotEmpty &&
               players.length > currentPlayerIndex &&
@@ -202,6 +214,25 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void calculateLeaderBoard() {}
 
   Future<void> handleNewRound() async {
+    // Show round over animation
+    await roundOverTextAnimation.setScalingAnimation(
+      "Round $currentRound Over",
+      TextPaint(
+        style: TextStyle(
+          color: roundTextColor,
+          shadows: roundTextShadowColor,
+          fontWeight: FontWeight.w900,
+          fontSize: roundFontSize,
+        ),
+      ),
+      textAppearForSec: 2,
+      holdTextForMs: 1700,
+      shrinkAndRemoveAtEndSec: .7,
+    );
+
+    // Ensure pot has finished
+    await Future.delayed(Duration(microseconds: 1000));
+
     Player lp = players[currentPlayerIndex];
     Map<Player, double> potDistrib = {};
 
@@ -252,6 +283,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Update the current position
     currentLeaderBoard.updateEntireLeaderboard();
     endGameLeaderBoard.updateEntireLeaderboard();
+
+    // Update round counter
+    currentRound++;
 
     buttonPressed = false;
     hud.enableHitAndStayBtns();
@@ -807,16 +841,21 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       "GAME RUNNING clockWise? : ${rotationDirection == PlayerRotation.clockWise}",
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      handleNewRound();
-    });
+    // Round over text animation
+    roundOverTextAnimation = TextAnimations(position: Vector2.all(0));
+    game.world.add(roundOverTextAnimation);
+
+    // We had the leaderboard initially, but we decided to hold off on it
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   await handleNewRound();
+    // });
   }
 
   // Initialize players at position
   void _initPlayerList() {
     int humanCount = 0;
     int totalHumans = totalPlayerCount - game.setupSettings.aiPlayerCount;
-    for (int i = 1; i <= totalPlayerCount; ++i) {
+    for (int i = 0; i < totalPlayerCount; ++i) {
       // NOTE: change get set up position, to not use player count configuration
       PlayerSlot currSlot = _getSetUpPosIndex(i);
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
@@ -824,11 +863,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       Player p;
       if (humanCount < totalHumans) {
-        p = HumanPlayer(playerNum: i, currSlot: currSlot)..position = pos;
+        p = HumanPlayer(playerNum: i + 1, currSlot: currSlot)..position = pos;
         humanCount++;
       } else {
         p = CpuPlayer(
-          playerNum: i,
+          playerNum: i + 1,
           difficulty: fromLevel(game.setupSettings.aiDifficulty),
           currSlot: currSlot,
         )..position = pos;
