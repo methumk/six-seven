@@ -38,7 +38,7 @@ void main() async {
             child: child!,
           );
         },
-        home: const GameSetupScreen(),
+        home: const HomeScreenContainer(),
         debugShowCheckedModeBanner: false,
       ),
     ),
