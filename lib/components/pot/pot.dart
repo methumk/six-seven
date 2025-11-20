@@ -31,7 +31,7 @@ class Pot extends PositionComponent with HasGameReference<GameScreen> {
 
   Future<void> addToPot(double newScore) async {
     totalScore += .1 * newScore;
-    _totalScore.updateValue(totalScore);
+    _totalScore.updateValue(totalScore, continueFromCurrentValue: true);
 
     // Wait for score animation to finish
     await _totalScore.completer.wait();

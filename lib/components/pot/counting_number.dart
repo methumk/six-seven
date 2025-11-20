@@ -35,8 +35,18 @@ class CountingNumberComponent extends TextComponent {
     text = roundAndStringify(newValue);
   }
 
-  void updateValue(double newValue, {double? duration}) {
+  // continueFromCurrentValue will start the pot at the current value, Note this overrieds the _startValue
+  void updateValue(
+    double newValue, {
+    double? duration,
+    bool continueFromCurrentValue = false,
+  }) {
     if ((newValue - _targetValue).abs() < 1e-9) return; // ignore tiny diffs
+
+    // Update start value to current value if set
+    if (continueFromCurrentValue) {
+      _startValue = _currentValue;
+    }
 
     completer.init();
 
