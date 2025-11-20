@@ -163,6 +163,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
     turnStarterPlayerIndex = -1;
+
+    print("winning threshold: ${winningThreshold}");
   }
 
   void flipRotationDirection() {
@@ -221,6 +223,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     currentLeaderBoard.updateEntireLeaderboard();
     endGameLeaderBoard.updateEntireLeaderboard();
 
+    for (Player currentPlayer in players) {
+      print("winning threshold: ${winningThreshold}");
+      print("currentPlayer.totalValue: ${currentPlayer.totalValue}");
+      if (currentPlayer.totalValue >= winningThreshold) {
+        await handleEndGame();
+      }
+    }
     // clear variable fields
     pot.reset();
     donePlayers.clear();
@@ -261,6 +270,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // print("Setting difficulty: ${game.setupSettings.aiDifficulty}");
     // print("Difficulty of current AI: ${currentCPUPlayer.difficulty}");
     await Future.delayed(const Duration(milliseconds: 500));
+
+    //If cpu has enough points to win, they will stay to win
+    print("Current player's total value: ${currentCPUPlayer.totalValue}");
+    print("Current Player's current value: ${currentCPUPlayer.currentValue}");
+    print(
+      "currentPlayer.totalValue + currentPLayer.currentValue: ${currentCPUPlayer.totalValue + currentCPUPlayer.currentValue}",
+    );
+    if (currentCPUPlayer.totalValue + currentCPUPlayer.currentValue >=
+        winningThreshold) {
+      await handleEndGame();
+    }
 
     if (currentCPUPlayer.difficulty == Difficulty.easy) {
       //Easy difficulty: has a risk tolerance of 45%, so
@@ -670,6 +690,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     EventDifferentAction returnType = EventDifferentAction.none;
 
     if (currentPlayer.isDone) {
+      //If player's score reached threshold, end the game
+      print("Current player's total value: ${currentPlayer.totalValue}");
+      print("Current Player's current value: ${currentPlayer.currentValue}");
+      print(
+        "currentPlayer.totalValue + currentPLayer.currentValue: ${currentPlayer.totalValue + currentPlayer.currentValue}",
+      );
+      if (currentPlayer.totalValue + currentPlayer.currentValue >=
+          winningThreshold) {
+        await handleEndGame();
+      }
       donePlayers.add(currentPlayer);
     } else {
       // Only if player is not double allow them to do additional hit stay
@@ -688,6 +718,32 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     return returnType;
+  }
+
+  Future<void> handleEndGame() async {
+    print("End game ocurred!");
+    // update current and end game leaderboards
+    currentLeaderBoard.updateEntireLeaderboard();
+    endGameLeaderBoard.updateEntireLeaderboard();
+
+    // clear variable fields
+    pot.reset();
+    donePlayers.clear();
+    rotationPlayerOffset = 0;
+    currentPlayerIndex = 0;
+
+    Map<Player, double> potDistrib = {};
+    for (int i = 0; i < totalPlayerCount; i++) {
+      potDistrib[players[i]] = 0.0;
+    }
+    await game.endGameDialog(
+      totalPlayerCount,
+      endGameLeaderBoard.topN(totalPlayerCount),
+      currentLeaderBoard.topN(totalPlayerCount),
+      potDistrib,
+    );
+
+    return;
   }
 
   @override
@@ -856,6 +912,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     Player currentPlayer = players[currentPlayerIndex];
     await currentPlayer.handleStay();
 
+    //If player's score reached threshold, end the game
+    print("Current player's total value: ${currentPlayer.totalValue}");
+    print("Current Player's current value: ${currentPlayer.currentValue}");
+    print(
+      "currentPlayer.totalValue + currentPLayer.currentValue: ${currentPlayer.totalValue + currentPlayer.currentValue}",
+    );
+    if (currentPlayer.totalValue + currentPlayer.currentValue >=
+        winningThreshold) {
+      handleEndGame();
+    }
     // On stay update pot
     await pot.addToPot(currentPlayer.currentValue);
 
@@ -909,7 +975,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       //a bigger number card afterwards
       print("!!!!Enabled second action for Forecaster");
       buttonPressed = false;
-      if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
+      //If player has double chance, no point in not hitting
+      if (getCurrentPlayer!.doubleChance) {
+        print("Player has double chance. Hit!");
+        await _aiHits();
+      } else if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
         print("Forecaster failure prob >= .5. Stay!");
         await _aiStays();
       } else {
@@ -953,7 +1023,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     Player currentPlayer = players[currentPlayerIndex];
     await currentPlayer.handleStay();
-
+    //If player's score reached threshold, end the game
+    print("Current player's total value: ${currentPlayer.totalValue}");
+    print("Current Player's current value: ${currentPlayer.currentValue}");
+    print(
+      "currentPlayer.totalValue + currentPLayer.currentValue: ${currentPlayer.totalValue + currentPlayer.currentValue}",
+    );
+    if (currentPlayer.totalValue + currentPlayer.currentValue >=
+        winningThreshold) {
+      handleEndGame();
+    }
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(milliseconds: 500));
 
