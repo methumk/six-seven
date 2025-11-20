@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flame/camera.dart';
 import 'package:flame/events.dart';
-import 'package:flame/game.dart';
+import 'package:flame/game.dart' hide Route;
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
@@ -10,6 +10,7 @@ import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/overlays/leaderboard_widget.dart';
 import 'package:six_seven/pages/game/overlays/lucky_dice_widget.dart';
 import 'package:six_seven/pages/game/overlays/sunk_prophet_widget.dart';
+import 'package:six_seven/pages/home/home_screen.dart';
 
 class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   final BuildContext context;
@@ -69,6 +70,50 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     }
   }
 
+  Future<void> endGameDialog(
+    int playerCount,
+    List<Player> totalLeaderboard,
+    List<Player> currentLeaderboard,
+    Map<Player, double> potDistribution,
+  ) async {
+    pauseEngine();
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: const Center(child: Text('Final Results:')),
+            content: LeaderboardWidget(
+              totalPlayer: playerCount,
+              totalLeaderboard: totalLeaderboard,
+              currentLeaderboard: currentLeaderboard,
+              potDistrib: potDistribution,
+            ),
+            actions: [
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(18),
+                    backgroundColor: Colors.blue,
+                  ),
+                  onPressed:
+                      () => Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (_) => const HomeScreenContainer(),
+                        ),
+                        (Route<dynamic> route) => false,
+                      ),
+                  child: const Text(
+                    'End Game',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
   // Future<void> showRoundPointsDialog(List<Player> players) async {
   //   print("Round points dialog");
   //   // Pause the game ending
