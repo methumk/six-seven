@@ -572,6 +572,7 @@ abstract class EventActionCard extends Card {
   }
 
   //Method for initiating player selection process
+  // Once player has been selected, the running event's affectedPlayer will have the reference to the selected player
   Future<void> choosePlayer({bool Function(Player?)? buttonClickVerf}) async {
     print("Choose a player to be affected by eventAction card:");
     // Wait for user to select input
