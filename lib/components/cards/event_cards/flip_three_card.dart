@@ -20,7 +20,7 @@ class FlipThreeCard extends EventActionCard {
     super.onLoad();
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
-      description: "The player that gets chosen must flip 3 cards!",
+      description: "The person you select must flip 3 cards!",
       descriptionTitle: "Flip Three",
     );
   }
@@ -28,12 +28,29 @@ class FlipThreeCard extends EventActionCard {
   //Forces player to flip 3 cards
   @override
   Future<void> executeOnEvent() async {
-    //To Do: implement
-    return;
+    // Player can choose anyone
+    if (cardUser!.isCpu()) {
+      // UPDATE: make CPU select random, or highest probability of busting
+      affectedPlayer = cardUser;
+    } else {
+      // Player choose another player or themselves
+      await choosePlayer();
+    }
+
+    // Safety check, this should realistically never happen
+    if (affectedPlayer != null) {
+      print("SELECTED PLAYER For FLIP THREE: $affectedPlayer");
+
+      // Selected player has to update mandatory hits
+      affectedPlayer!.mandatoryHits += 3;
+    }
+
+    // Finish complete in handle draw
+    finishEventCompleter();
   }
 
   @override
   void description() {
-    print("${cardType.label} the player that gets chosen must flip 3 cards!");
+    print("${cardType.label} the person you select must flip 3 cards!");
   }
 }

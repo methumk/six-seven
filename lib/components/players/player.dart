@@ -22,6 +22,11 @@ enum PlayerStatus { active, bust, stay }
 
 abstract class Player extends PositionComponent
     with HasGameReference<GameScreen>, TapCallbacks {
+  // If a card forces user to hit a certain amount of times
+  // Zero means they can hit or stay
+  int mandatoryHits = 0;
+  bool get mustHit => mandatoryHits > 0;
+
   double totalValue = 0;
   double currentValue = 0;
   double currentBonusValue = 0;
@@ -348,6 +353,7 @@ abstract class Player extends PositionComponent
     totalValue += currentValue;
     currentValue = 0;
     currentBonusValue = 0;
+    mandatoryHits = 0;
     doubleChance = false;
     hasRedeemer = false;
     redeemerUsed = false;
@@ -384,6 +390,7 @@ abstract class Player extends PositionComponent
     handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
+    mandatoryHits = 0;
     status = PlayerStatus.bust;
     await playerActionText.setAsBusted();
   }
