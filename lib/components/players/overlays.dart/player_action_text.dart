@@ -71,7 +71,6 @@ class PlayerActionText extends TextAnimations {
     endScale: Vector2.all(endScale),
     initRemoveAnimationSec: initRemoveAnimationSec,
     holdTextForMs: holdTextForMs,
-    shrinkAndRemoveAtEndSec: 0.3,
   );
 
   Future<void> setAsHitting({
