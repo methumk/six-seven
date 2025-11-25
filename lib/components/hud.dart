@@ -3,9 +3,63 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flame/image_composition.dart';
 import 'package:flame/input.dart';
+import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/buttons/text_button.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+
+class HitCount extends CircleComponent {
+  late final TextComponent _hitText;
+  int hitCount = 0;
+  late final TextPaint textPaint;
+  late final double showRadiusSize;
+  late bool enabled;
+
+  // Starts off hidden (radius 0)
+  HitCount(
+    Color color, {
+    required super.position,
+    required this.textPaint,
+    required this.showRadiusSize,
+  }) : super(anchor: Anchor.center, radius: 0, priority: 10) {
+    enabled = false;
+
+    paint = Paint()..color = color;
+
+    // Starts off hidden, until set hit Count is called
+    _hitText = TextComponent(
+      priority: priority + 1,
+      anchor: Anchor.center,
+      textRenderer: textPaint,
+    );
+  }
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    // add(_textWrapper);
+    await add(_hitText);
+  }
+
+  Future<void> hideHitCount() async {
+    enabled = false;
+    radius = 0;
+    _hitText.text = "";
+    _hitText.size = Vector2.all(0);
+  }
+
+  Future<void> showHitCount({int? newCount}) async {
+    enabled = true;
+    if (newCount != null) {
+      hitCount = newCount;
+    }
+    radius = showRadiusSize;
+    _hitText.size = Vector2.all(radius * 2);
+    _hitText.position = Vector2.all(radius);
+    _hitText.text = "$hitCount";
+  }
+}
 
 class Hud extends PositionComponent with HasGameReference<GameScreen> {
   late final TextButton _stayBtn;
@@ -14,6 +68,13 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
   late final SpriteButtonComponent _settingBtn;
   late final SpriteButtonComponent? _probabilityBtn;
   late final bool enableProbability;
+
+  // Number times player is able to hit continuously (UI only) - pops up as small circle notification over hit
+  static const Color hitCountColor = mat.Colors.red;
+  static const double hitCountRadius = 12;
+  static const double hitCountFontSize = 12;
+  late final HitCount _hitCount;
+  int get currentHitCount => _hitCount.hitCount;
 
   bool hitAndStayDisabled = false;
   late final Image? _downBtnImg;
@@ -91,6 +152,30 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
       size: Vector2(120, 36),
     );
 
+    Vector2 hitCountPos = Vector2(
+      _hitBtn.position.x,
+      _hitBtn.position.y - _hitBtn.size.y,
+    );
+    _hitCount = HitCount(
+      mat.Colors.red,
+      position: hitCountPos,
+      showRadiusSize: hitCountRadius,
+      textPaint: TextPaint(
+        style: mat.TextStyle(
+          color: mat.Colors.white,
+          fontWeight: FontWeight.w500,
+          fontSize: hitCountFontSize,
+          shadows: [
+            const Shadow(
+              offset: Offset(0, 0),
+              blurRadius: hitCountFontSize,
+              color: mat.Colors.black,
+            ),
+          ],
+        ),
+      ),
+    );
+
     _backBtn = SpriteButtonComponent(
       button: Sprite(backBtnUpImg, srcSize: Vector2(17, 18)),
       buttonDown: Sprite(backBtnDownImg, srcSize: Vector2(18, 20)),
@@ -128,10 +213,7 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
       print("Probability top right: ${_probabilityBtn!.position}");
       add(_probabilityBtn);
     }
-    add(_settingBtn);
-    add(_backBtn);
-    add(_stayBtn);
-    add(_hitBtn);
+    addAll([_settingBtn, _backBtn, _stayBtn, _hitBtn, _hitCount]);
 
     setupButtonHandlers();
   }
@@ -142,6 +224,9 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
         hitAndStayDisabled) {
       return;
     }
+
+    // Disable hit count badge on disable
+    _hitCount.hideHitCount();
 
     // Make the up and down both the disabled up, so it doesn't look clickable
     _stayBtn.changeImage(
@@ -174,5 +259,21 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
       Vector2(60, 20),
     );
     hitAndStayDisabled = false;
+  }
+
+  // If accumulate is set, the hitCount will be added to the existing hit count
+  void setHitCountBadge(int hitCount, {bool accumulateHitCount = true}) {
+    if (accumulateHitCount) {
+      _hitCount.hitCount += hitCount;
+    }
+    _hitCount.showHitCount(newCount: hitCount);
+  }
+
+  // ResetHitCount will reset the hit count to specified value if null, otherwise original value will be preserved
+  void hideHitCountBadge({int? resetHitCount}) {
+    if (resetHitCount != null) {
+      _hitCount.hitCount = resetHitCount;
+    }
+    _hitCount.hideHitCount();
   }
 }
