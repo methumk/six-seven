@@ -133,7 +133,7 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
       bool aiWantsToRoll = sixOrSevenRolled ? false : true;
 
       if (aiWantsToRoll) {
-        _startRoll();
+        await _startRoll();
       } else {
         if (mounted) {
           // Toggle the redeem button
@@ -151,7 +151,7 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
     return -(1 + 2 + 3 + 4 + 5) / 7 + 6 / 7 + 7 / 7;
   }
 
-  void _startRoll() {
+  Future<void> _startRoll() async {
     if (_isRolling) return;
     //Increment number of rolls by 1
     numRolls += 1;
@@ -166,6 +166,9 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
 
     // reset drop animation and start showing random faces during drop
     _dropController.reset();
+    // Create a completer to await the end of the timer logic
+    final completer = Completer<void>();
+
     // _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (t) {
       if (_dropController.isCompleted) {
@@ -184,19 +187,33 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
 
         // Insert into history and run wobble there
         _placeIntoHistoryAndWobble(_finalValue);
+        completer.complete();
       } else {
         setState(() {
           _currentFace = _random.nextInt(7) + 1;
         });
       }
     });
-    _dropController.forward().whenComplete(() {
-      if (mounted) {
-        // rolling finished
-        setState(() => _isRolling = false);
-        setState(() => _finishedARoll = true);
-      }
-    });
+
+    // Await the animation
+    await _dropController.forward();
+
+    // Wait for the timer logic to complete
+    await completer.future;
+
+    if (mounted) {
+      // rolling finished
+      setState(() => _isRolling = false);
+
+      setState(() => _finishedARoll = true);
+    }
+    // _dropController.forward().whenComplete(() {
+    //   if (mounted) {
+    //     // rolling finished
+    //     setState(() => _isRolling = false);
+    //     setState(() => _finishedARoll = true);
+    //   }
+    // });
   }
 
   // Find first null slot, or shift-left and append if full.
