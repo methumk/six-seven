@@ -1087,6 +1087,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         if (getCurrentPlayer!.doubleChance) {
           print("Player has double chance. Hit!");
           await _aiHits();
+          //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+          //function call is still active
+          return;
         } else if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
           print("Forecaster failure prob >= .5. Stay!");
           await _aiStays();
