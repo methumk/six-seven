@@ -749,7 +749,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
             // Check if current player has busted to early exit
             if (forcedPlayer.isDone) {
-              print("BUSTED REMOVING EARLY");
+              print("$forcedPlayer BUSTED REMOVING EARLY");
               hud.hideHitCountBadge();
               // Remove player if they busted
               forcedToPlay.removeTopPlayer();
@@ -999,32 +999,35 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       currentPlayerIndex,
     );
 
-    if (eventDifferentAction == EventDifferentAction.topPeek) {
-      //If you are human player, need buttons reenabled to do another action. Else, should not
-      //have them enabled during a CPU's second turn
-      print("!!!!Enabled second action for TopPeek");
-      buttonPressed = false;
-      await expertPeek(getCurrentPlayer as CpuPlayer);
-      //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
-      //function call is still active
-      return;
-    } else if (eventDifferentAction == EventDifferentAction.forecast) {
-      //Strategy: if failure prob is 50% or higher, stay, else hit.
-      //Reason why I do this is because: For EV, if we just base our EV on four cards and they were all just minus
-      //cards of value 1, the AI would just stay. But this isn't really a big loss when they could potentially hit
-      //a bigger number card afterwards
-      print("!!!!Enabled second action for Forecaster");
-      buttonPressed = false;
-      if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
-        print("Forecaster failure prob >= .5. Stay!");
-        await _aiStays();
-      } else {
-        print("Forecaster failure prob < .5. Hit!");
-        await _aiHits();
+    // If player busted after an event, go to next player
+    if (getCurrentPlayer!.isDone == false) {
+      if (eventDifferentAction == EventDifferentAction.topPeek) {
+        //If you are human player, need buttons reenabled to do another action. Else, should not
+        //have them enabled during a CPU's second turn
+        print("!!!!Enabled second action for TopPeek");
+        buttonPressed = false;
+        await expertPeek(getCurrentPlayer as CpuPlayer);
+        //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+        //function call is still active
+        return;
+      } else if (eventDifferentAction == EventDifferentAction.forecast) {
+        //Strategy: if failure prob is 50% or higher, stay, else hit.
+        //Reason why I do this is because: For EV, if we just base our EV on four cards and they were all just minus
+        //cards of value 1, the AI would just stay. But this isn't really a big loss when they could potentially hit
+        //a bigger number card afterwards
+        print("!!!!Enabled second action for Forecaster");
+        buttonPressed = false;
+        if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
+          print("Forecaster failure prob >= .5. Stay!");
+          await _aiStays();
+        } else {
+          print("Forecaster failure prob < .5. Hit!");
+          await _aiHits();
+        }
+        //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+        //function call is still active
+        return;
       }
-      //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
-      //function call is still active
-      return;
     }
     //Reset eventDifferentAction to none
     eventDifferentAction = EventDifferentAction.none;
