@@ -11,6 +11,7 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class ThiefCard extends EventActionCard {
+  Color announcementFailColor = Colors.red;
   Color announcementColor = Colors.blue;
   late EventAnnouncementText playerStealingAnnouncement;
   ThiefCard() {
@@ -63,6 +64,15 @@ class ThiefCard extends EventActionCard {
     bool canUse = canUseThiefCard();
     if (!canUse) {
       print("No players to select for thief!");
+      await playerStealingAnnouncement.setGrowingText(
+        "No players with value action cards to steal from!",
+        45,
+        announcementFailColor,
+        appearDurationSec: 1.3,
+        showInitRemoveAnimation: false,
+        holdTextForMs: 800,
+        shrinkAndRemoveAtEndSec: .9,
+      );
       finishEventCompleter();
       return;
     } else {
