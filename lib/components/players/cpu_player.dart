@@ -52,7 +52,7 @@ class CpuPlayer extends Player {
     playerScore = GlowableText(
       smallTextSize: 13,
       smallColor: Colors.white,
-      text: roundAndStringify(currentValue),
+      text: "Score: ${roundAndStringify(currentValue)}",
       position: Vector2(0, button.radius * -1.5 - cd.Card.cardSize.y),
     );
     add(playerScore);
