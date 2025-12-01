@@ -76,7 +76,7 @@ class DiscarderCard extends EventActionCard {
             "AI selected initial card to remove as $c with score $selectedScore",
           );
         } else if (selected is TaxHandEventActionCard) {
-          print("SELECTED PLUS CARD");
+          print("SELECTED TAX CARD");
           selectedScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
             removedTaxHandEventCards: [selected],
             hypotheticalTotalValue: currPlayer.totalValue,
@@ -102,6 +102,11 @@ class DiscarderCard extends EventActionCard {
           } else if (c is PlusCard) {
             removalScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
               removedPlusCards: [c],
+              hypotheticalTotalValue: currPlayer.totalValue,
+            );
+          } else if (c is TaxHandEventActionCard) {
+            currPlayer.calculatePlayerScoreWithCardsRemoved(
+              removedTaxHandEventCards: [c],
               hypotheticalTotalValue: currPlayer.totalValue,
             );
           }
@@ -178,6 +183,7 @@ class DiscarderCard extends EventActionCard {
         break;
       case EventCardEnum.IncomeTax:
         currPlayer.hasIncomeTax = false;
+        currPlayer.taxMultiplier = 1.0;
       default:
         print("Selected card was not a handEventAction card. Continue onwards");
     }
