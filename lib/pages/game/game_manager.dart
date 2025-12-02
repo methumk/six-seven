@@ -1393,7 +1393,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //to determine tax rate.
     //TO DO: There might be a more efficient way to handle this.
     for (Player player in players) {
-      if (player.hasIncomeTax) {
+      if (player.hasIncomeTax && !player.isDone) {
         player.updateCurrentValue();
         totalCurrentLeaderBoard.updateEntireLeaderboard();
       }
