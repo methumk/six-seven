@@ -4,8 +4,9 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
+import 'package:six_seven/pages/game/game_manager.dart';
 
-class IncomeTax extends HandEventActionCard {
+class IncomeTax extends TaxHandEventActionCard {
   IncomeTax() {
     eventEnum = EventCardEnum.IncomeTax;
   }
@@ -82,62 +83,82 @@ class IncomeTax extends HandEventActionCard {
     return;
   }
 
-  //Method for determining tax rate, and changing current and total based on it
-  Future<void> playerTaxRate(Player currentPlayer) async {
-    List<Player> playerRankings = game.gameManager.totalCurrentLeaderBoard.topN(
-      game.gameManager.totalPlayerCount,
+  //Method for determining tax rate
+  @override
+  double playerTaxRate({required Player currentPlayer}) {
+    //At the first round, total + current is 0. If this is the case,
+    //tax rate shouldn't affect anyone
+    if (game.gameManager.currentRound == 1) {
+      return 1.0;
+    }
+    //Else calculate the player income tax rate for rounds after the first round
+    return playerIncomeTaxRateAfterFirstRound(
+      currentPlayer: currentPlayer,
+      playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+        game.gameManager.totalPlayerCount,
+      ),
     );
-    late int ranking;
-    for (int i = 0; i < playerRankings.length; i++) {
-      if (playerRankings[i] == currentPlayer) {
-        ranking = i + 1;
-        break;
-      }
-    }
-    //Tax System: 1.If player is best player in total + current value,  they get
-    //taxed the most at 20%, so their total and current score decreases by 20%.
-    //2.If player is in the worst ranking (ranking == total players), they get a tax refund of 20%, meaning
-    //their total value increases by 20%.
-    //3. If player is at, or above, the middle rank of (1+ total players)/ 2, their tax is 10%.
-    //4. If player is not top ranking and is below average in rankings,
-    //they are taxed at 6.7%
-
-    //best player
-    double averageRank = (1 + playerRankings.length) / 2;
-    if (ranking == 1) {
-      print(
-        "Player is number 1 in total value from previous rounds! 20% tax to total and current value",
-      );
-      currentPlayer.taxMultiplier *= .8;
-    } //Bottom player
-    else if (ranking == playerRankings.length) {
-      print(
-        "Player is in last place! They earn a tax refund of 20% to total and current value",
-      );
-      currentPlayer.taxMultiplier *= 1.2;
-    } //At, or better than average. Notice the smaller the ranking value, the better the rank is
-    else if (ranking <= averageRank) {
-      print(
-        "Player is at, or better than the middle rank! Player is not a top player, so 10% to total and current value",
-      );
-      currentPlayer.taxMultiplier *= .9;
-    } //Worse than average
-    else if (ranking > averageRank) {
-      print(
-        "Player is performing less than the middle rank! 6.7% tax to total and current value",
-      );
-      currentPlayer.taxMultiplier *= 1 - .067;
-    } //The following shouldn't happen; it means that player does not satisfy any of the cases
-    else {
-      print(
-        "Your player's ranking didn't meet any of the criteria, which shouldn't be possible. Rank:${ranking}. Please debug",
-      );
-    }
-    return;
   }
 
   @override
   void description() {
     print("${cardType.label} enforces a progressive income tax on the player!");
   }
+}
+
+//Method for determining tax rate,
+//after the first round has finished
+double playerIncomeTaxRateAfterFirstRound({
+  required Player currentPlayer,
+  required List<Player> playerRankings,
+}) {
+  double taxRate = 1.0;
+
+  late int ranking;
+  for (int i = 0; i < playerRankings.length; i++) {
+    if (playerRankings[i] == currentPlayer) {
+      ranking = i + 1;
+      break;
+    }
+  }
+  //Tax System: 1.If player is best player in total + current value,  they get
+  //taxed the most at 20%, so their total and current score decreases by 20%.
+  //2.If player is in the worst ranking (ranking == total players), they get a tax refund of 20%, meaning
+  //their total value increases by 20%.
+  //3. If player is at, or above, the middle rank of (1+ total players)/ 2, their tax is 10%.
+  //4. If player is not top ranking and is below average in rankings,
+  //they are taxed at 6.7%
+
+  //best player
+  double averageRank = (1 + playerRankings.length) / 2;
+  if (ranking == 1) {
+    print(
+      "Player is number 1 in total+current value! 20% tax to total and current value",
+    );
+    taxRate *= .8;
+  } //Bottom player
+  else if (ranking == playerRankings.length) {
+    print(
+      "Player is in last place! They earn a tax refund of 20% to total and current value",
+    );
+    taxRate *= 1.2;
+  } //At, or better than average. Notice the smaller the ranking value, the better the rank is
+  else if (ranking <= averageRank) {
+    print(
+      "Player is at, or better than the middle rank! Player is not a top player, so 10% to total and current value",
+    );
+    taxRate *= .9;
+  } //Worse than average
+  else if (ranking > averageRank) {
+    print(
+      "Player is performing less than the middle rank! 6.7% tax to total and current value",
+    );
+    taxRate *= 1 - .067;
+  } //The following shouldn't happen; it means that player does not satisfy any of the cases
+  else {
+    print(
+      "Your player's ranking didn't meet any of the criteria, which shouldn't be possible. Rank:${ranking}. Please debug",
+    );
+  }
+  return taxRate;
 }
