@@ -34,7 +34,7 @@ class DoubleChanceCard extends HandEventActionCard {
       affectedPlayer = cardUser;
     } else {
       //See if there are any readily available players.
-      List<Player> worstPlayers = game.gameManager.endGameLeaderBoard.bottomN(
+      List<Player> worstPlayers = game.gameManager.totalLeaderBoard.bottomN(
         game.gameManager.totalPlayerCount,
       );
       //If there is an available player, let affectedPlayer be that player.

@@ -9,11 +9,13 @@ import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/overlays.dart/player_action_text.dart';
+import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
@@ -30,6 +32,7 @@ abstract class Player extends PositionComponent
   double totalValue = 0;
   double currentValue = 0;
   double currentBonusValue = 0;
+  double taxMultiplier = 1;
   PlayerStatus status = PlayerStatus.active;
   bool get isDone => status != PlayerStatus.active;
 
@@ -53,8 +56,12 @@ abstract class Player extends PositionComponent
   bool doubleChance = false;
   //bool for if player has redeemer
   bool hasRedeemer = false;
-  //bool for it player had busted but redeemed 67%
+  //bool for if player had busted but redeemed 67%
   bool redeemerUsed = false;
+
+  //bool for if player has an income tax card
+  bool hasIncomeTax = false;
+
   late int playerNum;
 
   // UI Fields
@@ -150,6 +157,16 @@ abstract class Player extends PositionComponent
       currentValue += 21.67;
     }
     currentValue += currentBonusValue;
+
+    if (hasIncomeTax && game.gameManager.currentRound > 1) {
+      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: this,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          game.gameManager.totalPlayerCount,
+        ),
+      );
+      currentValue *= taxMultiplier;
+    }
     playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
   }
 
@@ -202,9 +219,9 @@ abstract class Player extends PositionComponent
     if (nch.numHandSet.length + ncs.length == 6) {
       potentialScore += 6.7;
     }
-    //Else if player  flipped >= 7 cards, get bonus 6*7 = 42 points (multiplier not included)
+    //Else if player  flipped >= 7 cards, get bonus 21.67 points (multiplier not included)
     if (nch.numHandSet.length + ncs.length >= 7) {
-      potentialScore += 42;
+      potentialScore += 21.67;
     }
 
     return potentialScore + currentBonusValue;
@@ -212,14 +229,16 @@ abstract class Player extends PositionComponent
 
   // calculates potential score if the given cards were removed
   double calculatePlayerScoreWithCardsRemoved({
-    Set<double>? numCards,
-    List<MultCard>? multCards,
-    List<PlusCard>? plusCards,
+    Set<double>? removedNumCards,
+    List<MultCard>? removedMultCards,
+    List<PlusCard>? removedPlusCards,
+    List<cd.TaxHandEventActionCard>? removedTaxHandEventCards,
     Map<double, List<MinusCard>> minusCards = const {},
+    required double hypotheticalTotalValue,
   }) {
     double potentialScore = 0;
 
-    var newNumSet = Set.from(nch.numHandSet)..removeAll(numCards ?? {});
+    var newNumSet = Set.from(nch.numHandSet)..removeAll(removedNumCards ?? {});
     for (double numberValue in newNumSet) {
       potentialScore += numberValue;
     }
@@ -236,7 +255,7 @@ abstract class Player extends PositionComponent
       //     print("NOT INCLUDING $multCard | $potentialScore");
       //   }
       // }
-      if (multCards == null || !multCards.contains(multCard)) {
+      if (removedMultCards == null || !removedMultCards.contains(multCard)) {
         potentialScore = multCard.executeOnStay(potentialScore);
       }
     }
@@ -252,7 +271,7 @@ abstract class Player extends PositionComponent
       //     print("NOT INCLUDING $addCard | $potentialScore");
       //   }
       // }
-      if (plusCards == null || !plusCards.contains(addCard)) {
+      if (removedPlusCards == null || !removedPlusCards.contains(addCard)) {
         potentialScore = addCard.executeOnStay(potentialScore);
       }
     }
@@ -265,17 +284,29 @@ abstract class Player extends PositionComponent
         potentialScore -= minusValue.key;
       }
     }
+    for (cd.EventActionCard handEventCard in dch.eventHand) {
+      if (handEventCard is! cd.TaxHandEventActionCard) {
+        continue;
+      } else if (removedTaxHandEventCards == null ||
+          !removedTaxHandEventCards.contains(handEventCard)) {
+        double tentativeTaxMultiplier = handEventCard.playerTaxRate(
+          currentPlayer: this,
+        );
+        potentialScore *= tentativeTaxMultiplier;
+        hypotheticalTotalValue *= tentativeTaxMultiplier;
+      }
+    }
 
     //If player flipped 6 cards, get bonus 6.7 points (multiplier not included)
     if (newNumSet.length == 6) {
       potentialScore += 6.7;
     }
-    //Else if player  flipped >= 7 cards, get bonus 6*7 = 42 points (multiplier not included)
+    //Else if player  flipped >= 7 cards, get bonus 21.67 points (multiplier not included)
     if (newNumSet.length >= 7) {
-      potentialScore += 42;
+      potentialScore += 21.67;
     }
 
-    return potentialScore += currentBonusValue;
+    return potentialScore + hypotheticalTotalValue + currentBonusValue;
   }
 
   //Method for handling when player stays
@@ -289,7 +320,6 @@ abstract class Player extends PositionComponent
 
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
-
     //Remove all cards from player's hand
     handRemoval(saveScoreToPot: true);
   }
@@ -353,6 +383,8 @@ abstract class Player extends PositionComponent
     totalValue += currentValue;
     currentValue = 0;
     currentBonusValue = 0;
+    taxMultiplier = 1;
+    hasIncomeTax = false;
     mandatoryHits = 0;
     doubleChance = false;
     hasRedeemer = false;
@@ -376,6 +408,8 @@ abstract class Player extends PositionComponent
       // Only some event cards get added
       dch.addCardtoHand(newCard);
     }
+    //If redeemer was used, current value was already updated. Player is done, will not update current value
+    //for rest of the round. Return
     if (redeemerUsed) {
       redeemerUsed = false;
       return;
@@ -390,6 +424,16 @@ abstract class Player extends PositionComponent
     handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
+    if (hasIncomeTax && game.gameManager.currentRound > 1) {
+      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: this,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          game.gameManager.totalPlayerCount,
+        ),
+      );
+      totalValue *= taxMultiplier;
+    }
+    taxMultiplier = 1;
     mandatoryHits = 0;
     status = PlayerStatus.bust;
     await playerActionText.setAsBusted();
@@ -403,6 +447,11 @@ abstract class Player extends PositionComponent
   //Grant player redeemer status
   void grantRedeemer() {
     hasRedeemer = true;
+  }
+
+  //Grant player income tax
+  void grantIncomeTax() {
+    hasIncomeTax = true;
   }
 
   //sub-method for hitting a number card

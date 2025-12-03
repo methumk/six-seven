@@ -612,6 +612,10 @@ abstract class EventActionCard extends Card {
 // Extension of event - same thing, but gets added to hand instantly unlike regular event cards
 abstract class HandEventActionCard extends EventActionCard {}
 
+abstract class TaxHandEventActionCard extends HandEventActionCard {
+  double playerTaxRate({required Player currentPlayer});
+}
+
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {
   late final double _value;

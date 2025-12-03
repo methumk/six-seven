@@ -87,9 +87,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   bool gameEnd = false;
 
   bool buttonPressed = false;
-  late final Leaderboard<Player> endGameLeaderBoard;
+  late final Leaderboard<Player> totalLeaderBoard;
   late final Leaderboard<Player> currentLeaderBoard;
-
+  late final Leaderboard<Player> totalCurrentLeaderBoard;
   // Game UI
   static final Vector2 thirdPersonScale = Vector2.all(.7);
   late final Hud hud;
@@ -162,7 +162,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     required this.aiPlayerCount,
     required this.winningThreshold,
   }) {
-    endGameLeaderBoard = Leaderboard<Player>(
+    totalLeaderBoard = Leaderboard<Player>(
       compare: (a, b) {
         // order by score descending, break ties by id
         final cmp = b.totalValue.compareTo(a.totalValue);
@@ -178,6 +178,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       },
     );
 
+    totalCurrentLeaderBoard = Leaderboard<Player>(
+      compare: (a, b) {
+        final cmp = (b.totalValue + b.currentValue).compareTo(
+          a.currentValue + a.totalValue,
+        );
+        return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
+      },
+    );
     //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
     turnStarterPlayerIndex = -1;
 
@@ -257,8 +265,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // update current and end game leaderboards
     currentLeaderBoard.updateEntireLeaderboard();
-    endGameLeaderBoard.updateEntireLeaderboard();
-
+    totalLeaderBoard.updateEntireLeaderboard();
     for (Player currentPlayer in players) {
       print("winning threshold: ${winningThreshold}");
       print("currentPlayer.totalValue: ${currentPlayer.totalValue}");
@@ -275,7 +282,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // await game.showRoundPointsDialog(players);
     await game.showLeaderboard(
       totalPlayerCount,
-      endGameLeaderBoard.topN(totalPlayerCount),
+      totalLeaderBoard.topN(totalPlayerCount),
       currentLeaderBoard.topN(totalPlayerCount),
       potDistrib,
     );
@@ -294,10 +301,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       players[i].moveToSlot = currSlot;
     }
 
-    // Update the current position
+    // Update the current position after current value reset
     currentLeaderBoard.updateEntireLeaderboard();
-    endGameLeaderBoard.updateEntireLeaderboard();
-
+    totalLeaderBoard.updateEntireLeaderboard();
+    totalCurrentLeaderBoard.updateEntireLeaderboard();
     // Update round counter
     currentRound++;
 
@@ -730,6 +737,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Default return type
     EventDifferentAction returnType = EventDifferentAction.none;
 
+    //Update current + total leaderboard; we need the most recent
+    //board each turn for the most accurate tax rate calculation
+    totalCurrentLeaderBoard.updateEntireLeaderboard();
+
     if (currentPlayer.isDone) {
       //If player's score reached threshold, end the game
       print("Current player's total value: ${currentPlayer.totalValue}");
@@ -825,7 +836,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("End game ocurred!");
     // update current and end game leaderboards
     currentLeaderBoard.updateEntireLeaderboard();
-    endGameLeaderBoard.updateEntireLeaderboard();
+    totalLeaderBoard.updateEntireLeaderboard();
 
     // clear variable fields
     pot.reset();
@@ -839,7 +850,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     await game.endGameDialog(
       totalPlayerCount,
-      endGameLeaderBoard.topN(totalPlayerCount),
+      totalLeaderBoard.topN(totalPlayerCount),
       currentLeaderBoard.topN(totalPlayerCount),
       potDistrib,
     );
@@ -993,8 +1004,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
 
       players.add(p);
-      endGameLeaderBoard.add(p);
+      totalLeaderBoard.add(p);
       currentLeaderBoard.add(p);
+      totalCurrentLeaderBoard.add(p);
     }
   }
 
@@ -1028,8 +1040,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         winningThreshold) {
       handleEndGame();
     }
-    // On stay update pot
-    await pot.addToPot(currentPlayer.currentValue);
+    totalCurrentLeaderBoard.updateEntireLeaderboard();
 
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(milliseconds: 500));
@@ -1145,6 +1156,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         winningThreshold) {
       handleEndGame();
     }
+    //Update current + total leaderboard
+    totalCurrentLeaderBoard.updateEntireLeaderboard();
     donePlayers.add(currentPlayer);
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -1449,6 +1462,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // For debugging, just make new line to separate turns
     print("Rotation Finished\n");
     print("num cards left in deck: ${deck.deckList.length}");
+
+    //With how income tax works,
+    //if a player has an income tax card, they need to know the most recent total and current values
+    //to determine tax rate.
+    //TO DO: There might be a more efficient way to handle this.
+    for (Player player in players) {
+      if (player.hasIncomeTax && !player.isDone) {
+        player.updateCurrentValue();
+        totalCurrentLeaderBoard.updateEntireLeaderboard();
+      }
+    }
 
     animatePlayerRotation = false;
     buttonPressed = false;

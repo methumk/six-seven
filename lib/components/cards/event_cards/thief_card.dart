@@ -164,7 +164,7 @@ class ThiefCard extends EventActionCard {
           double rivalHypotheticalValue =
               multipliers * numberCardsValue + plusMinusValues;
           print(
-            "Current chosen player: ${affectedPlayer!.playerName}, total value: ${currentHypotheticalValue}",
+            "Current chosen player: ${affectedPlayer!.playerName}, current value: ${currentHypotheticalValue}",
           );
           print(
             "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",

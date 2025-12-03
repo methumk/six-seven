@@ -57,33 +57,38 @@ class DiscarderCard extends EventActionCard {
               minusCards: {
                 selected.value: [selected],
               },
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           } else if (selected is MultCard) {
             print("SELECTED MULT CARD");
             selectedScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
-              multCards: [selected],
+              removedMultCards: [selected],
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           } else if (selected is PlusCard) {
             print("SELECTED PLUS CARD");
             selectedScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
-              plusCards: [selected],
+              removedPlusCards: [selected],
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           }
           print(
             "AI selected initial card to remove as $c with score $selectedScore",
           );
+        } else if (selected is TaxHandEventActionCard) {
+          print("SELECTED TAX CARD");
+          selectedScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
+            removedTaxHandEventCards: [selected],
+            hypotheticalTotalValue: currPlayer.totalValue,
+          );
         } else {
-          // NOTE: this assumes all event action cards are positive and will be skipped
-          if (c is EventActionCard) {
-            continue;
-          }
-
           double removalScore = 0;
           if (c is MinusCard) {
             removalScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
               minusCards: {
                 c.value: [c],
               },
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           } else if (c is MultCard) {
             if (c.value == 0) {
@@ -91,11 +96,18 @@ class DiscarderCard extends EventActionCard {
               break;
             }
             removalScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
-              multCards: [c],
+              removedMultCards: [c],
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           } else if (c is PlusCard) {
             removalScore = currPlayer.calculatePlayerScoreWithCardsRemoved(
-              plusCards: [c],
+              removedPlusCards: [c],
+              hypotheticalTotalValue: currPlayer.totalValue,
+            );
+          } else if (c is TaxHandEventActionCard) {
+            currPlayer.calculatePlayerScoreWithCardsRemoved(
+              removedTaxHandEventCards: [c],
+              hypotheticalTotalValue: currPlayer.totalValue,
             );
           }
 
@@ -161,7 +173,20 @@ class DiscarderCard extends EventActionCard {
     }
 
     // Remove selected card and update the value
-    print("Discarding card: $selected");
+    print("Discarding card: ${selected}");
+    switch (selected.eventEnum) {
+      case EventCardEnum.DoubleChance:
+        currPlayer.doubleChance = false;
+        break;
+      case EventCardEnum.Redeemer:
+        currPlayer.hasRedeemer = false;
+        break;
+      case EventCardEnum.IncomeTax:
+        currPlayer.hasIncomeTax = false;
+        currPlayer.taxMultiplier = 1.0;
+      default:
+        print("Selected card was not a handEventAction card. Continue onwards");
+    }
     currPlayer.dch.removeCard(selected);
     currPlayer.updateCurrentValue();
 
