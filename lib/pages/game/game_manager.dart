@@ -38,6 +38,7 @@ import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/leaderboard.dart';
+import 'package:six_seven/utils/player_stack.dart';
 
 // class PathDebugComponent extends PositionComponent {
 //   final Path path;
@@ -61,7 +62,7 @@ import 'package:six_seven/utils/leaderboard.dart';
 // }
 
 // When we want a different action that just rotating after dealing with an event card
-enum EventDifferentAction { none, topPeek, forecast }
+enum EventDifferentAction { none, topPeek, forecast, flipThree }
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
@@ -127,6 +128,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final double rx; // horizontal radius
   late final double ty; // ellipse top radius from rotation center
   late final double by; // ellipse bottom radius from rotation center
+
+  // Forced To Play Stack
+  final PlayerStack forcedToPlay = PlayerStack();
+  int? returnToPlayerIndex;
 
   // Event action handlers
   cd.EventActionCard? runningEvent;
@@ -680,8 +685,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // This manages drawing a card form deck and then putting it into player
   Future<EventDifferentAction> _handleDrawCardFromDeck(int playerIndex) async {
-    // draw from deck
-    // if not ent or card can be put into player .. put into player
     Player currentPlayer = players[playerIndex];
 
     // Show current player decided to hit
@@ -732,7 +735,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
 
-    runningEvent = null;
+    // Default return type
     EventDifferentAction returnType = EventDifferentAction.none;
 
     //Update current + total leaderboard; we need the most recent
@@ -758,15 +761,75 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         returnType = EventDifferentAction.topPeek;
       } else if (card is ChoiceDraw && card.drawEventCardAgain) {
         print("Choice Draw - needs to draw event card again");
+        runningEvent = null;
         return await _handleDrawCardFromDeck(currentPlayerIndex);
       } else if (card is ForecasterCard) {
         print(
           "Forecaster card drawn: showing top numCard (right now is 4) cards and allow second choice",
         );
         returnType = EventDifferentAction.forecast;
+      } else if (card is FlipThreeCard) {
+        print("Flip Three Card Drawn - have to flip three cards or until bust");
+        if (runningEvent != null && runningEvent!.affectedPlayer != null) {
+          var forcedPlayer = runningEvent!.affectedPlayer!;
+          // Save current player to return after forced chosen player finishes
+          // returnToPlayerIndex = currentPlayerIndex;
+
+          // Force chosen player to play 3 times and set the hud badge
+          forcedToPlay.addPlayer(forcedPlayer, 3);
+          var forcedPlayerCount = forcedToPlay.getTopPlayerCount()!;
+          hud.setHitCountBadge(forcedPlayerCount, accumulateHitCount: false);
+
+          // Disable hit/stay
+          hud.disableHitAndStayBtns();
+
+          // Loop for the given user only
+          while (forcedToPlay.isNotEmpty) {
+            print("Stack: $forcedToPlay");
+            // let player hit
+            await _handleDrawCardFromDeck(forcedPlayer.playerNum - 1);
+
+            // Check if current player has busted to early exit
+            if (forcedPlayer.isDone) {
+              print("$forcedPlayer BUSTED REMOVING EARLY");
+              hud.hideHitCountBadge();
+              // Remove player if they busted
+              forcedToPlay.removeTopPlayer();
+              break;
+            }
+
+            // Set or remove badge after player decremented
+            forcedPlayerCount = forcedToPlay.getTopPlayerCount()! - 1;
+            forcedToPlay.decrementTopPlayer();
+            if (forcedPlayerCount == 0) {
+              hud.hideHitCountBadge();
+              // Current player has finished so exit out
+              break;
+            } else {
+              hud.setHitCountBadge(
+                forcedPlayerCount,
+                accumulateHitCount: false,
+              );
+            }
+          }
+
+          // Rotate player to original position
+
+          // Remove badge
+          hud.hideHitCountBadge();
+
+          // Enable hit/stay
+          hud.enableHitAndStayBtns();
+
+          // Return flipThree, so we can return and the current user gets another chance to hit or stay
+          returnType = EventDifferentAction.flipThree;
+        } else {
+          print("ERROR - Flip 3 doesn't have a valid affected player set!");
+        }
       }
     }
 
+    runningEvent = null;
     return returnType;
   }
 
@@ -1014,36 +1077,42 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       currentPlayerIndex,
     );
 
-    if (eventDifferentAction == EventDifferentAction.topPeek) {
-      //If you are human player, need buttons reenabled to do another action. Else, should not
-      //have them enabled during a CPU's second turn
-      print("!!!!Enabled second action for TopPeek");
-      buttonPressed = false;
-      await expertPeek(getCurrentPlayer as CpuPlayer);
-      //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
-      //function call is still active
-      return;
-    } else if (eventDifferentAction == EventDifferentAction.forecast) {
-      //Strategy: if failure prob is 50% or higher, stay, else hit.
-      //Reason why I do this is because: For EV, if we just base our EV on four cards and they were all just minus
-      //cards of value 1, the AI would just stay. But this isn't really a big loss when they could potentially hit
-      //a bigger number card afterwards
-      print("!!!!Enabled second action for Forecaster");
-      buttonPressed = false;
-      //If player has double chance, no point in not hitting
-      if (getCurrentPlayer!.doubleChance) {
-        print("Player has double chance. Hit!");
-        await _aiHits();
-      } else if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
-        print("Forecaster failure prob >= .5. Stay!");
-        await _aiStays();
-      } else {
-        print("Forecaster failure prob < .5. Hit!");
-        await _aiHits();
+    // If player busted after an event, go to next player
+    if (getCurrentPlayer!.isDone == false) {
+      if (eventDifferentAction == EventDifferentAction.topPeek) {
+        //If you are human player, need buttons reenabled to do another action. Else, should not
+        //have them enabled during a CPU's second turn
+        print("!!!!Enabled second action for TopPeek");
+        buttonPressed = false;
+        await expertPeek(getCurrentPlayer as CpuPlayer);
+        //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+        //function call is still active
+        return;
+      } else if (eventDifferentAction == EventDifferentAction.forecast) {
+        //Strategy: if failure prob is 50% or higher, stay, else hit.
+        //Reason why I do this is because: For EV, if we just base our EV on four cards and they were all just minus
+        //cards of value 1, the AI would just stay. But this isn't really a big loss when they could potentially hit
+        //a bigger number card afterwards
+        print("!!!!Enabled second action for Forecaster");
+        buttonPressed = false;
+        //If player has double chance, no point in not hitting
+        if (getCurrentPlayer!.doubleChance) {
+          print("Player has double chance. Hit!");
+          await _aiHits();
+          //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+          //function call is still active
+          return;
+        } else if (calculateFailureProbLastNumCards(numCards: 4) >= .5) {
+          print("Forecaster failure prob >= .5. Stay!");
+          await _aiStays();
+        } else {
+          print("Forecaster failure prob < .5. Hit!");
+          await _aiHits();
+          //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
+          //function call is still active
+          return;
+        }
       }
-      //Since this is their second action, you want to do early return here to avoid rotation being messed up because their first action
-      //function call is still active
-      return;
     }
     //Reset eventDifferentAction to none
     eventDifferentAction = EventDifferentAction.none;
@@ -1126,19 +1195,25 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
 
     if (eventDifferentAction == EventDifferentAction.topPeek ||
-        eventDifferentAction == EventDifferentAction.forecast) {
+        eventDifferentAction == EventDifferentAction.forecast ||
+        eventDifferentAction == EventDifferentAction.flipThree) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
       if (getCurrentPlayer == null) {
         print("BIG ERROR - CURRENT PLAYER WAS NULL ON ROTATION");
+        return;
       } else {
         print("!!!!Enabled second action");
         buttonPressed = false;
         if (!getCurrentPlayer!.isCpu()) {
           hud.enableHitAndStayBtns();
         }
+
+        // if current player is done, we want to handle rotate or handle new round don't let them hit/stay again
+        if (getCurrentPlayer!.isDone != true) {
+          return;
+        }
       }
-      return;
     }
 
     await Future.delayed(const Duration(seconds: 1));

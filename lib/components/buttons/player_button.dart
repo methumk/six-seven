@@ -1,7 +1,3 @@
-import 'dart:async';
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
