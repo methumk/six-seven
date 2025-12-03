@@ -735,6 +735,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     runningEvent = null;
     EventDifferentAction returnType = EventDifferentAction.none;
 
+    //Update current + total leaderboard; we need the most recent
+    //board each turn for the most accurate tax rate calculation
+    totalCurrentLeaderBoard.updateEntireLeaderboard();
+
     if (currentPlayer.isDone) {
       //If player's score reached threshold, end the game
       print("Current player's total value: ${currentPlayer.totalValue}");
@@ -763,9 +767,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
 
-    //Update current + total leaderboard; we need the most recent
-    //board each turn for the most accurate tax rate calculation
-    totalCurrentLeaderBoard.updateEntireLeaderboard();
     return returnType;
   }
 
