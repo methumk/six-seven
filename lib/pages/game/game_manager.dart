@@ -266,7 +266,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // update current and end game leaderboards
     currentLeaderBoard.updateEntireLeaderboard();
     totalLeaderBoard.updateEntireLeaderboard();
-    totalCurrentLeaderBoard.updateEntireLeaderboard();
     for (Player currentPlayer in players) {
       print("winning threshold: ${winningThreshold}");
       print("currentPlayer.totalValue: ${currentPlayer.totalValue}");
