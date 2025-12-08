@@ -4,13 +4,14 @@
 import 'package:six_seven/components/players/player.dart';
 
 class PlayerForcePlayCount {
-  late final Player player;
+  late final Player currentPlayer;
   late int count;
-  PlayerForcePlayCount({required this.player, required this.count});
+
+  PlayerForcePlayCount({required this.currentPlayer, required this.count});
 
   @override
   String toString() {
-    return "FPC(p: $player, c: $count)";
+    return "FPC(cp: $currentPlayer, c: $count)";
   }
 }
 
@@ -24,17 +25,29 @@ class PlayerStack {
 
   PlayerStack();
 
-  void addPlayer(Player p, int forcePlayTimes) {
+  // Checks if a given player is at the top (still has plays they can make)
+  bool isPlayerAtTop(Player p) {
+    if (_stack.isNotEmpty) {
+      return _stack.last.currentPlayer == p;
+    }
+    return false;
+  }
+
+  void addPlayer({required Player current, required int forcePlayTimes}) {
     if (forcePlayTimes <= 0) return;
     if (isEmpty) {
-      _stack.add(PlayerForcePlayCount(player: p, count: forcePlayTimes));
+      _stack.add(
+        PlayerForcePlayCount(currentPlayer: current, count: forcePlayTimes),
+      );
     } else {
       // if existing is same player only update their count
       var top = _stack.last;
-      if (top.player == p) {
+      if (top.currentPlayer == current) {
         top.count += forcePlayTimes;
       } else {
-        _stack.add(PlayerForcePlayCount(player: p, count: forcePlayTimes));
+        _stack.add(
+          PlayerForcePlayCount(currentPlayer: current, count: forcePlayTimes),
+        );
       }
     }
 
@@ -60,6 +73,11 @@ class PlayerStack {
     if (_stack.isNotEmpty) {
       var playerCount = _stack.last.count;
       totalCount -= playerCount;
+
+      // Invalidate the stack but preserve count if we ever need it in the future
+      _stack.last.count *= -1;
+
+      // Return removed item
       return _stack.removeLast();
     }
     return null;
