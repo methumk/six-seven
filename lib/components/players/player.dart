@@ -15,7 +15,6 @@ import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/overlays.dart/player_action_text.dart';
-import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
