@@ -772,9 +772,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           // Disable hit/stay
           hud.disableHitAndStayBtns();
 
-          // Force chosen player to play 3 times and set the hud badge
-          hud.setHitCountBadge(3, accumulateHitCount: false);
+          // Determine count badge, if the person flipping is also the enforcer, then they will be flipping more than 3 times
           forcedToPlay.addPlayer(current: forcedFlipper, forcePlayTimes: 3);
+          // NOTE: if this becomes 0, this is an error, we always add 3 initially, so it should never be 0
+          int flipTimes = forcedToPlay.getTopPlayerCount() ?? 0;
+          hud.setHitCountBadge(flipTimes, accumulateHitCount: false);
 
           // Loop for the given user only
           while (forcedToPlay.isPlayerAtTop(forcedFlipper)) {
