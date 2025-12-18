@@ -221,6 +221,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
+<<<<<<< HEAD
+=======
+      // deckList.add(CribberCard());
+>>>>>>> e9d90b5a04237bc3c5a51efb7daec2b78aba5553
       deckList.add(ForecasterCard());
       deckList.add(IncomeTax());
       // deckList.add(SalesTax());
@@ -241,6 +245,11 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.Thief]! + 1;
       eventCardsLeft[EventCardEnum.TopPeek] =
           eventCardsLeft[EventCardEnum.TopPeek]! + 1;
+<<<<<<< HEAD
+=======
+      // eventCardsLeft[EventCardEnum.Cribber] =
+      //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
+>>>>>>> e9d90b5a04237bc3c5a51efb7daec2b78aba5553
       eventCardsLeft[EventCardEnum.Forecaster] =
           eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       eventCardsLeft[EventCardEnum.IncomeTax] =
