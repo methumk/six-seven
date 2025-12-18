@@ -797,8 +797,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
               break;
             }
 
+            var nextCount = forcedToPlay.getTopPlayerCount();
+            if (nextCount == null) {
+              hud.hideHitCountBadge();
+              break;
+            }
             // Set or remove badge after player decremented
-            forcedPlayerCount = forcedToPlay.getTopPlayerCount()! - 1;
+            forcedPlayerCount = nextCount - 1;
             forcedToPlay.decrementTopPlayer();
             if (forcedPlayerCount == 0) {
               hud.hideHitCountBadge();
@@ -816,9 +821,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
           // Remove badge
           hud.hideHitCountBadge();
-
-          // Enable hit/stay
-          hud.enableHitAndStayBtns();
 
           // Return flipThree, so we can return and the current user gets another chance to hit or stay
           returnType = EventDifferentAction.flipThree;
@@ -1193,9 +1195,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       currentPlayerIndex,
     );
 
-    if (eventDifferentAction == EventDifferentAction.topPeek ||
-        eventDifferentAction == EventDifferentAction.forecast ||
-        eventDifferentAction == EventDifferentAction.flipThree) {
+    if ((eventDifferentAction == EventDifferentAction.topPeek ||
+            eventDifferentAction == EventDifferentAction.forecast ||
+            eventDifferentAction == EventDifferentAction.flipThree) &&
+        !getCurrentPlayer!.isDone) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
       if (getCurrentPlayer == null) {
