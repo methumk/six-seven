@@ -586,9 +586,7 @@ abstract class EventActionCard extends Card {
 
   void resolveEventCompleter() {
     if (game.gameManager.runningEvent != null) {
-      if (game.gameManager.runningEvent!.eventCompleted != null) {
-        game.gameManager.runningEvent!.eventCompleted.resolve();
-      }
+      game.gameManager.runningEvent!.eventCompleted.resolve();
     }
   }
 

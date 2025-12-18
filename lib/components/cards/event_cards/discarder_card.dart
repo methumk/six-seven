@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:math';
-import 'package:flame/image_composition.dart';
 import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/cards/card.dart';
-import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
-import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
@@ -147,13 +143,14 @@ class DiscarderCard extends EventActionCard {
 
     // Don't continue if no cards in holder
     if (currPlayer.dch.isEmpty()) {
-      print("Holder is empty - RETURN");
+      print("No cards in DCH to discard - Early Return");
       resolveEventCompleter();
       return;
     }
 
     // Change border to show cards can be clicked
     currPlayer.dch.toggleCardShowSelectable(true, selectColor: mat.Colors.blue);
+    print("Curr player $currPlayer now toggled ON DCH");
 
     // card expected to be set through the if statement
     late Card selected;
@@ -187,11 +184,11 @@ class DiscarderCard extends EventActionCard {
       default:
         print("Selected card was not a handEventAction card. Continue onwards");
     }
+    // Turn off border color that's used to indicate cards selectable
+    currPlayer.dch.toggleCardShowSelectable(false);
+
     currPlayer.dch.removeCard(selected);
     currPlayer.updateCurrentValue();
-
-    // Change border to show cards can be clicked
-    currPlayer.dch.toggleCardShowSelectable(false);
 
     // Add selected card to discard pile
     game.gameManager.deck.addToDiscard([selected]);

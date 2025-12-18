@@ -4,7 +4,6 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
-import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
@@ -15,7 +14,6 @@ import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
 import 'package:six_seven/components/cards/event_cards/discarder_card.dart';
 import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
 import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
-import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/sunk_prophet_Card.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
@@ -223,15 +221,15 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
-      // deckList.add(ForecasterCard());
+      deckList.add(ForecasterCard());
       deckList.add(IncomeTax());
       // deckList.add(SalesTax());
-      // deckList.add(LuckyDieCard());
-      // deckList.add(SunkProphet());
-      // deckList.add(ChoiceDraw());
-      // // deckList.add(ReverseTurnCard());
-      // deckList.add(DiscarderCard());
-      // deckList.add(RedeemerCard());
+      deckList.add(LuckyDieCard());
+      deckList.add(SunkProphet());
+      deckList.add(ChoiceDraw());
+      deckList.add(ReverseTurnCard());
+      deckList.add(DiscarderCard());
+      deckList.add(RedeemerCard());
       //Add to eventCardsLeft
       eventCardsLeft[EventCardEnum.Freeze] =
           eventCardsLeft[EventCardEnum.Freeze]! + 1;
@@ -243,23 +241,23 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.Thief]! + 1;
       eventCardsLeft[EventCardEnum.TopPeek] =
           eventCardsLeft[EventCardEnum.TopPeek]! + 1;
-      // eventCardsLeft[EventCardEnum.Forecaster] =
-      //     eventCardsLeft[EventCardEnum.Forecaster]! + 1;
+      eventCardsLeft[EventCardEnum.Forecaster] =
+          eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       eventCardsLeft[EventCardEnum.IncomeTax] =
           eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
-      // eventCardsLeft[EventCardEnum.SalesTax] =
-      //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
-      // eventCardsLeft[EventCardEnum.SunkProphet] =
-      //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
-      // eventCardsLeft[EventCardEnum.ChoiceDraw] =
-      //     eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
-      // // eventCardsLeft[EventCardEnum.ReverseTurn] =
-      // //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
-      // eventCardsLeft[EventCardEnum.Discarder] =
-      //     eventCardsLeft[EventCardEnum.Discarder]! + 1;
-      // eventCardsLeft[EventCardEnum.Redeemer] =
-      //     eventCardsLeft[EventCardEnum.Redeemer]! + 1;
+      eventCardsLeft[EventCardEnum.SalesTax] =
+          eventCardsLeft[EventCardEnum.SalesTax]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      eventCardsLeft[EventCardEnum.SunkProphet] =
+          eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.ReverseTurn] =
+          eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
+      eventCardsLeft[EventCardEnum.Discarder] =
+          eventCardsLeft[EventCardEnum.Discarder]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 

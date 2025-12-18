@@ -15,7 +15,6 @@ import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/glowable_text.dart';
 import 'package:six_seven/components/players/overlays.dart/player_action_text.dart';
-import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
@@ -414,8 +413,7 @@ abstract class Player extends PositionComponent
     //Reset size; this call is useful for handEventActionCards
     //such as Double Chance card
     newCard.resetSize();
-    print("You hit and got a card:");
-    newCard.description();
+
     if (newCard is cd.NumberCard) {
       await hitNumberCard(newCard);
     } else if (newCard is cd.ValueActionCard) {
@@ -424,6 +422,13 @@ abstract class Player extends PositionComponent
       // Only some event cards get added
       dch.addCardtoHand(newCard);
     }
+
+    print("You hit and got a card: ");
+    newCard.description();
+    print(
+      "DCH length: ${dch.getTotalHandLength()}, NCH: ${nch.getTotalHandLength()}",
+    );
+
     //If redeemer was used, current value was already updated. Player is done, will not update current value
     //for rest of the round. Return
     if (redeemerUsed) {
@@ -592,6 +597,7 @@ abstract class Player extends PositionComponent
 
   @override
   String toString() {
-    return "Player(isAi: ${isCpu()}, #:$playerNum, cv: $currentValue, bv: $currentBonusValue, tv: $totalValue)";
+    return ("P(#:${playerNum})");
+    // return "P(isAi: ${isCpu()}, #:$playerNum, cv: $currentValue, bv: $currentBonusValue, tv: $totalValue)";
   }
 }

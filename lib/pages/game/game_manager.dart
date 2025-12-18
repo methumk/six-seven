@@ -6,19 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
-import 'package:six_seven/components/cards/event_cards/cribber_card.dart';
-import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
-import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
-import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
-import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
-import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
-import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
-import 'package:six_seven/components/cards/event_cards/sales_tax_card.dart';
-import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
-import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
     as cd;
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart'
@@ -36,7 +26,6 @@ import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
-import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/player_stack.dart';
 
@@ -696,17 +685,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // Instant events or all other cards except event action
       await currentPlayer.onHit(card);
     } else {
-      // Event Card
-      // overridable
-      // cd.EventActionCard eac = card;
+      // Show event card animations
       runningEvent = card;
       runningEvent?.cardUser = currentPlayer;
       runningEvent!.position = deck.position;
       game.world.add(runningEvent!);
-
-      // runningEvent!.initEventDrawCompleter();
       runningEvent!.drawAnimation.init();
-      print("RUNNING EVENT POS AT ${runningEvent!.position}");
 
       // Wait for deck draw animation to finish
       if (currentPlayer.isCpu()) {
@@ -718,7 +702,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
         await runningEvent!.drawAnimation.wait();
       }
-      print("OUTSIDE AFTER EVENT DRAWN");
 
       // Sets up event completer
       runningEvent!.eventCompleted.init();
@@ -727,7 +710,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       await runningEvent!.executeOnEvent();
       // Wait for event execution to complete
       await runningEvent!.eventCompleted.wait();
-      //If card is not handeventaction card or if it is a discarded handEventAction card, after event is done, add card to discard pile
+      // If card is not handeventaction card or if it is a discarded handEventAction card, after event is done, add card to discard pile
       if (runningEvent is cd.EventActionCard &&
           runningEvent is! cd.HandEventActionCard) {
         deck.addToDiscard([runningEvent as cd.Card]);
@@ -760,7 +743,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         returnType = EventDifferentAction.topPeek;
       } else if (card is ChoiceDraw && card.drawEventCardAgain) {
         print("Choice Draw - needs to draw event card again");
-        runningEvent = null;
         return await _handleDrawCardFromDeck(currentPlayerIndex);
       } else if (card is ForecasterCard) {
         print(
@@ -768,43 +750,47 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         );
         returnType = EventDifferentAction.forecast;
       } else if (card is FlipThreeCard) {
-        print("Flip Three Card Drawn - have to flip three cards or until bust");
+        print(
+          "Flip Three Card Drawn - $currentPlayer making ${runningEvent?.affectedPlayer} Flip3!",
+        );
         if (runningEvent != null && runningEvent!.affectedPlayer != null) {
-          var forcedPlayer = runningEvent!.affectedPlayer!;
-          // Save current player to return after forced chosen player finishes
-          // returnToPlayerIndex = currentPlayerIndex;
-
-          // Force chosen player to play 3 times and set the hud badge
-          forcedToPlay.addPlayer(forcedPlayer, 3);
-          var forcedPlayerCount = forcedToPlay.getTopPlayerCount()!;
-          hud.setHitCountBadge(forcedPlayerCount, accumulateHitCount: false);
+          // Force current player index to look at player forced to flip
+          var forcedFlipper = runningEvent!.affectedPlayer!;
+          currentPlayerIndex = forcedFlipper.playerNum - 1;
 
           // Disable hit/stay
           hud.disableHitAndStayBtns();
 
+          // Determine count badge, if the person flipping is also the enforcer, then they will be flipping more than 3 times
+          forcedToPlay.addPlayer(current: forcedFlipper, forcePlayTimes: 3);
+          // NOTE: if this becomes 0, this is an error, we always add 3 initially, so it should never be 0
+          int flipTimes = forcedToPlay.getTopPlayerCount() ?? 0;
+          hud.setHitCountBadge(flipTimes, accumulateHitCount: false);
+
           // Loop for the given user only
-          while (forcedToPlay.isNotEmpty) {
+          while (forcedToPlay.isPlayerAtTop(forcedFlipper)) {
             print("Stack: $forcedToPlay");
             // let player hit
-            await _handleDrawCardFromDeck(forcedPlayer.playerNum - 1);
+            // Note after this returns, even if there is a recursive F3 call, F3 will handle restoring current player after exit
+            await _handleDrawCardFromDeck(forcedFlipper.playerNum - 1);
 
             // Check if current player has busted to early exit
-            if (forcedPlayer.isDone) {
-              print("$forcedPlayer BUSTED REMOVING EARLY");
+            if (forcedFlipper.isDone) {
+              print("$forcedFlipper busted during FLIP3");
               hud.hideHitCountBadge();
               // Remove player if they busted
               forcedToPlay.removeTopPlayer();
               break;
             }
 
-            var nextCount = forcedToPlay.getTopPlayerCount();
-            if (nextCount == null) {
-              hud.hideHitCountBadge();
-              break;
-            }
             // Set or remove badge after player decremented
-            forcedPlayerCount = nextCount - 1;
+            // Player might get removed in that case
             forcedToPlay.decrementTopPlayer();
+            var forcedPlayerCount = forcedToPlay.getTopPlayerCount() ?? 0;
+            print(
+              "Decremented Count: $forcedPlayerCount | Stack after: $forcedToPlay",
+            );
+
             if (forcedPlayerCount == 0) {
               hud.hideHitCountBadge();
               // Current player has finished so exit out
@@ -817,7 +803,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             }
           }
 
-          // Rotate player to original position
+          // Restore original player
+          print("RESTORING PLAYER TO $currentPlayer from <-- $forcedFlipper");
+          currentPlayerIndex = currentPlayer.playerNum - 1;
 
           // Remove badge
           hud.hideHitCountBadge();
@@ -830,7 +818,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
 
-    runningEvent = null;
     return returnType;
   }
 
@@ -1194,6 +1181,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     var eventDifferentAction = await _handleDrawCardFromDeck(
       currentPlayerIndex,
     );
+    // Running event finished so clear it
+    runningEvent = null;
 
     if ((eventDifferentAction == EventDifferentAction.topPeek ||
             eventDifferentAction == EventDifferentAction.forecast ||
@@ -1211,8 +1200,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           hud.enableHitAndStayBtns();
         }
 
-        // if current player is done, we want to handle rotate or handle new round don't let them hit/stay again
-        if (getCurrentPlayer!.isDone != true) {
+        // if current player isn't done yet, exit out, so they can hit/stay again without rotating to next player
+        if (getCurrentPlayer!.isDone == false) {
           return;
         }
       }

@@ -22,6 +22,10 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     super.onLoad();
   }
 
+  int getTotalHandLength() {
+    return numberHand.length;
+  }
+
   // Sets card position and priority
   void _setCard(NumberCard card) {
     Vector2 newCardPos = Vector2(

@@ -266,7 +266,9 @@ class Hud extends PositionComponent with HasGameReference<GameScreen> {
     if (accumulateHitCount) {
       _hitCount.hitCount += hitCount;
     }
-    _hitCount.showHitCount(newCount: hitCount);
+    if (hitCount != _hitCount.hitCount) {
+      _hitCount.showHitCount(newCount: hitCount);
+    }
   }
 
   // ResetHitCount will reset the hit count to specified value if null, otherwise original value will be preserved
