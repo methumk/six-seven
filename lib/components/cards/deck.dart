@@ -223,7 +223,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
-      // // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
       deckList.add(IncomeTax());
       // deckList.add(SalesTax());
@@ -234,18 +233,16 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // deckList.add(DiscarderCard());
       // deckList.add(RedeemerCard());
       //Add to eventCardsLeft
-      // eventCardsLeft[EventCardEnum.Freeze] =
-      //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
-      // // eventCardsLeft[EventCardEnum.FlipThree] =
-      // //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
-      // eventCardsLeft[EventCardEnum.DoubleChance] =
-      //     eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
-      // eventCardsLeft[EventCardEnum.Thief] =
-      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.Freeze] =
+          eventCardsLeft[EventCardEnum.Freeze]! + 1;
+      eventCardsLeft[EventCardEnum.FlipThree] =
+          eventCardsLeft[EventCardEnum.FlipThree]! + 1;
+      eventCardsLeft[EventCardEnum.DoubleChance] =
+          eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
       eventCardsLeft[EventCardEnum.TopPeek] =
           eventCardsLeft[EventCardEnum.TopPeek]! + 1;
-      // // eventCardsLeft[EventCardEnum.Cribber] =
-      // //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
       // eventCardsLeft[EventCardEnum.Forecaster] =
       //     eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       eventCardsLeft[EventCardEnum.IncomeTax] =
