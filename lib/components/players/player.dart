@@ -67,7 +67,8 @@ abstract class Player extends PositionComponent
   // UI Fields
   late final String playerName;
   late PlayerButton button;
-  late final GlowableText playerScore;
+  late final GlowableText playerCurrentScore;
+  late final GlowableText playerTotalScore;
   late final PlayerActionText playerActionText;
 
   Player({required this.playerNum, required this.currSlot})
@@ -126,7 +127,12 @@ abstract class Player extends PositionComponent
       currentBonusValue += additionalBonus;
     }
     currentValue += currentBonusValue;
-    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+    playerCurrentScore.updateText(
+      "Round Score: ${roundAndStringify(currentValue)}",
+    );
+    playerTotalScore.updateText(
+      "Actual Total: ${roundAndStringify(totalValue)}",
+    );
   }
 
   //Method for updating current value (might not be the final points of the round, just used for
@@ -167,7 +173,12 @@ abstract class Player extends PositionComponent
       );
       currentValue *= taxMultiplier;
     }
-    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+    playerCurrentScore.updateText(
+      "Round Score: ${roundAndStringify(currentValue)}",
+    );
+    playerTotalScore.updateText(
+      "Actual Total: ${roundAndStringify(totalValue)}",
+    );
   }
 
   // calculates the potential score if the given cards were added
@@ -389,7 +400,12 @@ abstract class Player extends PositionComponent
     doubleChance = false;
     hasRedeemer = false;
     redeemerUsed = false;
-    playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+    playerCurrentScore.updateText(
+      "Round Score: ${roundAndStringify(currentValue)}",
+    );
+    playerTotalScore.updateText(
+      "Actual Total: ${roundAndStringify(totalValue)}",
+    );
     await playerActionText.removeText();
   }
 
@@ -494,7 +510,12 @@ abstract class Player extends PositionComponent
         //make current value 67% after the updateCurrentValue call method
         print("Current Value before 67%: ${currentValue}");
         currentValue *= .67;
-        playerScore.updateText("Score: ${roundAndStringify(currentValue)}");
+        playerCurrentScore.updateText(
+          "Round Score: ${roundAndStringify(currentValue)}",
+        );
+        playerTotalScore.updateText(
+          "Actual Total: ${roundAndStringify(totalValue)}",
+        );
         print("Current value after 67%: ${currentValue}");
         //Remove all cards from player's hand
         handRemoval(saveScoreToPot: true);

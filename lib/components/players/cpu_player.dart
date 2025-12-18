@@ -49,13 +49,27 @@ class CpuPlayer extends Player {
     dch = DynamicCardHolder()..position = Vector2(0, button.radius * -.7);
     add(dch);
 
-    playerScore = GlowableText(
-      smallTextSize: 13,
+    playerCurrentScore = GlowableText(
+      smallTextSize: 9,
       smallColor: Colors.white,
-      text: "Score: ${roundAndStringify(currentValue)}",
-      position: Vector2(0, button.radius * -1.5 - cd.Card.cardSize.y),
+      text: "Round Score: ${roundAndStringify(currentValue)}",
+      position: Vector2(
+        -button.radius - cd.Card.cardSize.x / 3.67,
+        button.radius * -1.5 - cd.Card.cardSize.y,
+      ),
     );
-    add(playerScore);
+    add(playerCurrentScore);
+
+    playerTotalScore = GlowableText(
+      text: "Actual Total: ${roundAndStringify(totalValue)}",
+      smallColor: Colors.white,
+      smallTextSize: 9,
+      position: Vector2(
+        button.radius + cd.Card.cardSize.x / 3.67,
+        button.radius * -1.5 - cd.Card.cardSize.y,
+      ),
+    );
+    add(playerTotalScore);
   }
 
   //Method for if peeked card is a mult card.
