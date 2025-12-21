@@ -153,7 +153,7 @@ double playerIncomeTaxRateAfterFirstRound({
     print(
       "Player is performing less than the middle rank! 6.7% tax to total and current value",
     );
-    taxRate *= 1 - .067;
+    taxRate *= (1 - .067);
   } //The following shouldn't happen; it means that player does not satisfy any of the cases
   else {
     print(

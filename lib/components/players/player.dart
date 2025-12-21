@@ -170,6 +170,7 @@ abstract class Player extends PositionComponent
           game.gameManager.totalPlayerCount,
         ),
       );
+      //Both current value and total value are affected by tax multiplier
       currentValue *= taxMultiplier;
     }
     playerCurrentScore.updateText(
@@ -330,6 +331,15 @@ abstract class Player extends PositionComponent
 
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
+    if (hasIncomeTax) {
+      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: this,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          game.gameManager.totalPlayerCount,
+        ),
+      );
+    }
+    totalValue *= taxMultiplier;
     //Remove all cards from player's hand
     handRemoval(saveScoreToPot: true);
   }
