@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/cards/value_action_text.dart';
 import 'package:six_seven/components/circular_image_component.dart';
 import 'package:six_seven/components/players/player.dart';
@@ -133,8 +134,12 @@ abstract class Card extends RoundedBorderComponent
   }
 
   Future<void> peekAnimation() async {
+    final Vector2 gameCenter = game.gameManager.rotationCenter;
+    //The starting coordinate should be a bit higher than the game center
+    final Vector2 startingCoordinates = gameCenter - Vector2(0, cardSize.y / 2);
     _onDrawEffect = SequenceEffect(
       [
+        MoveEffect.to(startingCoordinates, EffectController(duration: 0)),
         MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
         ScaleEffect.by(Vector2.all(1.2), EffectController(duration: .5)),
         ScaleEffect.by(
