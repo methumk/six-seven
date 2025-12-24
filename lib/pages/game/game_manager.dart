@@ -8,6 +8,7 @@ import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
     as cd;
@@ -74,6 +75,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //So if player 0 (call them main player) is in the bottom, then player 1 is right, player 2 is up, player 3 is left, etc
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
+
+  //Const for double chance EV value
+  final double doubleChanceGoodEV = 15;
+  //Bad EV for these cases is when other players are active, because then you are forced to
+  //give this card to someone else
+  final double doubleChanceBadEV = -8;
+  //Const for redeemer EV value
+  final double redeemerGoodEV = 7;
+  //Bad EV for these cases is when other players are active, because then you are forced to
+  //give this card to someone else
+  final double redeemerBadEV = -4;
 
   bool buttonPressed = false;
   late final Leaderboard<Player> totalLeaderBoard;
@@ -534,7 +546,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         currentPlayer.currentValue +
         calculateEVMultCards() * calculateEVNumberCards(currentPlayer) +
         calculateEVPlusMinusValueCards() +
-        calculateEVEventCards();
+        calculateEVEventCards(currentPlayer);
     if (currentPlayer.numberHand.length == 5) {
       print(
         "CPU has 5 number cards! EV of getting 6 number card bonus: ${probOfNonduplicateNumberCard(currentPlayer) * 6.7} ",
@@ -641,14 +653,207 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evPlusMinusValueCard;
   }
 
-  double calculateEVEventCards() {
+  double calculateEVEventCards(Player currentPlayer) {
+    //TO DO: implement for each case
+    if (isLastRemaining(currentPlayer)) {
+      return calculateEventEVAlone(currentPlayer);
+    }
+    //delete
+    return 6.7;
+  }
+
+  //Method for checking if current player is the only player active in the round
+  bool isLastRemaining(Player currentPlayer) {
+    for (Player player in players) {
+      if (player != currentPlayer && !player.isDone) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //Method for calculating event EV when player is alone
+  double calculateEventEVAlone(Player currentPlayer) {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
 
     double evEventCard = 0;
+    for (EventCardEnum eventCardEnum in deck.eventNumericalEVAlone.keys) {
+      evEventCard +=
+          deck.eventNumericalEVAlone[eventCardEnum]! *
+          deck.eventCardsLeft[eventCardEnum]! /
+          numCardsLeft;
+    }
+    //Handle hand operator cards on case by case value
+    evEventCard += calculateEVAloneDoubleChanceRedeemer(currentPlayer);
 
-    //TO DO: implement for each case
     return evEventCard;
+  }
+
+  //Method for calculating ev of double chance and redeemer when alone
+  double calculateEVAloneDoubleChanceRedeemer(Player currentPlayer) {
+    //Double Chance: If currentplayer does not have double chance, getting a
+    // double chance would be super useful. Else, it is worthless
+    //to get a duplicate double chance
+    double evDoubleChance = 0;
+    int numCardsLeft = deck.deckListLength;
+    if (!currentPlayer.doubleChance) {
+      evDoubleChance +=
+          doubleChanceGoodEV *
+          deck.eventCardsLeft[EventCardEnum.DoubleChance]! /
+          numCardsLeft;
+    }
+    double evRedeemer = 0;
+    //Redeemer: If current player does not have redeemer, getting  a
+    //redeemer would be somwhat useful. Else, it is worthless
+    //to get a duplicate redeemer
+    if (!currentPlayer.hasRedeemer) {
+      evRedeemer +=
+          redeemerGoodEV *
+          deck.eventCardsLeft[EventCardEnum.Redeemer]! /
+          numCardsLeft;
+    }
+    return evDoubleChance + evRedeemer;
+  }
+
+  //Method for calculating EV of discarder
+  double calculateEVDiscarder(Player currentPlayer) {
+    int numCardsLeft = deck.deckListLength;
+    //Discarder: First check for cards that are beneficial to discard.
+    //If none exist, check for cards that hurt the least to discard.
+    //If none exist, discarderEV is 0.
+
+    //Good case
+
+    //Best case scenario: player has an income tax card after round 1. This is the best card to discard
+    //because it also affects total value.
+    //Then, if current player has a minus card or a multiplier card with multiplier <1,
+    //this is good; for Multiplier cards (this takes priority), take EV as (1-lowest Mult) * sum of number cards.
+    //For minus value cards, take the lowest minus value card, take absolute value,
+    //and let that be the EV value of discarder.
+
+    //Good discarder ev
+    double goodDiscarderEV = calculateEVGoodDiscarder(currentPlayer);
+
+    //Bad discarder ev
+    double badDiscarderEV = calculateEVBadDiscarder(currentPlayer);
+    if (goodDiscarderEV == 0 && badDiscarderEV == 0) {
+      return 0;
+    } else if (goodDiscarderEV != 0) {
+      return goodDiscarderEV;
+    } else {
+      return badDiscarderEV;
+    }
+  }
+
+  //Method for calculating good discarderEV
+  double calculateEVGoodDiscarder(Player currentPlayer) {
+    double goodDiscarderEV = 0;
+    int numCardsLeft = deck.deckListLength;
+    if (currentPlayer.hasIncomeTax && currentRound > 1) {
+      double taxRate = IncomeTax().playerTaxRate(currentPlayer: currentPlayer);
+      if (taxRate < 1) {
+        goodDiscarderEV =
+            (currentPlayer.currentValue + currentPlayer.totalValue) / taxRate;
+      }
+    }
+    double lowestMultiplier = 1;
+    for (cd.ValueActionCard multCard in currentPlayer.dch.multHand) {
+      if (multCard.value < lowestMultiplier) {
+        lowestMultiplier = multCard.value;
+      }
+    }
+    if (lowestMultiplier < 1) {
+      goodDiscarderEV = max(
+        goodDiscarderEV,
+        (1 - lowestMultiplier) *
+            currentPlayer.sumNumberCards() *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft,
+      );
+    }
+    //Now check minus cards and see if player can get a higher EV
+    double lowestMinus = 1;
+    //The keys are absolute values of the minus values of the minus cards,
+    //The value is the list of minus cards corresponding to the key
+    for (final MapEntry(:key, :value)
+        in currentPlayer.dch.minusHandMap.entries) {
+      if (-key < 0 && value.isNotEmpty && -key < lowestMinus) {
+        lowestMinus = -key;
+      }
+    }
+    if (lowestMinus < 0) {
+      goodDiscarderEV = max(
+        goodDiscarderEV,
+        //-lowestMinus because removing the minus card gives the positive value
+        -lowestMinus *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft,
+      );
+    }
+    return goodDiscarderEV;
+  }
+
+  //Method for calculating bad discarderEV
+  double calculateEVBadDiscarder(Player currentPlayer) {
+    int numCardsLeft = deck.deckListLength;
+    double badDiscarderEV = 0;
+    //First, check double chance/redeemer. Those are worst case scenario to be forced to discard
+    if (currentPlayer.doubleChance) {
+      badDiscarderEV = doubleChanceBadEV;
+    } else if (currentPlayer.hasRedeemer) {
+      badDiscarderEV = redeemerBadEV;
+    }
+    //Just make default lowestGoodMult a large multiplier; it will never exceed 2 (which
+    //we don't even implement because x2 is already op)
+    double lowestGoodMult = 6.7;
+    for (cd.ValueActionCard multCard in currentPlayer.multHand) {
+      if (multCard.value >= 1 && multCard.value < lowestGoodMult) {
+        lowestGoodMult = multCard.value;
+      }
+    }
+    if (lowestGoodMult < 6.7) {
+      if (badDiscarderEV == 0) {
+        badDiscarderEV =
+            -currentPlayer.sumNumberCards() /
+            lowestGoodMult *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
+      } else {
+        badDiscarderEV = max(
+          badDiscarderEV,
+          -currentPlayer.sumNumberCards() /
+              lowestGoodMult *
+              deck.eventCardsLeft[EventCardEnum.Discarder]! /
+              numCardsLeft,
+        );
+      }
+    }
+    //Now check plus cards to see if we can have a smaller loss
+    double lowestPlus = 67;
+    for (cd.ValueActionCard plusCard in currentPlayer.addHand) {
+      if (plusCard.value < lowestPlus) {
+        lowestPlus = plusCard.value;
+      }
+    }
+    if (lowestPlus < 67) {
+      if (badDiscarderEV == 0) {
+        badDiscarderEV =
+            -lowestPlus *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
+      } else {
+        badDiscarderEV = max(
+          badDiscarderEV,
+          -lowestPlus *
+              deck.eventCardsLeft[EventCardEnum.Discarder]! /
+              numCardsLeft,
+        );
+      }
+    }
+    //So discarderEV either has the negative ev of mult or plus, whichever is less bad. If it is
+    //still 0, that means player does not have any card to discard. That is okay, just return it
+    return badDiscarderEV;
   }
 
   //Method for calculating failure probability of the last numCard cards in the deck.
