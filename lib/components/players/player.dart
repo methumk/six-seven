@@ -181,6 +181,15 @@ abstract class Player extends PositionComponent
     );
   }
 
+  //Calculates sum of number cards only
+  double sumNumberCards() {
+    double currentNumberValue = 0;
+    for (double numberValue in nch.numHandSet) {
+      currentNumberValue += numberValue;
+    }
+    return currentNumberValue;
+  }
+
   // calculates the potential score if the given cards were added
   double calculatePlayerScoreWithCardsAdd({
     Set<cd.NumberCard> ncs = const {},
