@@ -76,16 +76,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
 
-  //Const for double chance EV value
-  final double doubleChanceGoodEV = 15;
+  //Const for double chance Raw value used for EV
+  final double doubleChanceGoodRawValue = 15;
   //Bad EV for these cases is when other players are active, because then you are forced to
   //give this card to someone else
-  final double doubleChanceBadEV = -8;
+  final double doubleChanceBadRawValue = -8;
   //Const for redeemer EV value
-  final double redeemerGoodEV = 7;
+  final double redeemerGoodRawValue = 7;
   //Bad EV for these cases is when other players are active, because then you are forced to
   //give this card to someone else
-  final double redeemerBadEV = -4;
+  final double redeemerBadRawValue = -4;
 
   bool buttonPressed = false;
   late final Leaderboard<Player> totalLeaderBoard;
@@ -678,7 +678,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     int numCardsLeft = deck.deckList.length;
 
     double evEventCard = 0;
+    print("${currentPlayer} is the only active player. Calculating alone EV");
     for (EventCardEnum eventCardEnum in deck.eventNumericalEVAlone.keys) {
+      print(
+        "Card: ${eventCardEnum.label}, value: ${deck.eventNumericalEVAlone[eventCardEnum]}",
+      );
+      print("Number of them left: ${deck.eventCardsLeft[eventCardEnum]}");
       evEventCard +=
           deck.eventNumericalEVAlone[eventCardEnum]! *
           deck.eventCardsLeft[eventCardEnum]! /
@@ -698,8 +703,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double evDoubleChance = 0;
     int numCardsLeft = deck.deckListLength;
     if (!currentPlayer.doubleChance) {
+      print(
+        "Player currently doesn't have double chance. Double Chance Raw value: $doubleChanceGoodRawValue",
+      );
+      print(
+        "Number of Double chance cards: ${deck.eventCardsLeft[EventCardEnum.DoubleChance]}",
+      );
       evDoubleChance +=
-          doubleChanceGoodEV *
+          doubleChanceGoodRawValue *
           deck.eventCardsLeft[EventCardEnum.DoubleChance]! /
           numCardsLeft;
     }
@@ -709,9 +720,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //to get a duplicate redeemer
     if (!currentPlayer.hasRedeemer) {
       evRedeemer +=
-          redeemerGoodEV *
+          redeemerGoodRawValue *
           deck.eventCardsLeft[EventCardEnum.Redeemer]! /
           numCardsLeft;
+      print(
+        "Player currently doesn't have redeemer. Redeemer Raw: $redeemerGoodRawValue",
+      );
+      print(
+        "Number of Redeemer cards: ${deck.eventCardsLeft[EventCardEnum.Redeemer]}",
+      );
     }
     return evDoubleChance + evRedeemer;
   }
@@ -734,15 +751,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     //Good discarder ev
     double goodDiscarderEV = calculateEVGoodDiscarder(currentPlayer);
-
-    //Bad discarder ev
-    double badDiscarderEV = calculateEVBadDiscarder(currentPlayer);
-    if (goodDiscarderEV == 0 && badDiscarderEV == 0) {
-      return 0;
-    } else if (goodDiscarderEV != 0) {
+    if (goodDiscarderEV != 0) {
       return goodDiscarderEV;
     } else {
-      return badDiscarderEV;
+      //Bad discarder ev
+      return calculateEVBadDiscarder(currentPlayer);
     }
   }
 
@@ -750,13 +763,26 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   double calculateEVGoodDiscarder(Player currentPlayer) {
     double goodDiscarderEV = 0;
     int numCardsLeft = deck.deckListLength;
+    print(
+      "Discard ev calculation! Number of discarders in deck: ${deck.eventCardsLeft[EventCardEnum.Discarder]}",
+    );
     if (currentPlayer.hasIncomeTax && currentRound > 1) {
       double taxRate = IncomeTax().playerTaxRate(currentPlayer: currentPlayer);
       if (taxRate < 1) {
         goodDiscarderEV =
-            (currentPlayer.currentValue + currentPlayer.totalValue) / taxRate;
+            (currentPlayer.currentValue + currentPlayer.totalValue) /
+            taxRate *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
       }
+      print(
+        "Player has income tax! Tax rate calculated as: ${taxRate}, so discarder Raw value candidate due to removing income taxis",
+      );
+      print(
+        "(current value + total value) / tax rate * #discarders/#cards in deck = (${currentPlayer.currentValue} + ${currentPlayer.totalValue}) / ${taxRate} = ${(currentPlayer.currentValue + currentPlayer.totalValue) / taxRate}  ",
+      );
     }
+
     double lowestMultiplier = 1;
     for (cd.ValueActionCard multCard in currentPlayer.dch.multHand) {
       if (multCard.value < lowestMultiplier) {
@@ -764,6 +790,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
     if (lowestMultiplier < 1) {
+      print(
+        "Player has a bad multiplier of $lowestMultiplier! Therefore discarder Raw value candidate due to removing bad multiplier is:",
+      );
+      print(
+        "(1 - lowest multiplier) * (sum of number cards)  = ${(1 - lowestMultiplier) * currentPlayer.sumNumberCards()}",
+      );
       goodDiscarderEV = max(
         goodDiscarderEV,
         (1 - lowestMultiplier) *
@@ -783,6 +815,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
     if (lowestMinus < 0) {
+      print(
+        "Player has a minus card of ${-lowestMinus}! Treated as a potential discarder raw value candidate due to removing the minus card",
+      );
       goodDiscarderEV = max(
         goodDiscarderEV,
         //-lowestMinus because removing the minus card gives the positive value
@@ -791,6 +826,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
             numCardsLeft,
       );
     }
+    print(
+      "Ultimate goodDiscarder raw value (Choose max among the candidates): ${goodDiscarderEV / (deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft)}, goodDiscarderEV: ${goodDiscarderEV}",
+    );
     return goodDiscarderEV;
   }
 
@@ -800,9 +838,24 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double badDiscarderEV = 0;
     //First, check double chance/redeemer. Those are worst case scenario to be forced to discard
     if (currentPlayer.doubleChance) {
-      badDiscarderEV = doubleChanceBadEV;
-    } else if (currentPlayer.hasRedeemer) {
-      badDiscarderEV = redeemerBadEV;
+      print(
+        "Player might have to discard double chance! Discarder Raw value candidate due to removing double chance: ${doubleChanceBadRawValue}",
+      );
+      badDiscarderEV =
+          doubleChanceBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.Discarder]! /
+          numCardsLeft;
+    }
+    if (currentPlayer.hasRedeemer) {
+      print(
+        "Player might have to discard redeemer! Discarder Raw value candidate due to removing redeemer: ${redeemerBadRawValue}",
+      );
+      //If player has double chance, redeemer is better to discard. If player doesn't have double chance, redeemer is the first candidate.
+      //In any case, assign badDiscarderEV for redeemer case as the candidate.
+      badDiscarderEV =
+          redeemerBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.Discarder]! /
+          numCardsLeft;
     }
     //Just make default lowestGoodMult a large multiplier; it will never exceed 2 (which
     //we don't even implement because x2 is already op)
@@ -813,6 +866,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
     if (lowestGoodMult < 6.7) {
+      print(
+        "Player might have to discard a good multiplier! Discarder Raw value candidate due to removing good multiplier: ${-currentPlayer.sumNumberCards() / lowestGoodMult}",
+      );
       if (badDiscarderEV == 0) {
         badDiscarderEV =
             -currentPlayer.sumNumberCards() /
@@ -836,6 +892,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         lowestPlus = plusCard.value;
       }
     }
+    print(
+      "Player might have to remove a plus card of value ${lowestPlus}! Discarder Raw value candidate due to removing a plus card: ${-lowestPlus} ",
+    );
     if (lowestPlus < 67) {
       if (badDiscarderEV == 0) {
         badDiscarderEV =
@@ -853,6 +912,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     //So discarderEV either has the negative ev of mult or plus, whichever is less bad. If it is
     //still 0, that means player does not have any card to discard. That is okay, just return it
+    print(
+      "Final badDiscarder raw value: ${badDiscarderEV * deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft}. badDiscarderEV: ${badDiscarderEV}",
+    );
     return badDiscarderEV;
   }
 
