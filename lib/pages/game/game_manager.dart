@@ -691,8 +691,35 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     //Handle hand operator cards on case by case value
     evEventCard += calculateEVAloneDoubleChanceRedeemer(currentPlayer);
-
+    evEventCard += calculateEVDiscarder(currentPlayer);
+    evEventCard += calculateEVAloneIncomeTax(currentPlayer);
     return evEventCard;
+  }
+
+  //Method for calculating ev of income tax card when alone
+  double calculateEVAloneIncomeTax(Player currentPlayer) {
+    double incomeEV = 0;
+    int numCardsLeft = deck.deckListLength;
+    if (!currentPlayer.hasIncomeTax) {
+      double taxRate = IncomeTax().playerTaxRate(currentPlayer: currentPlayer);
+      if (taxRate > 1) {
+        incomeEV +=
+            (currentPlayer.currentValue + currentPlayer.totalValue) *
+            taxRate *
+            deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
+            numCardsLeft;
+      } else {
+        incomeEV +=
+            -(currentPlayer.currentValue + currentPlayer.totalValue) *
+            taxRate *
+            deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
+            numCardsLeft;
+      }
+      print(
+        "Player currently doesn't have income tax! Income tax raw value: ${incomeEV / (deck.eventCardsLeft[EventCardEnum.IncomeTax]! / numCardsLeft)}. Income EV: $incomeEV",
+      );
+    }
+    return incomeEV;
   }
 
   //Method for calculating ev of double chance and redeemer when alone
