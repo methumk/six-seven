@@ -28,7 +28,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
   late Map<int, int> plusMinusCardsLeft;
   late Map<double, int> multCardsLeft;
   late Map<EventCardEnum, int> eventCardsLeft;
-  //Hash map of Numerical values assigned to each event card for EV calculation
+
+  //Hash map of Numerical values assigned to each event card for EV calculation.
+  //When using these maps, you should check for event hand cards that can be held;
+  //if you already have a double chance, for example, there is no value in getting another double chance
   //case when you are only player left in round
   late Map<EventCardEnum, double> eventNumericalEVAlone;
   //case when other players still in round
@@ -103,7 +106,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
 
     eventCardsLeft = {
       EventCardEnum.ChoiceDraw: 0,
-      EventCardEnum.Cribber: 0,
       EventCardEnum.DoubleChance: 0,
       EventCardEnum.FlipThree: 0,
       EventCardEnum.Forecaster: 0,
@@ -111,7 +113,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.IncomeTax: 0,
       EventCardEnum.LuckyDie: 0,
       EventCardEnum.ReverseTurn: 0,
-      EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
       EventCardEnum.Thief: 0,
       EventCardEnum.Discarder: 0,
@@ -120,9 +121,50 @@ class CardDeck extends PositionComponent with TapCallbacks {
     };
 
     eventNumericalEVAlone = {
-      //TO DO: implement
+      EventCardEnum.ChoiceDraw: 5,
+      EventCardEnum.FlipThree: -5.5,
+      EventCardEnum.Forecaster: 2,
+      EventCardEnum.Freeze: 0,
+      //Income tax depends on player's ranking.
+      //Hence the idea is: after the for loop of all the event cards excluding income tax,
+      //calculate player income tax rate should they get the card, and evaluate expected value based on it
+      EventCardEnum.LuckyDie: 4.35,
+      EventCardEnum.ReverseTurn: 0,
+      EventCardEnum.SunkProphet: -4.5,
+      EventCardEnum.Thief: 0,
+      EventCardEnum.TopPeek: 5,
+
+      //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
+      //the current player have minus cards/ multipliers < 1?), income tax
+      // EventCardEnum.DoubleChance: 15 ? 0,
+      // EventCardEnum.Redeemer: 7 ? 0,
+      // EventCardEnum.Discarder: It really depends,
+      // EventCardEnum.IncomeTax: it really depends,
     };
 
+    eventNumericalEVNotAlone = {
+      EventCardEnum.ChoiceDraw: 5,
+
+      EventCardEnum.FlipThree: 5.5,
+      EventCardEnum.Forecaster: 2,
+      EventCardEnum.Freeze: 5,
+
+      //Income tax depends on player's ranking.
+      //Hence the idea is: after the for loop of all the event cards excluding income tax,
+      //calculate player income tax rate should they get the card, and evaluate expected value based on it
+      EventCardEnum.LuckyDie: 4.35,
+      EventCardEnum.ReverseTurn: 0,
+      EventCardEnum.SunkProphet: -4.5,
+      EventCardEnum.Thief: 2,
+      EventCardEnum.TopPeek: 5,
+
+      //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
+      //the current player have minus cards/ multipliers < 1?), income tax
+      // EventCardEnum.DoubleChance: 15 ? 0 or -8,
+      // EventCardEnum.Redeemer: 7 ? 0 or -4,
+      // EventCardEnum.Discarder: It really depends,
+      // EventCardEnum.IncomeTax: it really depends,
+    };
     initNumberCards();
     initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
