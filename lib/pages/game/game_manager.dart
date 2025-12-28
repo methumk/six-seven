@@ -666,10 +666,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   bool isLastRemaining(Player currentPlayer) {
     for (Player player in players) {
       if (player != currentPlayer && !player.isDone) {
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   //Method for calculating event EV when player is alone
@@ -693,6 +693,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     evEventCard += calculateEVAloneDoubleChanceRedeemer(currentPlayer);
     evEventCard += calculateEVDiscarder(currentPlayer);
     evEventCard += calculateEVAloneIncomeTax(currentPlayer);
+    print("Final EV Event Alone: ${evEventCard}");
     return evEventCard;
   }
 
@@ -700,23 +701,29 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   double calculateEVAloneIncomeTax(Player currentPlayer) {
     double incomeEV = 0;
     int numCardsLeft = deck.deckListLength;
-    if (!currentPlayer.hasIncomeTax) {
-      double taxRate = IncomeTax().playerTaxRate(currentPlayer: currentPlayer);
-      if (taxRate > 1) {
-        incomeEV +=
-            (currentPlayer.currentValue + currentPlayer.totalValue) *
-            taxRate *
-            deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
-            numCardsLeft;
-      } else {
-        incomeEV +=
-            -(currentPlayer.currentValue + currentPlayer.totalValue) *
-            taxRate *
-            deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
-            numCardsLeft;
-      }
+    if (!currentPlayer.hasIncomeTax && game.gameManager.currentRound > 1) {
+      double taxRate = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: currentPlayer,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          totalPlayerCount,
+        ),
+      );
+
+      incomeEV +=
+          (currentPlayer.currentValue + currentPlayer.totalValue) *
+          (taxRate - 1) *
+          deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
+          numCardsLeft;
+
       print(
         "Player currently doesn't have income tax! Income tax raw value: ${incomeEV / (deck.eventCardsLeft[EventCardEnum.IncomeTax]! / numCardsLeft)}. Income EV: $incomeEV",
+      );
+    }
+    //If player already has an income taax card, since there is no one else to give the
+    //duplicate income tax card to, the new income tax card drawn is worthless
+    else {
+      print(
+        "Player already has an income tax card. Hence the new income tax card would have been worthless!",
       );
     }
     return incomeEV;
@@ -794,7 +801,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       "Discard ev calculation! Number of discarders in deck: ${deck.eventCardsLeft[EventCardEnum.Discarder]}",
     );
     if (currentPlayer.hasIncomeTax && currentRound > 1) {
-      double taxRate = IncomeTax().playerTaxRate(currentPlayer: currentPlayer);
+      double taxRate = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: currentPlayer,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          totalPlayerCount,
+        ),
+      );
       if (taxRate < 1) {
         goodDiscarderEV =
             (currentPlayer.currentValue + currentPlayer.totalValue) /
@@ -940,7 +952,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     //So discarderEV either has the negative ev of mult or plus, whichever is less bad. If it is
     //still 0, that means player does not have any card to discard. That is okay, just return it
     print(
-      "Final badDiscarder raw value: ${badDiscarderEV * deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft}. badDiscarderEV: ${badDiscarderEV}",
+      "Final badDiscarder raw value: ${badDiscarderEV / (deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft)}. badDiscarderEV: ${badDiscarderEV}",
     );
     return badDiscarderEV;
   }
@@ -1471,6 +1483,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     buttonPressed = true;
     hud.disableHitAndStayBtns();
 
+    calculateEVCumulative(getCurrentPlayer!);
     // Draw cards from deck and handle event
     var eventDifferentAction = await _handleDrawCardFromDeck(
       currentPlayerIndex,
@@ -1507,7 +1520,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       await handleNewRound();
       return;
     }
-
+    // calculateEVCumulative(getCurrentPlayer!);
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
