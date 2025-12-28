@@ -287,9 +287,10 @@ class CardDeck extends PositionComponent with TapCallbacks {
           eventCardsLeft[EventCardEnum.Forecaster]! + 1;
       eventCardsLeft[EventCardEnum.IncomeTax] =
           eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
-      eventCardsLeft[EventCardEnum.SalesTax] =
-          eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      // eventCardsLeft[EventCardEnum.SalesTax] =
+      //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDie] =
+          eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
       eventCardsLeft[EventCardEnum.SunkProphet] =
           eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
       eventCardsLeft[EventCardEnum.ChoiceDraw] =
