@@ -22,41 +22,18 @@ class TopPeekCard extends EventActionCard {
   }
 
   @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description:
-    //       "The card user is allowed to take a peek at the next card in the deck!",
-    //   descriptionTitle: "Top Peek",
-    // );
-  }
-
-  @override
   Future<void> executeOnEvent() async {
     if (!cardUser!.isCpu()) {
-      // game.gameManager.buttonPressed = false;
-      // game.gameManager.expertPeek(cardUser as CpuPlayer);
-      // } else {
       Card peekCard = game.gameManager.deck.peek();
       game.world.add(peekCard);
 
-      //Do peekCard animation
-      peekCard.drawAnimation.init();
+      // Do peekCard animation
       await peekCard.peekAnimation();
-      await peekCard.drawAnimation.wait();
 
       //Reset peek card size
-      peekCard.resetSize();
-      // game.gameManager.buttonPressed = false;
-      // game.gameManager.hud.enableHitAndStayBtns();
-      // String decision = await game.gameManager.hud.waitForHitOrStay();
-      // if (decision == 'hit') {
-      //   await game.gameManager.callOnHitPressed();
-      // } else if (decision == 'stay') {
-      //   await game.gameManager.callOnStayPressed();
-      // }
+      peekCard.resetCardSettings();
     }
+    // TODO: handle another animation for players who don't get to see what the card is?
 
     resolveEventCompleter();
   }
