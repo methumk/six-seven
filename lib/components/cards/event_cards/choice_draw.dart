@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
@@ -17,7 +18,13 @@ class ChoiceDraw extends EventActionCard {
   // Signaling variable, to tell game manager's handleDrawCard, to draw the same event
   bool drawEventCardAgain = false;
 
-  ChoiceDraw() {
+  ChoiceDraw()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Choice",
+        descripText:
+            "User draws three cards, and chooses one of the cards to keep while discarding the rest!",
+      ) {
     eventEnum = EventCardEnum.ChoiceDraw;
   }
 
@@ -30,12 +37,6 @@ class ChoiceDraw extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "User draws three cards, and chooses one of the cards to keep while discarding the rest!",
-      descriptionTitle: "Choice",
-    );
   }
 
   Future<void> _choiceDrawStartAnimation(List<Card> cards) async {
@@ -43,18 +44,28 @@ class ChoiceDraw extends EventActionCard {
     // Move all cards to center
     for (final card in cards) {
       card.priority = 100; // ensure they're visible above everything
-      card.scale = Vector2.all(1.1);
-      await card.moveTo(gameCenter, 0.4); // custom tween helper
+      card.scaleTo(Vector2.all(1.1), EffectController(duration: 0.3));
+      await card.moveTo(
+        gameCenter,
+        EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
+      ); // custom tween helper
     }
 
     // Fan out cards
     const spread = 180.0; // pixel offset between cards
-    final offsets = [-spread, spread];
+    final offsets = [-spread, 0, spread];
     for (int i = 0; i < offsets.length; i++) {
-      await cards[i].moveTo(
-        Vector2(gameCenter.x + offsets[i], gameCenter.y),
-        0.2,
-      );
+      // Move left and right cards only
+      if (i != 1) {
+        await cards[i].moveTo(
+          Vector2(gameCenter.x + offsets[i], gameCenter.y),
+          EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
+        );
+      } else {
+        // Simulate delay to keep flips uniform
+        await Future.delayed(Duration(milliseconds: 200));
+      }
+      cards[i].flip(duration: 0.3);
     }
   }
 
@@ -179,13 +190,16 @@ class ChoiceDraw extends EventActionCard {
       Card c = game.gameManager.deck.draw();
       cards.add(c);
 
-      // Disable drag and tap movements
-      c.toggleAllUserCardMovement(false);
+      // Hide card and then add it to world, then set default start at deck settings
+      c.isVisible = false;
+      await game.world.add(c);
+      c.startAtDeckSetting();
+
       print("Drew card $c");
     }
 
-    // Drawing 3 cards should show the cards in an animation in center
-    await game.world.addAll(cards);
+    // // Drawing 3 cards should show the cards in an animation in center
+    // await game.world.addAll(cards);
 
     // Start animation
     await _choiceDrawStartAnimation(cards);
@@ -205,7 +219,7 @@ class ChoiceDraw extends EventActionCard {
       // Allow tapping after animation to select cards
       final completer = Completer<Card>();
       for (final card in cards) {
-        card.tapUpEnabled = true;
+        card.setClickable(true);
         card.onTapUpSelector = (Card c) async {
           if (!completer.isCompleted) completer.complete(c);
         };
@@ -217,14 +231,11 @@ class ChoiceDraw extends EventActionCard {
     }
 
     // Remove unselected cards from view, Restore card setting changes, add to discard pile
-    game.world.removeAll(cards);
-    for (final card in cards) {
-      card.resetCardSettings();
-    }
     cards.remove(selected);
-    game.gameManager.deck.addToDiscard(cards);
-    // Restore changed attributes to selected card
-    selected.resetCardSettings();
+    await game.gameManager.deck.sendAllToDiscardPileAnimation(
+      cards,
+      flipTime: 0.3,
+    );
 
     // Add card to hand, or start new event
     if (selected is NumberCard || selected is ValueActionCard) {
@@ -233,10 +244,10 @@ class ChoiceDraw extends EventActionCard {
     } else {
       print("Selected card is event card $selected");
 
+      // TODO: if we have choice_draw itself, we probably don't need a separate drawEventCardAgain
       // Tell game managers draw, we need to call handleDrawCard again
       drawEventCardAgain = true;
-      game.world.remove(selected); // Remove from UI
-      game.gameManager.deck.putCardBack(
+      await game.gameManager.deck.putBackToDeckAnimation(
         selected,
       ); // Put at top of deck (handle Draw, will pull from top deck with animation)
     }

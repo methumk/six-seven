@@ -2,9 +2,13 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 
 class PlusCard extends ValueActionCard {
-  PlusCard({required super.value}) {
-    cardType = CardType.valueActionPlusCard;
-  }
+  PlusCard({required super.value})
+    : super(
+        cardType: CardType.valueActionPlusCard,
+        actionText: "+",
+        descripTitleText: "Plus Value",
+        descripText: "Current value gets increased by $value",
+      );
 
   @override
   double executeOnStay(double cv) {
@@ -19,11 +23,11 @@ class PlusCard extends ValueActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    initTitleText("+");
-    initDescriptionText(
-      descriptionTitle: "Plus Value",
-      description: "Current value gets increased by $value",
-    );
+    // initTitleText("+");
+    // initDescriptionText(
+    //   descriptionTitle: "Plus Value",
+    //   description: "Current value gets increased by $value",
+    // );
   }
 
   @override

@@ -14,7 +14,14 @@ class ThiefCard extends EventActionCard {
   Color announcementFailColor = Colors.red;
   Color announcementColor = Colors.blue;
   late EventAnnouncementText playerStealingAnnouncement;
-  ThiefCard() {
+
+  ThiefCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Thief",
+        descripText:
+            "You get to choose a player to steal all their value action cards!",
+      ) {
     eventEnum = EventCardEnum.Thief;
 
     // Adding to world, so 0 will be center
@@ -33,12 +40,12 @@ class ThiefCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "You get to choose a player to steal all their value action cards!",
-      descriptionTitle: "Thief",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description:
+    //       "You get to choose a player to steal all their value action cards!",
+    //   descriptionTitle: "Thief",
+    // );
     game.world.add(playerStealingAnnouncement);
   }
 

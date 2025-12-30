@@ -7,7 +7,12 @@ import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 
 class IncomeTax extends TaxHandEventActionCard {
-  IncomeTax() {
+  IncomeTax()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Income Tax",
+        descripText: "Enforces a progressive income tax on the player!",
+      ) {
     eventEnum = EventCardEnum.IncomeTax;
   }
 
@@ -20,11 +25,11 @@ class IncomeTax extends TaxHandEventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "Enforces a progressive income tax on the player!",
-      descriptionTitle: "Income Tax",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description: "Enforces a progressive income tax on the player!",
+    //   descriptionTitle: "Income Tax",
+    // );
   }
 
   //Grants Income tax

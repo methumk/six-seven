@@ -5,7 +5,12 @@ import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class DoubleChanceCard extends HandEventActionCard {
-  DoubleChanceCard() {
+  DoubleChanceCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Double Chance",
+        descripText: "The player that gets chosen is granted double chance!",
+      ) {
     eventEnum = EventCardEnum.DoubleChance;
   }
 
@@ -19,11 +24,11 @@ class DoubleChanceCard extends HandEventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "The player that gets chosen is granted double chance!",
-      descriptionTitle: "Double Chance",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description: "The player that gets chosen is granted double chance!",
+    //   descriptionTitle: "Double Chance",
+    // );
   }
 
   //Grants double chance

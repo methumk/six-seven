@@ -9,7 +9,13 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class DiscarderCard extends EventActionCard {
-  DiscarderCard() {
+  DiscarderCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Discarder",
+        descripText:
+            "You must remove one event or operator card from your hand.",
+      ) {
     eventEnum = EventCardEnum.Discarder;
   }
 
@@ -22,11 +28,11 @@ class DiscarderCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "You must remove one event or operator card from your hand.",
-      descriptionTitle: "Discarder",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description: "You must remove one event or operator card from your hand.",
+    //   descriptionTitle: "Discarder",
+    // );
   }
 
   Future<Card> _determineAiChoice(CpuPlayer currPlayer) async {

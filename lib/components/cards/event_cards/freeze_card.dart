@@ -5,7 +5,13 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class FreezeCard extends EventActionCard {
-  FreezeCard() {
+  FreezeCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Freeze",
+        descripText:
+            "The player that gets chosen will be frozen, forcing them to stay for the round!",
+      ) {
     eventEnum = EventCardEnum.Freeze;
   }
 
@@ -19,12 +25,12 @@ class FreezeCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "The player that gets chosen will be frozen, forcing them to stay for the round!",
-      descriptionTitle: "Freeze",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description:
+    //       "The player that gets chosen will be frozen, forcing them to stay for the round!",
+    //   descriptionTitle: "Freeze",
+    // );
   }
 
   //Freezes other player

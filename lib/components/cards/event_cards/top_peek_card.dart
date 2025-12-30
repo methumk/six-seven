@@ -4,7 +4,13 @@ import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class TopPeekCard extends EventActionCard {
-  TopPeekCard() {
+  TopPeekCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Top Peek",
+        descripText:
+            "The card user is allowed to take a peek at the next card in the deck!",
+      ) {
     eventEnum = EventCardEnum.TopPeek;
   }
 
@@ -18,12 +24,12 @@ class TopPeekCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "The card user is allowed to take a peek at the next card in the deck!",
-      descriptionTitle: "Top Peek",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description:
+    //       "The card user is allowed to take a peek at the next card in the deck!",
+    //   descriptionTitle: "Top Peek",
+    // );
   }
 
   @override

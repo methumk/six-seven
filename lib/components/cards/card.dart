@@ -4,6 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:six_seven/components/cards/card_component.dart';
+import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/value_action_text.dart';
 import 'package:six_seven/components/circular_image_component.dart';
 import 'package:six_seven/components/players/player.dart';
@@ -27,13 +29,8 @@ enum CardType {
   const CardType(this.label);
 }
 
-//Base card class
-abstract class Card extends RoundedBorderComponent
-    with
-        HasGameReference<GameScreen>,
-        DragCallbacks,
-        TapCallbacks,
-        HoverCallbacks {
+abstract class Card extends CardComponent
+    with HasGameReference<GameScreen>, TapCallbacks {
   late CardType cardType;
   static final Vector2 cardSize = Vector2(80, 140);
   static final Vector2 halfCardSize = cardSize / 2;
@@ -47,11 +44,6 @@ abstract class Card extends RoundedBorderComponent
   int savePriority = 0;
   Vector2? deckReturnTo;
 
-  late final CircularImageComponent _eventIcon;
-  late final RoundedBorderComponent _bodyDescriptionBorder;
-  late final WrappingTextBox _descrip;
-  late final TextComponent _descripTitle;
-
   late final Vector2 _bodyDescripPos;
   late final Vector2 _bodyDescripSize;
   late final Vector2 _bodyDescripPadding;
@@ -64,40 +56,55 @@ abstract class Card extends RoundedBorderComponent
   EventCompleter inputSelect = EventCompleter();
   EventCompleter drawAnimation = EventCompleter();
 
-  // Control tapping and dragging
-  bool tapUpEnabled = true;
-  bool tapDownEnabled = true;
-  bool dragEnabled = true;
-
   // Completer to determine which card was picked
-  // Completer<Card>? onTap;
   void Function(Card)? onTapUpSelector;
   void Function(Card)? onTapDownSelector;
 
-  Card({required this.cardType})
-    : super(borderColor: Colors.black, borderWidth: 2.5, borderRadius: 5.0) {
+  static const double cardBorderWidth = 2.5;
+  static const double cardBorderRadius = 5.0;
+  static const int cardGlowLayers = 3;
+  static const Color cardGlowColor = Colors.yellow;
+  static const Color cardBorderColor = Colors.white;
+  static const Color cardFrontColor = Color.fromARGB(255, 170, 149, 97);
+  static const Color cardBackColor = Color.fromARGB(255, 34, 91, 176);
+
+  Card({
+    required this.cardType,
+    Vector2? totalCardSize,
+    super.position,
+    super.borderWidth = cardBorderWidth,
+    super.borderRadius = cardBorderRadius,
+    super.borderColor = cardBorderColor,
+    super.frontFillColor = cardFrontColor,
+    super.backFillColor = cardBackColor,
+    super.glowColor = cardGlowColor,
+    super.glowLayers = cardGlowLayers,
+    super.isClickable = false,
+    super.isDraggable = false,
+    super.isGlowing = false,
+    super.animateGlow = true,
+  }) : super(totalCardSize: totalCardSize ?? cardSize) {
     anchor = Anchor.bottomCenter;
-    defaultBorderColor = Colors.black;
+    defaultBorderColor = Colors.white;
   }
 
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
   Future<void> executeOnEvent();
+
   double executeOnStay(double currentValue);
+
+  // General description of the card for debugging purposes
   void description();
 
-  void toggleTap(bool toggle) {
-    tapUpEnabled = toggle;
-    tapDownEnabled = toggle;
-  }
-
-  void toggleDrag(bool toggle) {
-    dragEnabled = toggle;
-  }
-
   void toggleAllUserCardMovement(bool toggle) {
-    toggleTap(toggle);
-    toggleDrag(toggle);
+    setClickable(toggle);
+    setDraggable(toggle);
+  }
+
+  void setBorderColor(Color c) {
+    frontFace.borderColor = c;
+    backFace.borderColor = c;
   }
 
   void onDragEndReturnTo(Vector2 returnPos, int priority) {
@@ -115,62 +122,110 @@ abstract class Card extends RoundedBorderComponent
   }
 
   void resetCardSettings() {
+    setBorderColor(cardBorderColor);
+    setGlowing(false);
     resetSize();
-    toggleAllUserCardMovement(true);
-    setBorderColor(defaultBorderColor);
+    toggleAllUserCardMovement(false);
   }
 
-  void dragEndReturnEffect() {
+  Future<void> dragEndReturnEffect() async {
     if (deckReturnTo == null) return;
-
-    dragEndMoveTo?.removeFromParent();
-    dragEndMoveTo = MoveToEffect(
+    await moveTo(
       deckReturnTo!,
-      EffectController(duration: 0.3),
+      EffectController(duration: 0.3, curve: Curves.easeInOut),
     );
+  }
 
-    add(dragEndMoveTo!);
+  // Initial settings when getting drawn from the deck
+  void startAtDeckSetting() {
+    // Hide initially to set up card as flipped down and at card position
+    isVisible = false;
+
+    // reset card settings
+    resetCardSettings();
+
+    // Make sure card is faced down at position
+    if (!isFaceDown) {
+      flipInstant();
+    }
+
+    // Set at deck position
+    position = CardDeck.getDeckCardPosition();
+    isVisible = true;
   }
 
   Future<void> peekAnimation() async {
-    _onDrawEffect = SequenceEffect(
-      [
-        MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
-        ScaleEffect.by(Vector2.all(1.2), EffectController(duration: .5)),
-        ScaleEffect.by(
-          Vector2.all(1.1),
-          EffectController(
-            duration: 0.7,
-            reverseDuration: 0.5,
-            curve: Curves.easeInOut,
-            repeatCount: 3,
-          ),
-        ),
-      ],
-      onComplete: () {
-        // Set border back to black
-        setBorderColor(Colors.black);
+    // Start at deck pile
+    startAtDeckSetting();
 
-        // Remove components and draw effect
-        _onDrawEffect!.removeFromParent();
-        _onDrawEffect = null;
-        removeFromParent();
-
-        // Mark draw animation as resolved to unblock
-        drawAnimation.resolve();
-        //Reset card size
-        resetSize();
-      },
+    await flip(duration: 0.3);
+    await moveTo(
+      game.gameManager.rotationCenter,
+      EffectController(duration: .3),
+    );
+    await scaleBy(Vector2.all(1.2), EffectController(duration: .5));
+    await scaleBy(
+      Vector2.all(1.1),
+      EffectController(
+        duration: 0.7,
+        reverseDuration: 0.5,
+        curve: Curves.easeInOut,
+        repeatCount: 3,
+      ),
     );
 
-    add(_onDrawEffect!);
+    // Set border back to default border
+    setBorderColor(Card.cardBorderColor);
+
+    // Flip over and send back to deck with correct scale
+    await flip(duration: 0.3);
+    await scaleTo(Vector2.all(1), EffectController(duration: 0.3));
+    await moveTo(
+      CardDeck.getDeckCardPosition(),
+      EffectController(duration: .3),
+    );
+
+    // Remove from ui tree
+    removeFromParent();
+
+    // Mark draw animation as resolved to unblock
+    drawAnimation.resolve();
   }
 
-  Future<void> drawFromDeckAnimation({required bool isInfinite}) async {
-    //The effect controller for the third parameter in tbe _onDrawEffect depends
-    //on whether the cardUser is human or CPU. If human, it should repeat forever until onTapUp is registered,
-    //else it repeates 3 times
+  Future<void> drawNonEventCardAnimation(Vector2 cardEndLocation) async {
+    // Start at deck pile
+    startAtDeckSetting();
 
+    // Start moving and then flip
+    double moveToCenterDuration = 0.4;
+    moveTo(
+      game.gameManager.rotationCenter,
+      EffectController(duration: moveToCenterDuration),
+    );
+    flip(duration: moveToCenterDuration);
+
+    // Wait to let player see for a bit
+    await Future.delayed(
+      Duration(milliseconds: (2000 + moveToCenterDuration * 1000).toInt()),
+    );
+
+    // Go to end location (should be new location of card)
+    await moveTo(cardEndLocation, EffectController(duration: 0.3));
+
+    // Mark draw animation as resolved to unblock
+    drawAnimation.resolve();
+  }
+
+  // Starts the draw animation from deck to center until user clicks
+  // TODO: update this function so it works with handEventAction cards (taking sendTo vector position, and going there otherwise going to discard)
+  Future<void> drawEventCardAnimation({required bool isInfinite}) async {
+    // Start at the deck
+    startAtDeckSetting();
+
+    // Events need to be clickable for humans to close it
+    setClickable(true);
+
+    // Human will go infinitely until player clicks, ai auto clicks after period
     final scaleController =
         isInfinite
             ? EffectController(
@@ -186,65 +241,41 @@ abstract class Card extends RoundedBorderComponent
               repeatCount: 3,
             );
 
+    // Move the card to center screen then pulsate until clicked or remove for AI automatically
     _onDrawEffect = SequenceEffect(
       [
-        MoveEffect.by(Vector2(0, 110), EffectController(duration: .3)),
-        ScaleEffect.by(Vector2.all(2.7), EffectController(duration: .5)),
+        MoveEffect.to(
+          game.gameManager.rotationCenter,
+          EffectController(duration: .4),
+        ),
+        ScaleEffect.by(Vector2.all(1.5), EffectController(duration: .5)),
         ScaleEffect.by(Vector2.all(1.1), scaleController),
       ],
-      onComplete: () {
+      onComplete: () async {
+        // NOTE: This onComplete only runs on if scaleController not infinite
+        // Otherwise waiting onTapUp to resolve the function - this onComplete won't be called
+
         // Set border back to black
-        setBorderColor(Colors.black);
+        setBorderColor(Card.cardBorderColor);
 
-        // Remove components and draw effect
-        _onDrawEffect!.removeFromParent();
-        _onDrawEffect = null;
-        removeFromParent();
-
-        // Mark draw animation as resolved to unblock
+        // set back to unclickable
+        setClickable(false);
         drawAnimation.resolve();
-        //Reset card size
-        resetSize();
       },
     );
 
+    // Flip the card up as it's coming from deck
+    await flip(duration: 0.3);
+
+    // Run the draw effect
     add(_onDrawEffect!);
-  }
-
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (!dragEnabled) return;
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    if (!dragEnabled) return;
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    if (!dragEnabled) return;
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-    if (!tapDownEnabled) return;
-    if (onTapDownSelector != null) {
-      onTapDownSelector!(this);
-    }
-  }
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    super.onTapUp(event);
-    if (!tapUpEnabled) return;
-    if (onTapUpSelector != null) {
-      onTapUpSelector!(this);
-    }
+    if (!isDraggable) return;
+    dragEndReturnEffect();
   }
 }
 
@@ -255,27 +286,23 @@ class NumberCard extends Card {
   bool componentInitialized = false;
   Vector2? dragOffset;
 
-  NumberCard({required double value}) : super(cardType: CardType.numberCard) {
+  NumberCard({required double value})
+    : super(cardType: CardType.numberCard, totalCardSize: Card.cardSize) {
     _value = value;
   }
 
   double get value => _value;
   set value(double value) => _value = value;
 
-  void _removeText() {
-    if (componentInitialized) {
-      removeAll([_tlText, _trText, _blText, _brText, _cText]);
-      componentInitialized = false;
-    }
-  }
+  // void _removeText() {
+  //   if (componentInitialized) {
+  //     removeAll([_tlText, _trText, _blText, _brText, _cText]);
+  //     componentInitialized = false;
+  //   }
+  // }
 
-  // NOTE: render manually not on load
-  void _loadCardComponent({
-    required bool firstPersonView,
-    required bool faceUp,
-  }) {
-    _removeText();
-
+  @override
+  Future<void> buildFront(RoundedBorderComponent container) async {
     TextPaint small = TextPaint(
       style: TextStyle(
         color: Colors.black,
@@ -291,70 +318,56 @@ class NumberCard extends Card {
       ),
     );
 
-    if (faceUp) {
-      bool isInt = _value % 1 == 0;
-      String textvalue;
-      if (isInt) {
-        textvalue = _value.toInt().toString();
-      } else {
-        textvalue = _value.toString();
-      }
-
-      _tlText = TextComponent(
-        text: textvalue,
-        position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .1),
-        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-        anchor: Anchor.center,
-        angle: angle,
-        textRenderer: small,
-      );
-      _trText = TextComponent(
-        text: textvalue,
-        position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .1),
-        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-        anchor: Anchor.center,
-        angle: angle,
-        textRenderer: small,
-      );
-      _blText = TextComponent(
-        text: textvalue,
-        position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .9),
-        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-        anchor: Anchor.center,
-        angle: math.pi,
-        textRenderer: small,
-      );
-      _brText = TextComponent(
-        text: textvalue,
-        position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .9),
-        size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-        anchor: Anchor.center,
-        angle: math.pi,
-        textRenderer: small,
-      );
-      _cText = TextComponent(
-        text: textvalue,
-        position: Vector2(Card.cardSize.x * .5, Card.cardSize.y * .5),
-        size: Vector2(Card.cardSize.x * .4, Card.cardSize.y * .4),
-        anchor: Anchor.center,
-        angle: 0,
-        textRenderer: big,
-      );
-
-      size = Card.cardSize;
-
-      if (!firstPersonView) {
-        size *= GameManager.thirdPersonScale.x;
-        _tlText.scale.setFrom(GameManager.thirdPersonScale);
-        _trText.scale.setFrom(GameManager.thirdPersonScale);
-        _blText.scale.setFrom(GameManager.thirdPersonScale);
-        _brText.scale.setFrom(GameManager.thirdPersonScale);
-        _cText.scale.setFrom(GameManager.thirdPersonScale);
-      }
-
-      componentInitialized = true;
-      addAll([_tlText, _trText, _blText, _brText, _cText]);
+    bool isInt = _value % 1 == 0;
+    String textvalue;
+    if (isInt) {
+      textvalue = _value.toInt().toString();
+    } else {
+      textvalue = _value.toString();
     }
+
+    _tlText = TextComponent(
+      text: textvalue,
+      position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .1),
+      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+      anchor: Anchor.center,
+      angle: angle,
+      textRenderer: small,
+    );
+    _trText = TextComponent(
+      text: textvalue,
+      position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .1),
+      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+      anchor: Anchor.center,
+      angle: angle,
+      textRenderer: small,
+    );
+    _blText = TextComponent(
+      text: textvalue,
+      position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .9),
+      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+      anchor: Anchor.center,
+      angle: math.pi,
+      textRenderer: small,
+    );
+    _brText = TextComponent(
+      text: textvalue,
+      position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .9),
+      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+      anchor: Anchor.center,
+      angle: math.pi,
+      textRenderer: small,
+    );
+    _cText = TextComponent(
+      text: textvalue,
+      position: Vector2(Card.cardSize.x * .5, Card.cardSize.y * .5),
+      size: Vector2(Card.cardSize.x * .4, Card.cardSize.y * .4),
+      anchor: Anchor.center,
+      angle: 0,
+      textRenderer: big,
+    );
+
+    container.addAll([_tlText, _trText, _blText, _brText, _cText]);
   }
 
   @override
@@ -375,51 +388,45 @@ class NumberCard extends Card {
   FutureOr<void> onLoad() async {
     super.onLoad();
     // paint = Paint()..color = Colors.white;
-    fillColor = Colors.white;
-    _loadCardComponent(faceUp: true, firstPersonView: true);
+    // fillColor = Colors.white;
+    // _loadCardComponent(faceUp: true, firstPersonView: true);
   }
 
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (!dragEnabled) return;
-    // paint.color = Colors.red;
-    fillColor = Colors.red;
-  }
+  // @override
+  // void onDragStart(DragStartEvent event) {
+  //   super.onDragStart(event);
+  //   if (!dragEnabled) return;
+  //   // paint.color = Colors.red;
+  //   fillColor = Colors.red;
+  // }
 
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    if (!dragEnabled) return;
-    position += event.localDelta;
-  }
+  // @override
+  // void onDragUpdate(DragUpdateEvent event) {
+  //   super.onDragUpdate(event);
+  //   if (!dragEnabled) return;
+  //   position += event.localDelta;
+  // }
 
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    if (!dragEnabled) return;
-    fillColor = Colors.white;
-    dragEndReturnEffect();
-  }
+  // @override
+  // void onDragEnd(DragEndEvent event) {
+  //   super.onDragEnd(event);
+  //   if (!isDraggable) return;
+  //   // fillColor = Colors.white;
+  //   dragEndReturnEffect();
+  // }
 
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    if (!tapDownEnabled) return;
-    print("Tapping down");
-    if (onTapDownSelector != null) {
-      onTapDownSelector!(this);
-    }
+    if (!isClickable || onTapDownSelector == null) return;
+    onTapDownSelector!(this);
   }
 
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
-    if (!tapUpEnabled) return;
-    print("Tapping up");
-    if (onTapUpSelector != null) {
-      onTapUpSelector!(this);
-    }
+    if (!isClickable || onTapUpSelector == null) return;
+    onTapUpSelector!(this);
   }
 
   @override
@@ -437,19 +444,30 @@ abstract class EventActionCard extends Card {
   //They choose Player 2 to be forced to flip 3 cards. Hence player 2 is the affected player.
   Player? affectedPlayer;
 
-  EventActionCard() : super(cardType: CardType.eventActionCard) {
+  late final TextComponent _descripTitle;
+  late final WrappingTextBox _descrip;
+  late final CircularImageComponent _eventIcon;
+  late final RoundedBorderComponent _bodyDescriptionBorder;
+
+  late final String imagePath;
+  late final String descripText;
+  late final String descripTitleText;
+
+  EventActionCard({
+    required this.imagePath,
+    required this.descripText,
+    required this.descripTitleText,
+  }) : super(cardType: CardType.eventActionCard, totalCardSize: Card.cardSize) {
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .37);
     _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .60);
     // x is top and bottom padding y is left, right
     _bodyDescripPadding = Vector2(7, 5);
   }
 
-  void initDescriptionText({
-    String descriptionTitle = "",
-    String description = "",
-  }) {
+  @override
+  Future<void> buildFront(RoundedBorderComponent container) async {
     _descripTitle = TextComponent(
-      text: descriptionTitle,
+      text: descripTitleText,
       position: Vector2(
         Card.halfCardSize.x,
         _bodyDescripPos.y + _bodyDescripPadding.x,
@@ -466,7 +484,7 @@ abstract class EventActionCard extends Card {
     );
 
     _descrip = WrappingTextBox(
-      text: description,
+      text: descripText,
       textStyle: const TextStyle(fontSize: 7, color: Colors.black),
       boxSize: Vector2(
         _bodyDescripSize.x - _bodyDescripPadding.y * 2,
@@ -479,24 +497,13 @@ abstract class EventActionCard extends Card {
       anchor: Anchor.topCenter,
     );
 
-    addAll([_descripTitle, _descrip]);
-  }
-
-  Future<void> initCardIcon(String imagePath) async {
     _eventIcon = CircularImageComponent(
       imagePath: imagePath,
       radius: Card.cardSize.x * .25,
       borderColor: Colors.black,
       borderWidth: 2.0,
     )..position = Vector2(Card.halfCardSize.x, Card.cardSize.y * .17);
-    await add(_eventIcon);
-  }
 
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    size = Card.cardSize;
-    fillColor = Colors.white;
     _bodyDescriptionBorder = RoundedBorderComponent(
       position: _bodyDescripPos,
       size: _bodyDescripSize,
@@ -504,7 +511,27 @@ abstract class EventActionCard extends Card {
       borderColor: Colors.black,
       borderRadius: 5.0,
     );
-    add(_bodyDescriptionBorder);
+
+    container.addAll([
+      _descripTitle,
+      _descrip,
+      _eventIcon,
+      _bodyDescriptionBorder,
+    ]);
+  }
+
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    // size = Card.cardSize;
+    // fillColor = Colors.white;
+    // _bodyDescriptionBorder = RoundedBorderComponent(
+    //   position: _bodyDescripPos,
+    //   size: _bodyDescripSize,
+    //   borderWidth: 1.5,
+    //   borderColor: Colors.black,
+    //   borderRadius: 5.0,
+    // );
+    // add(_bodyDescriptionBorder);
   }
 
   @override
@@ -513,35 +540,25 @@ abstract class EventActionCard extends Card {
     return currentValue;
   }
 
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (!dragEnabled) return;
-    fillColor = Colors.red;
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    if (!dragEnabled) return;
-    position += event.localDelta;
-  }
-
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    if (!dragEnabled) return;
-    fillColor = Colors.white;
-    dragEndReturnEffect();
-  }
+  // @override
+  // void onDragEnd(DragEndEvent event) {
+  //   super.onDragEnd(event);
+  //   if (!isDraggable) return;
+  //   // fillColor = Colors.white;
+  //   dragEndReturnEffect();
+  // }
 
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    if (!tapDownEnabled) return;
-    if (_onDrawEffect != null) {
+    print(
+      "ON TAP DOWN can click: $isClickable | card user: $cardUser | ontapUp: $onTapDownSelector",
+    );
+    if (!isClickable) return;
+    if (_onDrawEffect != null && cardUser != null) {
       // Show a highlight on tap down
-      setBorderColor(Colors.blue);
+      // setBorderColor(Colors.blue);
+      setGlowing(true);
     }
     if (onTapDownSelector != null) {
       onTapDownSelector!(this);
@@ -551,17 +568,19 @@ abstract class EventActionCard extends Card {
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
-    if (!tapUpEnabled) return;
-    if (cardUser == null) return;
-    // If draw effect running
-    if (_onDrawEffect != null && !cardUser!.isCpu()) {
-      // Set border back to black
-      setBorderColor(Colors.black);
+    print(
+      "ON TAP UP can click: $isClickable | card user: $cardUser | ontapUp: $onTapUpSelector",
+    );
+    if (!isClickable) return;
+    // If draw effect running, and user clicked on it remove the effect and mark user as clicked by resolving
+    if (_onDrawEffect != null && cardUser != null && !cardUser!.isCpu()) {
+      print("COMPLETEING DRAW EFFECT");
+      setGlowing(false);
+      setClickable(false);
 
       // Remove components and draw effect
       _onDrawEffect!.removeFromParent();
       _onDrawEffect = null;
-      removeFromParent();
 
       // Mark draw animation as resolved to unblock
       drawAnimation.resolve();
@@ -581,7 +600,6 @@ abstract class EventActionCard extends Card {
     game.gameManager.runningEvent!.inputSelect.init();
     await game.gameManager.runningEvent!.inputSelect.wait();
     print("The player has been chosen!");
-    return;
   }
 
   void resolveEventCompleter() {
@@ -597,7 +615,6 @@ abstract class EventActionCard extends Card {
 
     //Make buttons unclickale
     game.gameManager.makePlayersUnclickable();
-    return;
   }
 
   @override
@@ -608,26 +625,44 @@ abstract class EventActionCard extends Card {
 }
 
 // Extension of event - same thing, but gets added to hand instantly unlike regular event cards
-abstract class HandEventActionCard extends EventActionCard {}
+abstract class HandEventActionCard extends EventActionCard {
+  HandEventActionCard({
+    required super.imagePath,
+    required super.descripText,
+    required super.descripTitleText,
+  });
+}
 
 abstract class TaxHandEventActionCard extends HandEventActionCard {
+  TaxHandEventActionCard({
+    required super.imagePath,
+    required super.descripText,
+    required super.descripTitleText,
+  });
   double playerTaxRate({required Player currentPlayer});
 }
 
 //Value Action Abstract Card:
 abstract class ValueActionCard extends Card {
   late final double _value;
-  // late final WrappingTextBox _descrip;
-  // late final TextComponent _descripTitle; // Description box
-  late final ValueActionTitleText _titleText;
-  // late final RoundedBorderComponent _bodyDescriptionBorder;
 
-  // late final Vector2 _bodyDescripPos;
-  // late final Vector2 _bodyDescripSize;
-  // late final Vector2 _bodyDescripPadding;
+  late final ValueActionTitleText
+  _titleText; // The +, -, x for the type of value action
+  late final TextComponent _descripTitle;
+  late final WrappingTextBox _descrip;
+  late final RoundedBorderComponent _bodyDescriptionBorder;
 
-  ValueActionCard({required double value})
-    : super(cardType: CardType.valueActionCard) {
+  late final String actionText;
+  late final String descripText;
+  late final String descripTitleText;
+
+  ValueActionCard({
+    required double value,
+    required super.cardType,
+    required this.actionText,
+    required this.descripText,
+    required this.descripTitleText,
+  }) : super(totalCardSize: Card.cardSize) {
     _value = value;
     _bodyDescripPos = Vector2(Card.cardSize.x * .1, Card.cardSize.y * .5);
     _bodyDescripSize = Vector2(Card.cardSize.x * .8, Card.cardSize.y * .47);
@@ -636,6 +671,62 @@ abstract class ValueActionCard extends Card {
   }
 
   double get value => _value;
+
+  @override
+  Future<void> buildFront(RoundedBorderComponent container) async {
+    _descripTitle = TextComponent(
+      text: descripTitleText,
+      position: Vector2(
+        Card.halfCardSize.x,
+        _bodyDescripPos.y + _bodyDescripPadding.x,
+      ),
+      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 7.6,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    _descrip = WrappingTextBox(
+      text: descripText,
+      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+      boxSize: Vector2(
+        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+        Card.cardSize.y * .45 - _descripTitle.size.y,
+      ),
+      position: Vector2(
+        Card.halfCardSize.x,
+        _descripTitle.position.y + _descripTitle.size.y + .5,
+      ),
+      anchor: Anchor.topCenter,
+    );
+
+    _bodyDescriptionBorder = RoundedBorderComponent(
+      position: _bodyDescripPos,
+      size: _bodyDescripSize,
+      borderWidth: 1.5,
+      borderColor: Colors.black,
+      borderRadius: 5.0,
+    );
+
+    String valueString = doubleToStringNoTrailingZeros(_value, 5);
+    _titleText = ValueActionTitleText(
+      valueTypeText: actionText,
+      numberTitleText: valueString,
+    );
+    container.add(_titleText);
+
+    // TODO: Check that you can set center before adding it to container?
+    final center = _titleText.getCenterSize();
+    _titleText.position =
+        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+
+    container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
+  }
 
   void initDescriptionText({
     String descriptionTitle = "",
@@ -693,45 +784,44 @@ abstract class ValueActionCard extends Card {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    size = Card.cardSize;
-    fillColor = Colors.white;
-    _bodyDescriptionBorder = RoundedBorderComponent(
-      position: _bodyDescripPos,
-      size: _bodyDescripSize,
-      borderWidth: 1.5,
-      borderColor: Colors.black,
-      borderRadius: 5.0,
-    );
-    add(_bodyDescriptionBorder);
+    // size = Card.cardSize;
+    // fillColor = Colors.white;
+    // _bodyDescriptionBorder = RoundedBorderComponent(
+    //   position: _bodyDescripPos,
+    //   size: _bodyDescripSize,
+    //   borderWidth: 1.5,
+    //   borderColor: Colors.black,
+    //   borderRadius: 5.0,
+    // );
+    // add(_bodyDescriptionBorder);
   }
 
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (!dragEnabled) return;
-    fillColor = Colors.red;
-  }
+  // @override
+  // void onDragStart(DragStartEvent event) {
+  //   super.onDragStart(event);
+  //   if (!dragEnabled) return;
+  //   fillColor = Colors.red;
+  // }
 
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    if (!dragEnabled) return;
-    position += event.localDelta;
-  }
+  // @override
+  // void onDragUpdate(DragUpdateEvent event) {
+  //   super.onDragUpdate(event);
+  //   if (!dragEnabled) return;
+  //   position += event.localDelta;
+  // }
 
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    if (!dragEnabled) return;
-    fillColor = Colors.white;
-    dragEndReturnEffect();
-  }
+  // @override
+  // void onDragEnd(DragEndEvent event) {
+  //   super.onDragEnd(event);
+  //   if (!isDraggable) return;
+  //   // fillColor = Colors.white;
+  //   dragEndReturnEffect();
+  // }
 
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    if (!tapDownEnabled) return;
-    print("Tapping down");
+    if (!isClickable) return;
     if (onTapDownSelector != null) {
       onTapDownSelector!(this);
     }
@@ -740,8 +830,7 @@ abstract class ValueActionCard extends Card {
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
-    if (!tapUpEnabled) return;
-    print("Tapping Up");
+    if (!isClickable) return;
     if (onTapUpSelector != null) {
       onTapUpSelector!(this);
     }

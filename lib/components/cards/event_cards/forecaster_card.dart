@@ -8,7 +8,13 @@ import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class ForecasterCard extends EventActionCard {
-  ForecasterCard() {
+  ForecasterCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Forecaster",
+        descripText:
+            "Forecasts the next 4 cards, but not necessarily in the order that they will appear!",
+      ) {
     eventEnum = EventCardEnum.Forecaster;
   }
 
@@ -21,12 +27,6 @@ class ForecasterCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "Forecasts the next 4 cards, but not necessarily in the order that they will appear!",
-      descriptionTitle: "Forecaster",
-    );
   }
 
   @override
@@ -39,34 +39,55 @@ class ForecasterCard extends EventActionCard {
 
     List<Card> cards = [];
 
-    // draw 4 cards, shuffle them
+    // draw 4 cards and animate them moving to center
     for (int i = 0; i < 4; ++i) {
       Card c = game.gameManager.deck.draw();
       cards.add(c);
 
-      // Disable drag and tap movements
-      c.toggleAllUserCardMovement(false);
-      print("Drew card $c");
+      // Make cards initially false so it can be relocated to center before it's adedd
+      c.isVisible = false;
+
+      // Add card and start it at deck setting
+      await game.world.add(c);
+      c.startAtDeckSetting();
+
+      // Go to game center
+      await _goToGameCenter(c);
     }
-    cards.shuffle();
+
+    // Animate cards going to correct offset
+    await _cardSpreadAnimation(cards);
+
+    // After all cards drawn and in correct place then flip only for humans
     if (!game.gameManager.getCurrentPlayer!.isCpu()) {
-      // Drawing 3 cards should show the cards in an animation in center
-      await game.world.addAll(cards);
-
-      // Start animation
-      await _choiceDrawStartAnimation(cards);
-
-      //
-      // Reshuffle cards for extra measure, then re-add them to deck
-      cards.shuffle();
-      game.world.removeAll(cards);
+      for (int i = 0; i < 4; ++i) {
+        cards[i].flip(duration: 0.3);
+      }
     }
-    //TO DO: If it was a CPU, have anims, but only show back cover of cards
-    //so you can't see what each card actually is
 
+    // Show cards for a bit before putting them back
+    await Future.delayed(Duration(milliseconds: 2000));
+
+    // Flip cards (only when shown - for human) and put back to center
+    // this is done in two for loops, so the order in which they are put back in center is not known
+    if (!game.gameManager.getCurrentPlayer!.isCpu()) {
+      for (var card in cards) {
+        if (!card.isFaceDown) {
+          await card.flip(duration: 0.2);
+        }
+      }
+    }
+    // Put all in center at once
+    for (var card in cards) {
+      await _goToGameCenter(card);
+    }
+
+    // Shuffle card order before putting cards back in after animation has finished
+    cards.shuffle();
+
+    // Put cards back to deck
     for (final card in cards) {
-      card.resetCardSettings();
-      game.gameManager.deck.putCardBack(card);
+      await game.gameManager.deck.putBackToDeckAnimation(card);
     }
 
     //CPU action logic is handled by gameManager because gameManager handles second choice logic
@@ -74,39 +95,37 @@ class ForecasterCard extends EventActionCard {
     resolveEventCompleter();
   }
 
-  Future<void> _choiceDrawStartAnimation(List<Card> cards) async {
+  // Animates going to center
+  Future<void> _goToGameCenter(Card card) async {
     final Vector2 gameCenter = game.gameManager.rotationCenter;
 
-    // Step 1: Move all cards to center (just fire and forget)
-    for (final card in cards) {
-      card.priority = 100;
-      card.scale = Vector2.all(1.1);
-      card.add(
-        MoveEffect.to(
-          gameCenter,
-          EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
-        ),
-      );
-    }
+    // Animate card getting bigger and going to center
+    card.priority = 100;
+    card.scaleTo(Vector2.all(1.1), EffectController(duration: 0.3));
+    await card.moveTo(
+      gameCenter,
+      EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
+    );
+  }
 
-    // Step 2: Fan them out (a bit later so it looks animated)
-    await Future.delayed(const Duration(milliseconds: 400));
+  // Animates card spread
+  Future<void> _cardSpreadAnimation(List<Card> cards) async {
+    final Vector2 gameCenter = game.gameManager.rotationCenter;
+
     const double spread = 240.0;
     final offsets = [-1.5 * spread, -0.5 * spread, 0.5 * spread, 1.5 * spread];
 
-    for (var i = 0; i < cards.length && i < offsets.length; i++) {
-      cards[i].add(
-        MoveEffect.to(
-          Vector2(gameCenter.x + offsets[i], gameCenter.y),
-          EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
+    // Move to offset
+    for (var i = 0; i < cards.length; ++i) {
+      await cards[i].moveTo(
+        Vector2(gameCenter.x + offsets[i], gameCenter.y),
+        EffectController(
+          duration: 0.4,
+          curve: mat.Curves.easeInOut,
+          startDelay: 0.2,
         ),
       );
     }
-
-    // Step 3: Wait 3 seconds total for the animations to be seen
-    await Future.delayed(const Duration(seconds: 3));
-
-    print('Animation complete and cards removed');
   }
 
   @override

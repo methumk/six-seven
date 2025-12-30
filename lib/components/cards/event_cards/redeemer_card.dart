@@ -6,7 +6,13 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class RedeemerCard extends HandEventActionCard {
-  RedeemerCard() {
+  RedeemerCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Redeemer",
+        descripText:
+            "User will have this card for the remainder the round. If they get a duplicate number card, instead of busting, they get 67% of the points from the round (not including duplicate)!",
+      ) {
     eventEnum = EventCardEnum.Redeemer;
   }
 
@@ -19,12 +25,12 @@ class RedeemerCard extends HandEventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "User will have this card for the remainder the round. If they get a duplicate number card, instead of busting, they get 67% of the points from the round (not including duplicate)!",
-      descriptionTitle: "Redeemer",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description:
+    //       "User will have this card for the remainder the round. If they get a duplicate number card, instead of busting, they get 67% of the points from the round (not including duplicate)!",
+    //   descriptionTitle: "Redeemer",
+    // );
   }
 
   //Grants redeemer
