@@ -34,41 +34,6 @@ class ChoiceDraw extends EventActionCard {
     return currentValue;
   }
 
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-  }
-
-  Future<void> _choiceDrawStartAnimation(List<Card> cards) async {
-    final Vector2 gameCenter = game.gameManager.rotationCenter;
-    // Move all cards to center
-    for (final card in cards) {
-      card.priority = 100; // ensure they're visible above everything
-      card.scaleTo(Vector2.all(1.1), EffectController(duration: 0.3));
-      await card.moveTo(
-        gameCenter,
-        EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
-      ); // custom tween helper
-    }
-
-    // Fan out cards
-    const spread = 180.0; // pixel offset between cards
-    final offsets = [-spread, 0, spread];
-    for (int i = 0; i < offsets.length; i++) {
-      // Move left and right cards only
-      if (i != 1) {
-        await cards[i].moveTo(
-          Vector2(gameCenter.x + offsets[i], gameCenter.y),
-          EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
-        );
-      } else {
-        // Simulate delay to keep flips uniform
-        await Future.delayed(Duration(milliseconds: 200));
-      }
-      cards[i].flip(duration: 0.3);
-    }
-  }
-
   Future<Card> _determineAiChoice(
     List<Card> cards,
     CpuPlayer currPlayer,
@@ -180,6 +145,7 @@ class ChoiceDraw extends EventActionCard {
       return;
     }
 
+    final Vector2 gameCenter = game.gameManager.rotationCenter;
     Player currPlayer = game.gameManager.getCurrentPlayer!;
 
     List<Card> cards = [];
@@ -196,13 +162,16 @@ class ChoiceDraw extends EventActionCard {
       c.startAtDeckSetting();
 
       print("Drew card $c");
+
+      // animate card going to game center from deck
+      await _goToLocation(c, gameCenter);
     }
 
-    // // Drawing 3 cards should show the cards in an animation in center
-    // await game.world.addAll(cards);
-
-    // Start animation
-    await _choiceDrawStartAnimation(cards);
+    // Spread the cards and then flip them
+    await _cardSpreadAnimation(cards, gameCenter);
+    for (int i = 0; i < 3; ++i) {
+      await cards[i].flip(duration: 0.3);
+    }
 
     if (currPlayer.isCpu()) {
       // CPU Player
@@ -230,7 +199,7 @@ class ChoiceDraw extends EventActionCard {
       print("SELECTED $selected");
     }
 
-    // Remove unselected cards from view, Restore card setting changes, add to discard pile
+    // Remove only the unselected cards from the 3 choice draw and send them to discard
     cards.remove(selected);
     await game.gameManager.deck.sendAllToDiscardPileAnimation(
       cards,
@@ -255,6 +224,70 @@ class ChoiceDraw extends EventActionCard {
     // discard the card
     resolveEventCompleter();
   }
+
+  Future<void> _goToLocation(Card card, Vector2 gameCenter) async {
+    final Vector2 gameCenter = game.gameManager.rotationCenter;
+
+    card.priority = 100; // ensure they're visible above everything
+    card.scaleTo(Vector2.all(1.1), EffectController(duration: 0.3));
+    await card.moveTo(
+      gameCenter,
+      EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
+    ); // custom tween helper
+  }
+
+  Future<void> _cardSpreadAnimation(
+    List<Card> cards,
+    Vector2 gameCenter,
+  ) async {
+    final Vector2 gameCenter = game.gameManager.rotationCenter;
+
+    // Fan out cards
+    const spread = 180.0; // pixel offset between cards
+    final offsets = [-spread, 0, spread];
+    for (int i = 0; i < offsets.length; i++) {
+      // Move left and right cards only
+      if (i != 1) {
+        await cards[i].moveTo(
+          Vector2(gameCenter.x + offsets[i], gameCenter.y),
+          EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
+        );
+      } else {
+        // Simulate delay to keep flips uniform
+        await Future.delayed(Duration(milliseconds: 200));
+      }
+    }
+  }
+
+  // Future<void> _choiceDrawStartAnimation(List<Card> cards) async {
+  //   final Vector2 gameCenter = game.gameManager.rotationCenter;
+  //   // Move all cards to center
+  //   for (final card in cards) {
+  //     card.priority = 100; // ensure they're visible above everything
+  //     card.scaleTo(Vector2.all(1.1), EffectController(duration: 0.3));
+  //     await card.moveTo(
+  //       gameCenter,
+  //       EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
+  //     ); // custom tween helper
+  //   }
+
+  //   // Fan out cards
+  //   const spread = 180.0; // pixel offset between cards
+  //   final offsets = [-spread, 0, spread];
+  //   for (int i = 0; i < offsets.length; i++) {
+  //     // Move left and right cards only
+  //     if (i != 1) {
+  //       await cards[i].moveTo(
+  //         Vector2(gameCenter.x + offsets[i], gameCenter.y),
+  //         EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
+  //       );
+  //     } else {
+  //       // Simulate delay to keep flips uniform
+  //       await Future.delayed(Duration(milliseconds: 200));
+  //     }
+  //     cards[i].flip(duration: 0.3);
+  //   }
+  // }
 
   @override
   void description() {
