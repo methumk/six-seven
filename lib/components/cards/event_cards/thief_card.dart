@@ -157,31 +157,22 @@ class ThiefCard extends EventActionCard {
     //$aX+b$ value, store that player instead. After the iteration, the chosen player who is left will be chosen for the card.
 
     double numberCardsValue = 0;
-    for (NumberCard numberCard in cardUser!.numberHand) {
-      numberCardsValue += numberCard.value;
-    }
-    //If numberCardsValue is $0$ because there are no number cards in user's hand yet,
-    //Treat number cards value as $1$ such that multipliers can affect it
-    if (numberCardsValue == 0) {
-      numberCardsValue = 1;
-    }
+    //Multiplier starts as x1 by default
     double currentMultValue = 1;
-    for (MultCard multCard in cardUser!.multHand) {
-      currentMultValue *= multCard.value;
-    }
-
     double currentPlusValue = 0;
-    for (PlusCard plusCard in cardUser!.addHand) {
-      currentPlusValue += plusCard.value;
-    }
-
     double currentMinusValue = 0;
-    for (List<MinusCard> minusCardList in cardUser!.minusHandMap.values) {
-      for (MinusCard minusCard in minusCardList) {
-        currentMinusValue -= minusCard.value;
-      }
-    }
-
+    (
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+    ) = calculateCardUserValues(
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+      cardUser,
+    );
     double currentHypotheticalValue =
         currentMultValue * numberCardsValue + currentPlusValue;
 
@@ -212,36 +203,78 @@ class ThiefCard extends EventActionCard {
     }
     return affectedPlayer!;
   }
+}
 
-  //method for calculating rival hypothetical value
-  double calculateRivalHypotheticalValue(
-    double numberCardsValue,
-    double currentMultValue,
-    double currentPlusValue,
-    double currentMinusValue,
-    Player player,
-  ) {
-    double multipliers = 1;
-    double plusMinusValues = 0;
-    for (MultCard multCard in player.multHand) {
-      multipliers *= multCard.value;
-    }
-    //Add current multipliers of card user
-    multipliers *= currentMultValue;
-    for (PlusCard plusCard in player.addHand) {
-      plusMinusValues += plusCard.value;
-    }
-    //Add current plus values of card user
-    plusMinusValues += currentPlusValue;
-    for (List<MinusCard> minusCardList in player.minusHandMap.values) {
-      for (MinusCard minusCard in minusCardList) {
-        plusMinusValues -= minusCard.value;
-      }
-    }
-    //Add current minus values of card user
-    plusMinusValues -= currentMinusValue;
-
-    //Calculate rival hypothetical value and compare it to the current hypothetical value
-    return multipliers * numberCardsValue + plusMinusValues;
+//method for calculating rival hypothetical value
+double calculateRivalHypotheticalValue(
+  double numberCardsValue,
+  double currentMultValue,
+  double currentPlusValue,
+  double currentMinusValue,
+  Player player,
+) {
+  double multipliers = 1;
+  double plusMinusValues = 0;
+  for (MultCard multCard in player.multHand) {
+    multipliers *= multCard.value;
   }
+  //Add current multipliers of card user
+  multipliers *= currentMultValue;
+  for (PlusCard plusCard in player.addHand) {
+    plusMinusValues += plusCard.value;
+  }
+  //Add current plus values of card user
+  plusMinusValues += currentPlusValue;
+  for (List<MinusCard> minusCardList in player.minusHandMap.values) {
+    for (MinusCard minusCard in minusCardList) {
+      plusMinusValues -= minusCard.value;
+    }
+  }
+  //Add current minus values of card user
+  plusMinusValues -= currentMinusValue;
+
+  //Calculate rival hypothetical value and compare it to the current hypothetical value
+  return multipliers * numberCardsValue + plusMinusValues;
+}
+
+//Method for calculating card user's default values and current hypothetical value
+//Notice the return type is a record data structure; this allows us to make the double variable
+//inputs mutable, which is super nice
+(double, double, double, double) calculateCardUserValues(
+  double numberCardsValue,
+  double currentMultValue,
+  double currentPlusValue,
+  double currentMinusValue,
+  Player? cardUser,
+) {
+  //Number card values
+  for (NumberCard numberCard in cardUser!.numberHand) {
+    numberCardsValue += numberCard.value;
+  }
+  //If numberCardsValue is $0$ because there are no number cards in user's hand yet,
+  //Treat number cards value as $1$ such that multipliers can affect it
+  if (numberCardsValue == 0) {
+    numberCardsValue = 1;
+  }
+  //Mult card values
+  for (MultCard multCard in cardUser!.multHand) {
+    currentMultValue *= multCard.value;
+  }
+  //Plus card values
+  for (PlusCard plusCard in cardUser!.addHand) {
+    currentPlusValue += plusCard.value;
+  }
+
+  //Minus card values
+  for (List<MinusCard> minusCardList in cardUser!.minusHandMap.values) {
+    for (MinusCard minusCard in minusCardList) {
+      currentMinusValue -= minusCard.value;
+    }
+  }
+  return (
+    numberCardsValue,
+    currentMultValue,
+    currentPlusValue,
+    currentMinusValue,
+  );
 }
