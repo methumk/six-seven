@@ -9,6 +9,7 @@ import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
     as cd;
@@ -694,6 +695,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     evEventCard += calculateEVRedeemer(currentPlayer, isAlone: false);
     evEventCard += calculateEVDiscarder(currentPlayer);
     evEventCard += calculateEVIncomeTax(currentPlayer, isAlone: false);
+    evEventCard += calculateEVThief(currentPlayer, isAlone: false);
 
     print("Final EV Event Alone: ${evEventCard}");
     return evEventCard;
@@ -721,8 +723,68 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     evEventCard += calculateEVRedeemer(currentPlayer, isAlone: true);
     evEventCard += calculateEVDiscarder(currentPlayer);
     evEventCard += calculateEVIncomeTax(currentPlayer, isAlone: true);
+    evEventCard += calculateEVThief(currentPlayer, isAlone: true);
     print("Final EV Event Alone: ${evEventCard}");
     return evEventCard;
+  }
+
+  //Method for calculating ev of thief
+  double calculateEVThief(Player currentPlayer, {required bool isAlone}) {
+    if (isAlone) {
+      print("Since player is alone, thief card is useless. EV is 0");
+      return 0;
+    }
+    int numCardsLeft = deck.deckListLength;
+    double numberCardsValue = 0;
+    //Multiplier starts as x1 by default
+    double currentMultValue = 1;
+    double currentPlusValue = 0;
+    double currentMinusValue = 0;
+    (
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+    ) = calculateCardUserValues(
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+      currentPlayer,
+    );
+    double currentHypotheticalValue =
+        currentMultValue * numberCardsValue + currentPlusValue;
+    print("Current hypothetical value before steal: $currentHypotheticalValue");
+    double bestRivalHypotheticalValue = currentHypotheticalValue;
+    for (Player player in game.gameManager.players) {
+      if (!player.isDone &&
+          player != currentPlayer &&
+          player.dch.valueCardLength > 0) {
+        double rivalHypotheticalValue = calculateRivalHypotheticalValue(
+          numberCardsValue,
+          currentMultValue,
+          currentPlusValue,
+          currentMinusValue,
+          player,
+        );
+        print(
+          "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",
+        );
+        if (rivalHypotheticalValue >= bestRivalHypotheticalValue) {
+          bestRivalHypotheticalValue = rivalHypotheticalValue;
+        }
+      }
+    }
+    //The raw thief value is just the difference between bestRivalHypotheticalValue and currentHypotheticalValue
+    print(
+      "Thief raw value: ${bestRivalHypotheticalValue - currentHypotheticalValue}",
+    );
+    double thiefEv =
+        (bestRivalHypotheticalValue - currentHypotheticalValue) *
+        deck.eventCardsLeft[EventCardEnum.Thief]! /
+        numCardsLeft;
+    print("Thief EV: ${thiefEv}");
+    return thiefEv;
   }
 
   //Method for calculating ev of income tax card when alone
