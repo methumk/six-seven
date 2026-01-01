@@ -123,7 +123,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
     eventNumericalEVAlone = {
       EventCardEnum.ChoiceDraw: 5,
       EventCardEnum.FlipThree: -5.5,
-      EventCardEnum.Forecaster: 2,
+      EventCardEnum.Forecaster: 3,
       EventCardEnum.Freeze: 0,
       //Income tax depends on player's ranking.
       //Hence the idea is: after the for loop of all the event cards excluding income tax,
@@ -131,7 +131,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.LuckyDie: 4.35,
       EventCardEnum.ReverseTurn: 0,
       EventCardEnum.SunkProphet: -4.5,
-      EventCardEnum.Thief: 0,
       EventCardEnum.TopPeek: 5,
 
       //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
@@ -140,14 +139,14 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // EventCardEnum.Redeemer: 7 ? 0,
       // EventCardEnum.Discarder: It really depends,
       // EventCardEnum.IncomeTax: it really depends,
+      // EventCardEnum.Thief: It really depends
     };
 
     eventNumericalEVNotAlone = {
       EventCardEnum.ChoiceDraw: 5,
-
       EventCardEnum.FlipThree: 5.5,
-      EventCardEnum.Forecaster: 2,
-      EventCardEnum.Freeze: 5,
+      EventCardEnum.Forecaster: 3,
+      EventCardEnum.Freeze: 7,
 
       //Income tax depends on player's ranking.
       //Hence the idea is: after the for loop of all the event cards excluding income tax,
@@ -155,7 +154,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
       EventCardEnum.LuckyDie: 4.35,
       EventCardEnum.ReverseTurn: 0,
       EventCardEnum.SunkProphet: -4.5,
-      EventCardEnum.Thief: 2,
       EventCardEnum.TopPeek: 5,
 
       //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
@@ -164,6 +162,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
       // EventCardEnum.Redeemer: 7 ? 0 or -4,
       // EventCardEnum.Discarder: It really depends,
       // EventCardEnum.IncomeTax: it really depends,
+      // EventCardEnum.Thief: It really depends
     };
     initNumberCards();
     initValueActionCards();
