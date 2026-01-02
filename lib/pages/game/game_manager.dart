@@ -53,7 +53,7 @@ import 'package:six_seven/utils/player_stack.dart';
 // }
 
 // When we want a different action that just rotating after dealing with an event card
-enum EventDifferentAction { none, topPeek, forecast, flipThree }
+enum EventDifferentAction { none, topPeek, forecast }
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
@@ -188,8 +188,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
       },
     );
-    //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
-    turnStarterPlayerIndex = -1;
+    turnStarterPlayerIndex = 0;
 
     print("winning threshold: ${winningThreshold}");
   }
@@ -227,8 +226,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     return gameOver;
   }
-
-  void calculateLeaderBoard() {}
 
   Future<void> handleNewRound() async {
     // Show round over animation
@@ -755,7 +752,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     double currentHypotheticalValue =
         currentMultValue * numberCardsValue + currentPlusValue;
     print("Current hypothetical value before steal: $currentHypotheticalValue");
-    double bestRivalHypotheticalValue = currentHypotheticalValue;
+    double bestRivalHypotheticalValue = -100000;
     for (Player player in game.gameManager.players) {
       if (!player.isDone &&
           player != currentPlayer &&
@@ -775,6 +772,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         }
       }
     }
+    //If noone can be stolen from, raw value is 0
+    if (bestRivalHypotheticalValue == -100000) {
+      print("No other player can be stolen. Thief raw value is 0");
+      return 0;
+    }
+    // Else, there was an existing candidate to steal from, and their best hypothetical value was stored.
     //The raw thief value is just the difference between bestRivalHypotheticalValue and currentHypotheticalValue
     print(
       "Thief raw value: ${bestRivalHypotheticalValue - currentHypotheticalValue}",
@@ -1088,9 +1091,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         lowestPlus = plusCard.value;
       }
     }
-    print(
-      "Player might have to remove a plus card of value ${lowestPlus}! Discarder Raw value candidate due to removing a plus card: ${-lowestPlus} ",
-    );
+    if (lowestPlus < 67) {
+      print(
+        "Player might have to remove a plus card of value ${lowestPlus}! Discarder Raw value candidate due to removing a plus card: ${-lowestPlus} ",
+      );
+    }
     if (lowestPlus < 67) {
       if (badDiscarderEV == 0) {
         badDiscarderEV =
@@ -1273,8 +1278,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           // Remove badge
           hud.hideHitCountBadge();
 
+          ////The following two lines are commented out; player shouldn't have to have another turn after using flip three
           // Return flipThree, so we can return and the current user gets another chance to hit or stay
-          returnType = EventDifferentAction.flipThree;
+          // returnType = EventDifferentAction.flipThree;
         } else {
           print("ERROR - Flip 3 doesn't have a valid affected player set!");
         }
@@ -1649,8 +1655,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     runningEvent = null;
 
     if ((eventDifferentAction == EventDifferentAction.topPeek ||
-            eventDifferentAction == EventDifferentAction.forecast ||
-            eventDifferentAction == EventDifferentAction.flipThree) &&
+            eventDifferentAction == EventDifferentAction.forecast) &&
         !getCurrentPlayer!.isDone) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
