@@ -119,6 +119,7 @@ abstract class Card extends CardComponent
   void resetSize() {
     size = Card.cardSize;
     scale = Vector2.all(1.0);
+    priority = 1;
   }
 
   void resetCardSettings() {
@@ -152,44 +153,6 @@ abstract class Card extends CardComponent
     // Set at deck position
     position = CardDeck.getDeckCardPosition();
     isVisible = true;
-  }
-
-  Future<void> peekAnimation() async {
-    // Start at deck pile
-    startAtDeckSetting();
-
-    await flip(duration: 0.3);
-    await moveTo(
-      game.gameManager.rotationCenter,
-      EffectController(duration: .3),
-    );
-    await scaleBy(Vector2.all(1.2), EffectController(duration: .5));
-    await scaleBy(
-      Vector2.all(1.1),
-      EffectController(
-        duration: 0.7,
-        reverseDuration: 0.5,
-        curve: Curves.easeInOut,
-        repeatCount: 3,
-      ),
-    );
-
-    // Set border back to default border
-    setBorderColor(Card.cardBorderColor);
-
-    // Flip over and send back to deck with correct scale
-    await flip(duration: 0.3);
-    await scaleTo(Vector2.all(1), EffectController(duration: 0.3));
-    await moveTo(
-      CardDeck.getDeckCardPosition(),
-      EffectController(duration: .3),
-    );
-
-    // Remove from ui tree
-    removeFromParent();
-
-    // Mark draw animation as resolved to unblock
-    drawAnimation.resolve();
   }
 
   Future<void> drawNonEventCardAnimation(Vector2 cardEndLocation) async {
