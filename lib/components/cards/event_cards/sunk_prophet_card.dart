@@ -27,17 +27,6 @@ class SunkProphet extends EventActionCard {
   }
 
   @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description:
-    //       "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
-    //   descriptionTitle: "Sunk Prophet",
-    // );
-  }
-
-  @override
   Future<void> executeOnEvent() async {
     Player? p = game.gameManager.getCurrentPlayer;
     if (p == null) {
