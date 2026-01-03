@@ -30,11 +30,6 @@ class ReverseTurnCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description: "Reverses turn order!",
-    //   descriptionTitle: "Reverse Turn",
-    // );
     game.world.add(announcementText);
   }
 
