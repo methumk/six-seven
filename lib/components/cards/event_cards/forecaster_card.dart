@@ -41,7 +41,7 @@ class ForecasterCard extends EventActionCard {
 
     // draw 4 cards and animate them moving to center
     for (int i = 0; i < 4; ++i) {
-      Card c = game.gameManager.deck.draw();
+      Card c = await game.gameManager.deck.draw();
       cards.add(c);
 
       // Make cards initially false so it can be relocated to center before it's adedd

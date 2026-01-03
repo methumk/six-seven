@@ -697,7 +697,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Show current player decided to hit
     await currentPlayer.playerActionText.setAsHitting();
 
-    final card = deck.draw();
+    final card = await deck.draw();
     print("Got card: $card ${card.cardType}");
 
     if (card is! cd.EventActionCard) {

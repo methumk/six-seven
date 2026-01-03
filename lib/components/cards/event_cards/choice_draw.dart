@@ -153,7 +153,7 @@ class ChoiceDraw extends EventActionCard {
 
     // draw 3 cards, let the user pick which one they key, and discard the rest
     for (int i = 0; i < 3; ++i) {
-      Card c = game.gameManager.deck.draw();
+      Card c = await game.gameManager.deck.draw();
       cards.add(c);
 
       // Hide card and then add it to world, then set default start at deck settings
