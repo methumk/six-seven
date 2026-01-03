@@ -24,17 +24,6 @@ class LuckyDieCard extends EventActionCard {
   }
 
   @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description:
-    //       "Roll a 7 sided die. Rolling a 1,2,3,4, or 5 gets you those points respectively. Rolling a 6 or 7 gets you -6 or -7 points respectively. Max roll 7 times!",
-    //   descriptionTitle: "Lucky Die",
-    // );
-  }
-
-  @override
   Future<void> executeOnEvent() async {
     Player? p = game.gameManager.getCurrentPlayer;
     if (p == null) {
