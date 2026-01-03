@@ -276,7 +276,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     pot.reset();
     donePlayers.clear();
     rotationPlayerOffset = 0;
-    currentPlayerIndex = 0;
+    turnStarterPlayerIndex = (turnStarterPlayerIndex + 1) % totalPlayerCount;
+    currentPlayerIndex = turnStarterPlayerIndex;
 
     // await game.showRoundPointsDialog(players);
     await game.showLeaderboard(
@@ -293,7 +294,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       await players[i].resetRound();
 
-      PlayerSlot currSlot = _getSetUpPosIndex(i);
+      //since you increment player, you want the next player to be one BEFORE their previos start. Subtract by turnstarter
+      PlayerSlot currSlot = _getSetUpPosIndex(
+        (i - turnStarterPlayerIndex) % totalPlayerCount,
+      );
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
       players[i].position = pos;
       players[i].currSlot = currSlot;
@@ -1825,7 +1829,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     PlayerCountSlotConfig pcc = PlayerCountSlotConfig.fromPlayerCount(
       totalPlayerCount,
     );
+    // print("Config: $pcc");
 
+    // print("label: ${pcc.label[playerIndex % totalPlayerCount]}");
     return pcc.label[playerIndex % totalPlayerCount];
   }
 
