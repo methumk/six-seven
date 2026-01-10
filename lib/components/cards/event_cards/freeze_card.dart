@@ -22,17 +22,6 @@ class FreezeCard extends EventActionCard {
     return currentValue;
   }
 
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description:
-    //       "The player that gets chosen will be frozen, forcing them to stay for the round!",
-    //   descriptionTitle: "Freeze",
-    // );
-  }
-
   //Freezes other player
   @override
   Future<void> executeOnEvent() async {
@@ -90,7 +79,6 @@ class FreezeCard extends EventActionCard {
     await affectedPlayer!.handleStay();
     game.gameManager.donePlayers.add(affectedPlayer!);
     finishEventCompleter();
-    return;
   }
 
   //Method for finding player in First Priority Search: Find the active player with double chance.
@@ -119,7 +107,6 @@ class FreezeCard extends EventActionCard {
     if (bestDoubleChancePlayer != null) {
       affectedPlayer = bestDoubleChancePlayer;
     }
-    return;
   }
 
   //Method for second priority search: Find an active player with highest (total value + current value) points
@@ -142,7 +129,6 @@ class FreezeCard extends EventActionCard {
     if (highestScorePlayer != null) {
       affectedPlayer = highestScorePlayer;
     }
-    return;
   }
 
   //Method for third priority: Just find an active player
@@ -154,7 +140,6 @@ class FreezeCard extends EventActionCard {
         break;
       }
     }
-    return;
   }
 
   @override
