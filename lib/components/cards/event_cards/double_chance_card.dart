@@ -45,7 +45,6 @@ class DoubleChanceCard extends HandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the double chance card.");
-        // game.gameManager.deck.addToDiscard([this]);
         await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
