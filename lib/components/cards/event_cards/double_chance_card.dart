@@ -21,16 +21,6 @@ class DoubleChanceCard extends HandEventActionCard {
     return currentValue;
   }
 
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description: "The player that gets chosen is granted double chance!",
-    //   descriptionTitle: "Double Chance",
-    // );
-  }
-
   //Grants double chance
   @override
   Future<void> executeOnEvent() async {
@@ -55,7 +45,8 @@ class DoubleChanceCard extends HandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the double chance card.");
-        game.gameManager.deck.addToDiscard([this]);
+        // game.gameManager.deck.addToDiscard([this]);
+        await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
       }
@@ -84,7 +75,6 @@ class DoubleChanceCard extends HandEventActionCard {
     affectedPlayer!.grantDoubleChance();
     await affectedPlayer?.onHit(this);
     finishEventCompleter();
-    return;
   }
 
   @override

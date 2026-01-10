@@ -493,7 +493,9 @@ abstract class Player extends PositionComponent
         doubleChance = false;
         DoubleChanceCard? doubleChanceCard = dch.removeDoubleChanceCardInHand();
         if (doubleChanceCard != null) {
-          game.gameManager.deck.addToDiscard([doubleChanceCard]);
+          await game.gameManager.deck.sendToDiscardPileAnimation(
+            doubleChanceCard,
+          );
         } //The following line is there for debugging purpose
         else {
           print(
