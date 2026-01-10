@@ -4,6 +4,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart' show Curves;
 import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/card_component.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
@@ -40,10 +41,12 @@ class CardDeck extends PositionComponent
     (deckOutlineSize.y - Card.cardSize.y) / 2,
   );
 
+  // Absolute gameworld position
   static Vector2 getDiscardCardPosition() {
     return discardPosOffset - deckTopOffset;
   }
 
+  // Absolute gameworld position
   static Vector2 getDeckCardPosition() {
     return deckPosOffset - deckTopOffset;
   }
@@ -164,11 +167,12 @@ class CardDeck extends PositionComponent
       //TO DO: implement
     };
 
-    // initNumberCards();
+    initNumberCards();
     // initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
     deckList.shuffle();
+    print("Deck list: $deckList");
   }
 
   void initNumberCards() {
@@ -256,11 +260,11 @@ class CardDeck extends PositionComponent
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= 200; i++) {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
-      // deckList.add(DoubleChanceCard());
-      deckList.add(TopPeekCard());
+      deckList.add(DoubleChanceCard());
+      // deckList.add(TopPeekCard());
       // deckList.add(ThiefCard());
       // // deckList.add(CribberCard());
       // deckList.add(ForecasterCard());
@@ -277,12 +281,12 @@ class CardDeck extends PositionComponent
       //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
       // eventCardsLeft[EventCardEnum.FlipThree] =
       //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
-      // eventCardsLeft[EventCardEnum.DoubleChance] =
-      //     eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
+      eventCardsLeft[EventCardEnum.DoubleChance] =
+          eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
       // eventCardsLeft[EventCardEnum.Thief] =
       //     eventCardsLeft[EventCardEnum.Thief]! + 1;
-      eventCardsLeft[EventCardEnum.TopPeek] =
-          eventCardsLeft[EventCardEnum.TopPeek]! + 1;
+      // eventCardsLeft[EventCardEnum.TopPeek] =
+      //     eventCardsLeft[EventCardEnum.TopPeek]! + 1;
       // // eventCardsLeft[EventCardEnum.Cribber] =
       // //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
       // eventCardsLeft[EventCardEnum.Forecaster] =
@@ -291,7 +295,8 @@ class CardDeck extends PositionComponent
       //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      // eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      // eventCardsLeft[EventCardEnum.LuckyDie] =
+      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
       // eventCardsLeft[EventCardEnum.SunkProphet] =
       //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
       // eventCardsLeft[EventCardEnum.ChoiceDraw] =
@@ -455,6 +460,11 @@ class CardDeck extends PositionComponent
   }
 
   void addToDiscard(List<Card> newTrash, {int indexOfFaceUpDiscard = 0}) {
+    if (newTrash.isEmpty) {
+      debugPrint("Error - addToDiscard newTrash is empty");
+      return;
+    }
+
     discardPile = discardPile + newTrash;
 
     // Update discard UI
@@ -503,6 +513,20 @@ class CardDeck extends PositionComponent
     Card c, {
     double flipTime = 0.0,
   }) async {
+    // Make sure card is rendered in game world, so it can be transferred to discard
+    // Get the card's absolute position in game world coordinates BEFORE removing from parent
+    final absolutePosition = c.absolutePosition;
+    final oldParent = c.parent;
+    if (oldParent != game.world) {
+      print("DISCARD - removing from old parent");
+      c.removeFromParent();
+      game.world.add(c);
+      // Set position in game world coordinates so it appears in same spot
+      c.position = absolutePosition;
+    } else {
+      print("DISCARD - old PARENT Is GAME WORLD, not removing from parent");
+    }
+
     // Ensure card is face up
     if (c.isFaceDown) {
       if (flipTime <= 0.0) {
@@ -515,7 +539,7 @@ class CardDeck extends PositionComponent
     // Make sure scale is corrected
     await c.scaleTo(Vector2.all(1), EffectController(duration: 0.2));
 
-    // Move the card to discard pile
+    // Move the card to discard
     await c.moveTo(getDiscardCardPosition(), EffectController(duration: 0.2));
 
     // hand over card management to deck discard pile
@@ -547,7 +571,7 @@ class CardDeck extends PositionComponent
 
   void _setNewDiscardedCard(Card card) {
     // Remove existing card from tree
-    if (_discardTopCard != null) {
+    if (_discardTopCard != null && _discardTopCard!.isMounted) {
       _discardTopCard!.removeFromParent();
     }
 

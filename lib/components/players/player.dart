@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card_holders.dart';
+import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
@@ -320,24 +321,41 @@ abstract class Player extends PositionComponent
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
     //Remove all cards from player's hand
-    handRemoval(saveScoreToPot: true);
+    await handRemoval(saveScoreToPot: true);
   }
 
   //Method for discarding cards on bust/staying
-  void handRemoval({bool saveScoreToPot = false}) {
+  Future<void> handRemoval({bool saveScoreToPot = false}) async {
     if (saveScoreToPot) {
       game.gameManager.pot.addToPot(currentValue);
     }
 
-    game.gameManager.deck.addToDiscard(nch.numberHand);
-    nch.removeAllCards();
-    game.gameManager.deck.addToDiscard(dch.addHand);
-    game.gameManager.deck.addToDiscard(dch.multHand);
-    game.gameManager.deck.addToDiscard(dch.eventHand);
-    for (var minusCardList in dch.minusHandMap.values) {
-      game.gameManager.deck.addToDiscard(minusCardList);
+    List<cd.Card> discardingHand = [];
+
+    // Number hand gets discarded first, then add, then minus, then mult, then event
+    for (var c in nch.numberHand.reversed) {
+      discardingHand.add(c as cd.Card);
     }
-    dch.removeAllCards();
+    for (var c in dch.addHand) {
+      discardingHand.add(c as cd.Card);
+    }
+    for (var minusCardList in dch.minusHandMap.values) {
+      for (var c in minusCardList) {
+        discardingHand.add(c as cd.Card);
+      }
+    }
+    for (var c in dch.multHand) {
+      discardingHand.add(c as cd.Card);
+    }
+    for (var c in dch.eventHand) {
+      discardingHand.add(c as cd.Card);
+    }
+
+    // Animate each card going to discard
+    await game.gameManager.deck.sendAllToDiscardPileAnimation(discardingHand);
+
+    nch.removeAllCards(removeFromUi: false);
+    dch.removeAllCards(removeFromUi: false);
   }
 
   // Will remove all plus cards from current hand and pass it to the transferTo player
