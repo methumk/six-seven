@@ -416,6 +416,7 @@ abstract class Player extends PositionComponent
     //such as Double Chance card
     newCard.resetSize();
 
+    // Determine if card added to the hand caused it to bust
     if (newCard is cd.NumberCard) {
       await hitNumberCard(newCard);
     } else if (newCard is cd.ValueActionCard) {
@@ -479,23 +480,44 @@ abstract class Player extends PositionComponent
 
   //sub-method for hitting a number card
   Future<void> hitNumberCard(cd.NumberCard nc) async {
+    bool isCardInHand = nch.numHandSet.contains(nc.value);
+    // Add card initially regardless
+    await nch.addCardtoHand(nc);
+
+    // Delay for UI effect
+    await Future.delayed(Duration(milliseconds: 350));
+
+    // Check the card for duplicate and special cases and return drawn number card if necessary
     //If the number card was a duplicate, check for the following special cases (below)
-    if (nch.numHandSet.contains(nc.value)) {
+    if (isCardInHand) {
       //If there was a minus card of the same magnitude, discard the minus card and the duplicate number card
       if (dch.minusCardInHand(nc.value)) {
         print(
           "You got a duplicate card, but you also have a minus card of the same value (${nc.value}) in magnitude! Hence that minus card cancels out the duplicate!",
         );
-        dch.removeSingleMinusCard(nc.value);
+
+        MinusCard? minusCard = dch.removeSingleMinusCard(nc.value);
+        nch.removeNumberCard(nc, removeFromUi: false);
+
+        if (minusCard != null) {
+          await game.gameManager.deck.sendAllToDiscardPileAnimation([
+            minusCard,
+            nc,
+          ]);
+        }
       } //If player had double chance, discard it along with the duplicate
       else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
+
         doubleChance = false;
         DoubleChanceCard? doubleChanceCard = dch.removeDoubleChanceCardInHand();
+        nch.removeNumberCard(nc, removeFromUi: false);
+
         if (doubleChanceCard != null) {
-          await game.gameManager.deck.sendToDiscardPileAnimation(
+          await game.gameManager.deck.sendAllToDiscardPileAnimation([
             doubleChanceCard,
-          );
+            nc,
+          ]);
         } //The following line is there for debugging purpose
         else {
           print(
@@ -526,8 +548,6 @@ abstract class Player extends PositionComponent
       } else {
         await bust();
       }
-    } else {
-      nch.addCardtoHand(nc);
     }
   }
 

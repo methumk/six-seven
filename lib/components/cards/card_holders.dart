@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
@@ -15,35 +16,26 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
   static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .27, 0);
   int currCardPriority = 0;
 
-  NumberCardHolder() : super(anchor: Anchor.bottomRight);
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
+  NumberCardHolder() : super(anchor: Anchor.bottomRight) {
+    priority = 10;
+    currCardPriority += priority;
   }
 
   int getTotalHandLength() {
     return numberHand.length;
   }
 
-  // Sets card position and priority
-  void _setCard(NumberCard card) {
-    Vector2 newCardPos = Vector2(
+  Vector2 _getNewCardPos() {
+    return Vector2(
       position.x -
           Card.halfCardSize.x -
           ((numberHand.length + 1) * cardPosOffset.x),
       0,
     );
-    card.position = newCardPos;
-    // Newest card (on left is higher up than previous cards)
-    card.priority = currCardPriority++;
   }
 
   bool hasValue(NumberCard nc) {
-    for (var card in numberHand) {
-      if (card.value == nc.value) return true;
-    }
-    return false;
+    return numberHand.contains(nc);
   }
 
   void updateScale(double scale) {
@@ -53,24 +45,60 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     }
   }
 
-  void addCardtoHand(NumberCard card) {
-    _setCard(card);
+  void removeNumberCard(NumberCard card, {bool removeFromUi = true}) {
+    if (card.isMounted && removeFromUi) {
+      card.removeFromParent();
+    }
+
+    card.setDraggable(false);
+    card.setClickable(false);
+
+    numberHand.remove(card);
+    numHandSet.remove(card.value);
+
+    currCardPriority--;
+  }
+
+  // Assuming card from deck (game.world), travels to hand, then gets added to the hand set
+  Future<void> addCardtoHand(NumberCard card) async {
+    // Remove from game world so we can add the card to the hand
+    Vector2 cardAbsolutePos = card.absolutePosition;
+    if (card.parent != null) {
+      card.removeFromParent();
+    }
+
+    // Add it to the deck and then update position to start off where it currently was
+    add(card);
+    card.position = cardAbsolutePos - absolutePosition;
+
+    // Move to new location and set priority
+    Vector2 newHandPos = _getNewCardPos();
+
+    card.priority = currCardPriority++;
+    card.flip(duration: 0.3);
+    await card.moveTo(newHandPos, EffectController(duration: 0.5));
+
+    // Set position after movement
+    card.position = newHandPos;
+
+    // Add it to the hand
     numberHand.add(card);
     numHandSet.add(card.value);
-    add(card);
+
+    card.setDraggable(true);
     card.onDragEndReturnTo(card.position, card.priority);
   }
 
   void removeAllCards({bool removeFromUi = true}) {
-    if (removeFromUi) {
-      for (final c in numberHand) {
-        if (c.isMounted) {
-          c.removeFromParent();
-        }
+    for (final c in numberHand) {
+      if (c.isMounted && removeFromUi) {
+        c.removeFromParent();
       }
+      c.setDraggable(false);
+      c.setClickable(false);
     }
 
-    currCardPriority = 0;
+    currCardPriority = priority;
     numberHand.clear();
     numHandSet.clear();
   }
@@ -533,7 +561,7 @@ class DynamicCardHolder extends PositionComponent {
   }
 
   // Removes card from hand and updates all other card positions
-  void removeSingleMinusCard(
+  MinusCard? removeSingleMinusCard(
     double minusValue, {
     bool updateDeckPosition = true,
     bool removeFromUi = true,
@@ -548,6 +576,7 @@ class DynamicCardHolder extends PositionComponent {
       if (updateDeckPosition) {
         _updateDeckPositionsOnCardRemoval(CardType.valueActionMinusCard);
       }
+      return mc;
     }
   }
 
