@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/card.dart';
@@ -697,7 +698,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Show current player decided to hit
     await currentPlayer.playerActionText.setAsHitting();
 
+    // Draw card and add it to deck game world start position
     final card = await deck.draw();
+    card.isVisible = false;
+    game.world.add(card);
+    card.startAtDeckSetting();
     print("Got card: $card ${card.cardType}");
 
     if (card is! cd.EventActionCard) {
@@ -707,22 +712,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // Show event card animations
       runningEvent = card;
       runningEvent?.cardUser = currentPlayer;
-      runningEvent!.position = deck.position;
-      game.world.add(runningEvent!);
 
       // Set completer for event to be toggled by user or manually removed for AI
       runningEvent!.drawAnimation.init();
 
       // Wait for deck draw animation to finish
-      if (currentPlayer.isCpu()) {
-        await runningEvent!.drawEventCardAnimation(isInfinite: false);
-
-        await runningEvent!.drawAnimation.wait();
-      } else {
-        await runningEvent!.drawEventCardAnimation(isInfinite: true);
-
-        await runningEvent!.drawAnimation.wait();
-      }
+      await runningEvent!.drawEventCardAnimation(
+        isInfinite: !currentPlayer.isCpu(),
+      );
+      await runningEvent!.drawAnimation.wait();
 
       // Send event card to discard if not handEventAction
       if (runningEvent is cd.EventActionCard &&
