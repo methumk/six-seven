@@ -351,11 +351,14 @@ abstract class Player extends PositionComponent
       discardingHand.add(c as cd.Card);
     }
 
-    // Animate each card going to discard
-    await game.gameManager.deck.sendAllToDiscardPileAnimation(discardingHand);
-
     nch.removeAllCards(removeFromUi: false);
     dch.removeAllCards(removeFromUi: false);
+
+    // Animate each card going to discard
+    await game.gameManager.deck.sendAllToDiscardPileAnimation(
+      discardingHand,
+      delayMs: 50,
+    );
   }
 
   // Will remove all plus cards from current hand and pass it to the transferTo player
@@ -498,12 +501,11 @@ abstract class Player extends PositionComponent
 
         MinusCard? minusCard = dch.removeSingleMinusCard(nc.value);
         nch.removeNumberCard(nc, removeFromUi: false);
-
         if (minusCard != null) {
           await game.gameManager.deck.sendAllToDiscardPileAnimation([
             minusCard,
             nc,
-          ]);
+          ], delayMs: 50);
         }
       } //If player had double chance, discard it along with the duplicate
       else if (doubleChance) {
@@ -517,7 +519,7 @@ abstract class Player extends PositionComponent
           await game.gameManager.deck.sendAllToDiscardPileAnimation([
             doubleChanceCard,
             nc,
-          ]);
+          ], delayMs: 50);
         } //The following line is there for debugging purpose
         else {
           print(

@@ -260,7 +260,7 @@ class CardDeck extends PositionComponent
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 200; i++) {
+    for (int i = 1; i <= 50; i++) {
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
@@ -558,9 +558,13 @@ class CardDeck extends PositionComponent
   Future<void> sendAllToDiscardPileAnimation(
     List<Card> cards, {
     double flipTime = 0.0,
+    int delayMs = 0,
   }) async {
     for (final c in cards) {
       await sendToDiscardPileAnimation(c, flipTime: flipTime);
+      if (delayMs <= 0) {
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
     }
   }
 
