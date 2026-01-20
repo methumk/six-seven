@@ -332,27 +332,17 @@ abstract class Player extends PositionComponent
 
     List<cd.Card> discardingHand = [];
 
-    // Number hand gets discarded first, then add, then minus, then mult, then event
+    // Number hand gets discarded first, then all dch
     for (var c in nch.numberHand.reversed) {
       discardingHand.add(c as cd.Card);
     }
-    for (var c in dch.addHand) {
-      discardingHand.add(c as cd.Card);
-    }
-    for (var minusCardList in dch.minusHandMap.values) {
-      for (var c in minusCardList) {
-        discardingHand.add(c as cd.Card);
-      }
-    }
-    for (var c in dch.multHand) {
-      discardingHand.add(c as cd.Card);
-    }
-    for (var c in dch.eventHand) {
-      discardingHand.add(c as cd.Card);
+    for (var c in dch.cardHandOrder.reversed) {
+      discardingHand.add(c);
     }
 
+    // Let discard handle removing card from UI, no reason to update deck for DCH cuz all cards removed
     nch.removeAllCards(removeFromUi: false);
-    dch.removeAllCards(removeFromUi: false);
+    dch.removeAllCards(removeFromUi: false, updateDeckPosition: false);
 
     // Animate each card going to discard
     await game.gameManager.deck.sendAllToDiscardPileAnimation(
@@ -363,9 +353,14 @@ abstract class Player extends PositionComponent
 
   // Will remove all plus cards from current hand and pass it to the transferTo player
   // NOTE: don't forget to update current value for both players manually
-  void transferAddHand(Player transferToP, {bool updateDeckPosition = false}) {
+  Future<void> transferAddHand(
+    Player transferToP, {
+    bool updateDeckPosition = false,
+  }) async {
     if (transferToP != this) {
-      var remd = dch.removeAllAddHand(updateDeckPosition: updateDeckPosition);
+      var remd = await dch.removeAllAddHand(
+        updateDeckPosition: updateDeckPosition,
+      );
       for (var c in remd) {
         transferToP.dch.addCardtoHand(c);
       }
@@ -374,12 +369,14 @@ abstract class Player extends PositionComponent
 
   // Will remove all minus cards from current hand and pass it to the transferTo player
   // NOTE: don't forget to update current value for both players manually
-  void transferMinusHand(
+  Future<void> transferMinusHand(
     Player transferToP, {
     bool updateDeckPosition = false,
-  }) {
+  }) async {
     if (transferToP != this) {
-      var remd = dch.removeAllMinusHand(updateDeckPosition: updateDeckPosition);
+      var remd = await dch.removeAllMinusHand(
+        updateDeckPosition: updateDeckPosition,
+      );
       for (var c in remd) {
         transferToP.dch.addCardtoHand(c);
       }
@@ -388,9 +385,14 @@ abstract class Player extends PositionComponent
 
   // Will remove all mult cards from current hand and pass it to the transferTo player
   // NOTE: don't forget to update current value for both players manually
-  void transferMultHand(Player transferToP, {bool updateDeckPosition = false}) {
+  Future<void> transferMultHand(
+    Player transferToP, {
+    bool updateDeckPosition = false,
+  }) async {
     if (transferToP != this) {
-      var remd = dch.removeAllMultHand(updateDeckPosition: updateDeckPosition);
+      var remd = await dch.removeAllMultHand(
+        updateDeckPosition: updateDeckPosition,
+      );
       for (var c in remd) {
         transferToP.dch.addCardtoHand(c);
       }
@@ -422,11 +424,9 @@ abstract class Player extends PositionComponent
     // Determine if card added to the hand caused it to bust
     if (newCard is cd.NumberCard) {
       await hitNumberCard(newCard);
-    } else if (newCard is cd.ValueActionCard) {
-      dch.addCardtoHand(newCard);
-    } else {
-      // Only some event cards get added
-      dch.addCardtoHand(newCard);
+    } else if (newCard is cd.ValueActionCard ||
+        newCard is cd.HandEventActionCard) {
+      await dch.addCardtoHand(newCard);
     }
 
     print("You hit and got a card: ");
@@ -483,43 +483,55 @@ abstract class Player extends PositionComponent
 
   //sub-method for hitting a number card
   Future<void> hitNumberCard(cd.NumberCard nc) async {
-    bool isCardInHand = nch.numHandSet.contains(nc.value);
     // Add card initially regardless
-    await nch.addCardtoHand(nc);
+    bool cardIsDuplicate = await nch.animateCardArrival(nc);
 
     // Delay for UI effect
-    await Future.delayed(Duration(milliseconds: 350));
+    await Future.delayed(Duration(milliseconds: 250));
 
     // Check the card for duplicate and special cases and return drawn number card if necessary
     //If the number card was a duplicate, check for the following special cases (below)
-    if (isCardInHand) {
+    if (cardIsDuplicate) {
       //If there was a minus card of the same magnitude, discard the minus card and the duplicate number card
       if (dch.minusCardInHand(nc.value)) {
         print(
           "You got a duplicate card, but you also have a minus card of the same value (${nc.value}) in magnitude! Hence that minus card cancels out the duplicate!",
         );
 
-        MinusCard? minusCard = dch.removeSingleMinusCard(nc.value);
-        nch.removeNumberCard(nc, removeFromUi: false);
+        // Let sendAllToDiscard handle ui removal, and update deck after discarding
+        MinusCard? minusCard = await dch.removeSingleMinusCard(
+          nc.value,
+          removeFromUi: false,
+          updateDeckPosition: false,
+        );
+
         if (minusCard != null) {
           await game.gameManager.deck.sendAllToDiscardPileAnimation([
             minusCard,
             nc,
           ], delayMs: 50);
+          // After card is discarded, then update the DCH
+          await dch.updateCardPositionOnRemoval();
         }
       } //If player had double chance, discard it along with the duplicate
       else if (doubleChance) {
         print("Your card was a duplicate, but your double chance saved you!");
 
         doubleChance = false;
-        DoubleChanceCard? doubleChanceCard = dch.removeDoubleChanceCardInHand();
-        nch.removeNumberCard(nc, removeFromUi: false);
+        // Let sendAllToDiscard handle ui removal, and update deck after discarding
+        DoubleChanceCard? doubleChanceCard = await dch
+            .removeDoubleChanceCardInHand(
+              removeFromUi: false,
+              updateDeckPosition: false,
+            );
 
         if (doubleChanceCard != null) {
           await game.gameManager.deck.sendAllToDiscardPileAnimation([
             doubleChanceCard,
             nc,
           ], delayMs: 50);
+          // After card is discarded, then update the DCH
+          await dch.updateCardPositionOnRemoval();
         } //The following line is there for debugging purpose
         else {
           print(
@@ -531,6 +543,8 @@ abstract class Player extends PositionComponent
         print(
           "You got a duplicate number card and busted, but your redeemer card allowed you to redeem 67% of your current value of points!",
         );
+        // Add card even though it's a duplicate so it can get removed manually
+        nch.addCardtoHand(nc);
 
         redeemerUsed = true;
         //Another niche for redeemer: if player was last, they are treated as if they stayed, and thus get access to the entire pot!
@@ -548,8 +562,13 @@ abstract class Player extends PositionComponent
         //Remove all cards from player's hand
         handRemoval(saveScoreToPot: true);
       } else {
+        // Add card even though it's a duplicate so it can get removed manually
+        nch.addCardtoHand(nc);
         await bust();
       }
+    } else {
+      // Safe to add to handle
+      nch.addCardtoHand(nc);
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
+import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart' show Curves;
 import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
@@ -172,7 +173,6 @@ class CardDeck extends PositionComponent
     //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
     deckList.shuffle();
-    print("Deck list: $deckList");
   }
 
   void initNumberCards() {
@@ -327,7 +327,6 @@ class CardDeck extends PositionComponent
         double value = discardedCard.value;
         numberCardsLeft[value.toInt()] = numberCardsLeft[value.toInt()]! + 1;
       } else if (discardedCard is PlusCard) {
-        deckList.add(discardedCard);
         double value = discardedCard.value;
         plusMinusCardsLeft[value.toInt()] =
             plusMinusCardsLeft[value.toInt()]! + 1;
@@ -335,10 +334,12 @@ class CardDeck extends PositionComponent
         double value = discardedCard.value;
         plusMinusCardsLeft[-1 * value.toInt()] =
             plusMinusCardsLeft[-1 * value.toInt()]! + 1;
+      } else if (discardedCard is MultCard) {
+        multCardsLeft[discardedCard.value] =
+            multCardsLeft[discardedCard.value]! + 1;
       } else {
-        //Currently there is no data structure seeing the number of each event action cards]
-        //left in deck, but there was,
-        //make changes here
+        final eventEnum = discardedCard.eventEnum;
+        eventCardsLeft[eventEnum] = eventCardsLeft[eventEnum]! + 1;
       }
     }
 
@@ -518,13 +519,10 @@ class CardDeck extends PositionComponent
     final absolutePosition = c.absolutePosition;
     final oldParent = c.parent;
     if (oldParent != game.world) {
-      print("DISCARD - removing from old parent");
       c.removeFromParent();
       game.world.add(c);
       // Set position in game world coordinates so it appears in same spot
       c.position = absolutePosition;
-    } else {
-      print("DISCARD - old PARENT Is GAME WORLD, not removing from parent");
     }
 
     // Ensure card is face up
