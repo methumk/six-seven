@@ -193,7 +193,7 @@ class DiscarderCard extends EventActionCard {
     // Turn off border color that's used to indicate cards selectable
     currPlayer.dch.toggleCardShowSelectable(false);
 
-    currPlayer.dch.removeCard(selected);
+    await currPlayer.dch.removeCard(selected);
     currPlayer.updateCurrentValue();
 
     // Add selected card to discard pile
