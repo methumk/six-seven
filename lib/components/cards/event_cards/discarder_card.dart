@@ -142,6 +142,7 @@ class DiscarderCard extends EventActionCard {
   Future<void> executeOnEvent() async {
     // Check if current player has event or value card to be removed
     if (game.gameManager.getCurrentPlayer == null) {
+      await game.gameManager.deck.sendToDiscardPileAnimation(this);
       resolveEventCompleter();
       return;
     }
@@ -150,6 +151,7 @@ class DiscarderCard extends EventActionCard {
     // Don't continue if no cards in holder
     if (currPlayer.dch.isEmpty()) {
       print("No cards in DCH to discard - Early Return");
+      await game.gameManager.deck.sendToDiscardPileAnimation(this);
       resolveEventCompleter();
       return;
     }
@@ -167,12 +169,14 @@ class DiscarderCard extends EventActionCard {
       selected = await _determineAiChoice(currPlayer as CpuPlayer);
     } else {
       print("DISCARDER - HUMAN DECISION");
+      currPlayer.dch.setCardsClickable(true);
       final completer = Completer<Card>();
       currPlayer.dch.setCardSelectedOnTapUp((Card c) async {
         if (!completer.isCompleted) completer.complete(c);
       });
 
       selected = await completer.future;
+      currPlayer.dch.setCardsClickable(false);
     }
 
     // Remove selected card and update the value
@@ -193,11 +197,21 @@ class DiscarderCard extends EventActionCard {
     // Turn off border color that's used to indicate cards selectable
     currPlayer.dch.toggleCardShowSelectable(false);
 
-    await currPlayer.dch.removeCard(selected);
+    // First remove from hand backend, don't update deck position and keep the ui still there
+    await currPlayer.dch.removeCard(
+      selected,
+      removeFromUi: false,
+      updateDeckPosition: false,
+    );
+
+    // Send card from hand to discard pile (this will auto remove from UI as needed)
+    await game.gameManager.deck.sendToDiscardPileAnimation(selected);
+
+    // Update current handle value
     currPlayer.updateCurrentValue();
 
-    // Add selected card to discard pile
-    game.gameManager.deck.addToDiscard([selected]);
+    // Update deck spacing after update
+    await currPlayer.dch.updateCardPositionOnRemoval();
 
     // discard the card
     resolveEventCompleter();
