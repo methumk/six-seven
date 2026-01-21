@@ -22,6 +22,7 @@ class Pot extends PositionComponent with HasGameReference<GameScreen> {
       position: size / 2 + position,
     );
     totalScore = startScore;
+    priority = -1;
   }
 
   void reset() {

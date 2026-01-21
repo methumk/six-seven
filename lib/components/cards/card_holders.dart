@@ -444,6 +444,10 @@ class DynamicCardHolder extends PositionComponent {
   Future<void> addCardtoHand(Card c) async {
     // Remove from game world so we can add the card to the hand
     Vector2 cardAbsolutePos = c.absolutePosition;
+
+    // Add to the end of the existing position
+    c.priority = _getNextCardPriority();
+
     if (c.parent != null) {
       c.removeFromParent();
     }
@@ -455,12 +459,10 @@ class DynamicCardHolder extends PositionComponent {
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
 
-    // Add to the end of the existing position
-    c.priority = _getNextCardPriority();
     if (c.isFaceDown) {
       c.flip(duration: 0.3);
     }
-    await c.moveTo(newHandPos, EffectController(duration: 0.5));
+    await c.moveTo(newHandPos, EffectController(duration: 5));
     c.setDraggable(true);
     c.onDragEndReturnTo(newHandPos, c.priority);
 
