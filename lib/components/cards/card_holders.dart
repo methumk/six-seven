@@ -369,40 +369,30 @@ class DynamicCardHolder extends PositionComponent {
     return getTotalHandLength() == 0;
   }
 
+  void setCardsClickable(bool clickable) {
+    for (var c in cardHandOrder) {
+      c.setClickable(clickable);
+    }
+  }
+
+  void setCardsDraggable(bool draggable) {
+    for (var c in cardHandOrder) {
+      c.setDraggable(draggable);
+    }
+  }
+
   // Attaches a top up selector function to all cards in the hand
   void setCardSelectedOnTapUp(void Function(Card)? onTapUpSelector) {
-    for (var c in addHand) {
+    for (var c in cardHandOrder) {
       c.onTapUpSelector = onTapUpSelector;
     }
-    for (var c in multHand) {
-      c.onTapUpSelector = onTapUpSelector;
-    }
-    for (var c in eventHand) {
-      c.onTapUpSelector = onTapUpSelector;
-    }
-    minusHandMap.forEach((key, value) {
-      for (var c in value) {
-        c.onTapUpSelector = onTapUpSelector;
-      }
-    });
   }
 
   // Attaches a top up selector function to all cards in the hand
   void setCardSelectedOnTapDown(void Function(Card)? onTapDownSelector) {
-    for (var c in addHand) {
+    for (var c in cardHandOrder) {
       c.onTapDownSelector = onTapDownSelector;
     }
-    for (var c in multHand) {
-      c.onTapDownSelector = onTapDownSelector;
-    }
-    for (var c in eventHand) {
-      c.onTapDownSelector = onTapDownSelector;
-    }
-    minusHandMap.forEach((key, value) {
-      for (var c in value) {
-        c.onTapDownSelector = onTapDownSelector;
-      }
-    });
   }
 
   // Removes tap up selector attached to all cards in the card holder
@@ -462,7 +452,7 @@ class DynamicCardHolder extends PositionComponent {
     if (c.isFaceDown) {
       c.flip(duration: 0.3);
     }
-    await c.moveTo(newHandPos, EffectController(duration: 5));
+    await c.moveTo(newHandPos, EffectController(duration: 0.5));
     c.setDraggable(true);
     c.onDragEndReturnTo(newHandPos, c.priority);
 
@@ -500,60 +490,56 @@ class DynamicCardHolder extends PositionComponent {
     bool changeEventCards = true,
   }) {
     if (selectable && selectColor == null) return;
-    if (changePlusCards) {
-      for (var c in addHand) {
+    for (var c in cardHandOrder) {
+      if ((c is PlusCard && changePlusCards) ||
+          (c is MultCard && changeMultCards) ||
+          (c is MinusCard && changeMinusCards) ||
+          (c is EventActionCard && changeEventCards)) {
         if (selectable) {
+          c.setGlowing(true);
           c.setBorderColor(selectColor!);
         } else {
-          c.resetCardSettings();
-        }
-      }
-    }
-    if (changeMultCards) {
-      for (var c in multHand) {
-        if (selectable) {
-          c.setBorderColor(selectColor!);
-        } else {
-          c.resetCardSettings();
-        }
-      }
-    }
-    if (changeMinusCards) {
-      minusHandMap.forEach((key, value) {
-        for (var c in value) {
-          if (selectable) {
-            c.setBorderColor(selectColor!);
-          } else {
-            c.resetCardSettings();
-          }
-        }
-      });
-    }
-    if (changeEventCards) {
-      for (var c in eventHand) {
-        if (selectable) {
-          c.setBorderColor(selectColor!);
-        } else {
-          c.resetCardSettings();
+          c.setGlowing(false);
+          c.resetBorderColor();
         }
       }
     }
   }
 
   /// Removes a card by reference
-  Future<void> removeCard(Card c) async {
+  Future<void> removeCard(
+    Card c, {
+    bool updateDeckPosition = true,
+    bool removeFromUi = true,
+  }) async {
     if (c is PlusCard) {
       print("REMOVING PLUS CARD");
-      await removePlusCard(c);
+      await removePlusCard(
+        c,
+        updateDeckPosition: updateDeckPosition,
+        removeFromUi: removeFromUi,
+      );
     } else if (c is MultCard) {
       print("REMOVING MULT CARD");
-      await removeMultCard(c);
+      await removeMultCard(
+        c,
+        updateDeckPosition: updateDeckPosition,
+        removeFromUi: removeFromUi,
+      );
     } else if (c is MinusCard) {
       print("REMOVING MINUS CARD");
-      await removeSingleMinusCard(c.value);
+      await removeSingleMinusCard(
+        c.value,
+        updateDeckPosition: updateDeckPosition,
+        removeFromUi: removeFromUi,
+      );
     } else if (c is EventActionCard) {
       print("REMOVING EVENT ACTION CARD");
-      await removeEventCard(c);
+      await removeEventCard(
+        c,
+        updateDeckPosition: updateDeckPosition,
+        removeFromUi: removeFromUi,
+      );
     }
   }
 

@@ -168,11 +168,22 @@ class CardDeck extends PositionComponent
       //TO DO: implement
     };
 
-    initNumberCards();
+    // initNumberCards();
     // initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
-    initEventActionCards();
-    deckList.shuffle();
+    // initEventActionCards();
+    // deckList.shuffle();
+
+    deckList.add(NumberCard(value: 3));
+    // deckList.add(NumberCard(value: 4));
+    // deckList.add(NumberCard(value: 5));
+    deckList.add(PlusCard(value: 10));
+    deckList.add(MinusCard(value: 4));
+    deckList.add(DoubleChanceCard());
+    deckList.add(MultCard(value: 1.05));
+    // deckList.add(NumberCard(value: 4));
+    deckList.add(DiscarderCard());
+    deckList.reverse();
   }
 
   void initNumberCards() {

@@ -102,6 +102,10 @@ abstract class Card extends CardComponent
     setDraggable(toggle);
   }
 
+  void resetBorderColor() {
+    setBorderColor(cardBorderColor);
+  }
+
   void setBorderColor(Color c) {
     frontFace.borderColor = c;
     backFace.borderColor = c;
@@ -123,7 +127,7 @@ abstract class Card extends CardComponent
   }
 
   void resetCardSettings() {
-    setBorderColor(cardBorderColor);
+    resetBorderColor();
     setGlowing(false);
     resetSize();
     toggleAllUserCardMovement(false);
