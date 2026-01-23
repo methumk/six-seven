@@ -142,7 +142,6 @@ class DiscarderCard extends EventActionCard {
   Future<void> executeOnEvent() async {
     // Check if current player has event or value card to be removed
     if (game.gameManager.getCurrentPlayer == null) {
-      await game.gameManager.deck.sendToDiscardPileAnimation(this);
       resolveEventCompleter();
       return;
     }
@@ -151,7 +150,6 @@ class DiscarderCard extends EventActionCard {
     // Don't continue if no cards in holder
     if (currPlayer.dch.isEmpty()) {
       print("No cards in DCH to discard - Early Return");
-      await game.gameManager.deck.sendToDiscardPileAnimation(this);
       resolveEventCompleter();
       return;
     }
@@ -203,9 +201,6 @@ class DiscarderCard extends EventActionCard {
       removeFromUi: false,
       updateDeckPosition: false,
     );
-
-    // Send card from hand to discard pile (this will auto remove from UI as needed)
-    await game.gameManager.deck.sendToDiscardPileAnimation(selected);
 
     // Update current handle value
     currPlayer.updateCurrentValue();
