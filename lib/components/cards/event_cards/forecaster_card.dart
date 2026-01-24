@@ -101,6 +101,8 @@ class ForecasterCard extends EventActionCard {
           EffectController(duration: 0.2, curve: mat.Curves.easeInOut),
         ),
       );
+      //Reset card size afterwards
+      cards[i].resetSize();
     }
 
     // Step 3: Wait 3 seconds total for the animations to be seen

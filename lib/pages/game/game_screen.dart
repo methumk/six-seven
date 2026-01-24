@@ -94,6 +94,7 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
+                    iconSize: 15,
                     padding: const EdgeInsets.all(18),
                     backgroundColor: Colors.blue,
                   ),

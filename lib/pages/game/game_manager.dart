@@ -8,6 +8,8 @@ import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
     as cd;
@@ -51,7 +53,7 @@ import 'package:six_seven/utils/player_stack.dart';
 // }
 
 // When we want a different action that just rotating after dealing with an event card
-enum EventDifferentAction { none, topPeek, forecast, flipThree }
+enum EventDifferentAction { none, topPeek, forecast }
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
@@ -74,6 +76,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //So if player 0 (call them main player) is in the bottom, then player 1 is right, player 2 is up, player 3 is left, etc
   //Bool to check if game ends, if so break the game rotation loop
   bool gameEnd = false;
+
+  //Const for double chance Raw value used for EV
+  final double doubleChanceGoodRawValue = 15;
+  //Bad EV for these cases is when other players are active, because then you are forced to
+  //give this card to someone else
+  final double doubleChanceBadRawValue = -8;
+  //Const for redeemer EV value
+  final double redeemerGoodRawValue = 7;
+  //Bad EV for these cases is when other players are active, because then you are forced to
+  //give this card to someone else
+  final double redeemerBadRawValue = -4;
 
   bool buttonPressed = false;
   late final Leaderboard<Player> totalLeaderBoard;
@@ -175,8 +188,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         return cmp != 0 ? cmp : a.playerNum.compareTo(b.playerNum);
       },
     );
-    //Start the turn starter and player turn index to be -1 because the first call of getNextPlayer increments them to player 0.
-    turnStarterPlayerIndex = -1;
+    turnStarterPlayerIndex = 0;
 
     print("winning threshold: ${winningThreshold}");
   }
@@ -214,8 +226,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     return gameOver;
   }
-
-  void calculateLeaderBoard() {}
 
   Future<void> handleNewRound() async {
     // Show round over animation
@@ -266,7 +276,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     pot.reset();
     donePlayers.clear();
     rotationPlayerOffset = 0;
-    currentPlayerIndex = 0;
+    turnStarterPlayerIndex = (turnStarterPlayerIndex + 1) % totalPlayerCount;
+    currentPlayerIndex = turnStarterPlayerIndex;
 
     // await game.showRoundPointsDialog(players);
     await game.showLeaderboard(
@@ -283,7 +294,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
       await players[i].resetRound();
 
-      PlayerSlot currSlot = _getSetUpPosIndex(i);
+      //since you increment player, you want the next player to be one BEFORE their previos start. Subtract by turnstarter
+      PlayerSlot currSlot = _getSetUpPosIndex(
+        (i - turnStarterPlayerIndex) % totalPlayerCount,
+      );
       Vector2 pos = _getVectorPosByPlayerSlot(currSlot);
       players[i].position = pos;
       players[i].currSlot = currSlot;
@@ -534,7 +548,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         currentPlayer.currentValue +
         calculateEVMultCards() * calculateEVNumberCards(currentPlayer) +
         calculateEVPlusMinusValueCards() +
-        calculateEVEventCards();
+        calculateEVEventCards(currentPlayer);
     if (currentPlayer.numberHand.length == 5) {
       print(
         "CPU has 5 number cards! EV of getting 6 number card bonus: ${probOfNonduplicateNumberCard(currentPlayer) * 6.7} ",
@@ -641,14 +655,472 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     return evPlusMinusValueCard;
   }
 
-  double calculateEVEventCards() {
+  double calculateEVEventCards(Player currentPlayer) {
+    //TO DO: implement for each case
+    if (isLastRemaining(currentPlayer)) {
+      return calculateEventEVAlone(currentPlayer);
+    } else {
+      return calculateEventEVNotAlone(currentPlayer);
+    }
+  }
+
+  //Method for checking if current player is the only player active in the round
+  bool isLastRemaining(Player currentPlayer) {
+    for (Player player in players) {
+      if (player != currentPlayer && !player.isDone) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  //Method for calculating event EV when player is not alone
+  double calculateEventEVNotAlone(Player currentPlayer) {
     //Current amount of cards left in deck
     int numCardsLeft = deck.deckList.length;
 
     double evEventCard = 0;
+    print("${currentPlayer} is the only active player. Calculating alone EV");
+    for (EventCardEnum eventCardEnum in deck.eventNumericalEVNotAlone.keys) {
+      print(
+        "Card: ${eventCardEnum.label}, value: ${deck.eventNumericalEVNotAlone[eventCardEnum]}",
+      );
+      print("Number of them left: ${deck.eventCardsLeft[eventCardEnum]}");
+      evEventCard +=
+          deck.eventNumericalEVNotAlone[eventCardEnum]! *
+          deck.eventCardsLeft[eventCardEnum]! /
+          numCardsLeft;
+    }
+    //Handle hand operator cards on case by case value
+    evEventCard += calculateEVDoubleChance(currentPlayer, isAlone: false);
+    evEventCard += calculateEVRedeemer(currentPlayer, isAlone: false);
+    evEventCard += calculateEVDiscarder(currentPlayer);
+    evEventCard += calculateEVIncomeTax(currentPlayer, isAlone: false);
+    evEventCard += calculateEVThief(currentPlayer, isAlone: false);
 
-    //TO DO: implement for each case
+    print("Final EV Event Alone: ${evEventCard}");
     return evEventCard;
+  }
+
+  //Method for calculating event EV when player is alone
+  double calculateEventEVAlone(Player currentPlayer) {
+    //Current amount of cards left in deck
+    int numCardsLeft = deck.deckList.length;
+
+    double evEventCard = 0;
+    print("${currentPlayer} is the only active player. Calculating alone EV");
+    for (EventCardEnum eventCardEnum in deck.eventNumericalEVAlone.keys) {
+      print(
+        "Card: ${eventCardEnum.label}, value: ${deck.eventNumericalEVAlone[eventCardEnum]}",
+      );
+      print("Number of them left: ${deck.eventCardsLeft[eventCardEnum]}");
+      evEventCard +=
+          deck.eventNumericalEVAlone[eventCardEnum]! *
+          deck.eventCardsLeft[eventCardEnum]! /
+          numCardsLeft;
+    }
+    //Handle hand operator cards on case by case value
+    evEventCard += calculateEVDoubleChance(currentPlayer, isAlone: true);
+    evEventCard += calculateEVRedeemer(currentPlayer, isAlone: true);
+    evEventCard += calculateEVDiscarder(currentPlayer);
+    evEventCard += calculateEVIncomeTax(currentPlayer, isAlone: true);
+    evEventCard += calculateEVThief(currentPlayer, isAlone: true);
+    print("Final EV Event Alone: ${evEventCard}");
+    return evEventCard;
+  }
+
+  //Method for calculating ev of thief
+  double calculateEVThief(Player currentPlayer, {required bool isAlone}) {
+    if (isAlone) {
+      print("Since player is alone, thief card is useless. EV is 0");
+      return 0;
+    }
+    int numCardsLeft = deck.deckListLength;
+    double numberCardsValue = 0;
+    //Multiplier starts as x1 by default
+    double currentMultValue = 1;
+    double currentPlusValue = 0;
+    double currentMinusValue = 0;
+    (
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+    ) = calculateCardUserValues(
+      numberCardsValue,
+      currentMultValue,
+      currentPlusValue,
+      currentMinusValue,
+      currentPlayer,
+    );
+    double currentHypotheticalValue =
+        currentMultValue * numberCardsValue + currentPlusValue;
+    print("Current hypothetical value before steal: $currentHypotheticalValue");
+    double bestRivalHypotheticalValue = -100000;
+    for (Player player in game.gameManager.players) {
+      if (!player.isDone &&
+          player != currentPlayer &&
+          player.dch.valueCardLength > 0) {
+        double rivalHypotheticalValue = calculateRivalHypotheticalValue(
+          numberCardsValue,
+          currentMultValue,
+          currentPlusValue,
+          currentMinusValue,
+          player,
+        );
+        print(
+          "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",
+        );
+        if (rivalHypotheticalValue >= bestRivalHypotheticalValue) {
+          bestRivalHypotheticalValue = rivalHypotheticalValue;
+        }
+      }
+    }
+    //If noone can be stolen from, raw value is 0
+    if (bestRivalHypotheticalValue == -100000) {
+      print("No other player can be stolen. Thief raw value is 0");
+      return 0;
+    }
+    // Else, there was an existing candidate to steal from, and their best hypothetical value was stored.
+    //The raw thief value is just the difference between bestRivalHypotheticalValue and currentHypotheticalValue
+    print(
+      "Thief raw value: ${bestRivalHypotheticalValue - currentHypotheticalValue}",
+    );
+    double thiefEv =
+        (bestRivalHypotheticalValue - currentHypotheticalValue) *
+        deck.eventCardsLeft[EventCardEnum.Thief]! /
+        numCardsLeft;
+    print("Thief EV: ${thiefEv}");
+    return thiefEv;
+  }
+
+  //Method for calculating ev of income tax card when alone
+  double calculateEVIncomeTax(Player currentPlayer, {required bool isAlone}) {
+    //if this is round 1, income tax has no effect
+    if (currentRound <= 1) {
+      return 0;
+    }
+    double incomeEV = 0;
+    int numCardsLeft = deck.deckListLength;
+    if (!currentPlayer.hasIncomeTax) {
+      double taxRate = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: currentPlayer,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          totalPlayerCount,
+        ),
+      );
+
+      incomeEV +=
+          (currentPlayer.currentValue + currentPlayer.totalValue) *
+          (taxRate - 1) *
+          deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
+          numCardsLeft;
+
+      print(
+        "Player currently doesn't have income tax! Income tax raw value: ${incomeEV / (deck.eventCardsLeft[EventCardEnum.IncomeTax]! / numCardsLeft)}. Income EV: $incomeEV",
+      );
+    }
+    //If player already has an income tax card, if there is another player to give the income tax card to,
+    //that is generally beneficial unless the player is last place.
+    //Else, since there is no one else to give the
+    //duplicate income tax card to, the new income tax card drawn is worthless
+    else if (!isAlone) {
+      //highest taxrate is currently 20% refund = 1.2, should never exceed 2
+      double rivalTaxRate = 67;
+      double bestRivalCurrentValue = 0;
+      double bestRivalTotalValue = 0;
+      for (Player otherActivePlayer in players) {
+        if (!otherActivePlayer.isDone && otherActivePlayer != currentPlayer) {
+          double tentativeTaxRate = playerIncomeTaxRateAfterFirstRound(
+            currentPlayer: currentPlayer,
+            playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+              totalPlayerCount,
+            ),
+          );
+          if (tentativeTaxRate < rivalTaxRate) {
+            rivalTaxRate = tentativeTaxRate;
+            bestRivalCurrentValue = otherActivePlayer.currentValue;
+            bestRivalTotalValue = otherActivePlayer.totalValue;
+          }
+        }
+      }
+      incomeEV +=
+          (bestRivalTotalValue + bestRivalCurrentValue) *
+          (rivalTaxRate - 1) *
+          deck.eventCardsLeft[EventCardEnum.IncomeTax]! /
+          numCardsLeft;
+
+      print(
+        "Player already has income tax! Rival Income tax raw value: ${incomeEV / (deck.eventCardsLeft[EventCardEnum.IncomeTax]! / numCardsLeft)}. Income EV: $incomeEV",
+      );
+    } else {
+      print(
+        "Player already has an income tax card. Hence the new income tax card would have been worthless!",
+      );
+    }
+    return incomeEV;
+  }
+
+  //Method for calculating ev of double chance
+  double calculateEVDoubleChance(
+    Player currentPlayer, {
+    required bool isAlone,
+  }) {
+    //Double Chance: If currentplayer does not have double chance, getting a
+    // double chance would be super useful. Else, it is worthless
+    //to get a duplicate double chance
+    double evDoubleChance = 0;
+    int numCardsLeft = deck.deckListLength;
+    if (!currentPlayer.doubleChance) {
+      print(
+        "Player currently doesn't have double chance. Double Chance Raw value: $doubleChanceGoodRawValue",
+      );
+      print(
+        "Number of Double chance cards: ${deck.eventCardsLeft[EventCardEnum.DoubleChance]}",
+      );
+      evDoubleChance +=
+          doubleChanceGoodRawValue *
+          deck.eventCardsLeft[EventCardEnum.DoubleChance]! /
+          numCardsLeft;
+    } // If player already has double chance, if they are not alone, they must give it to another palyer.
+    //That is not good, negative value.
+    else if (!isAlone) {
+      print(
+        "Player already have double chance, and is not alone, so they would have to give away a duplicate double chance! Double Chance Raw value: $doubleChanceBadRawValue",
+      );
+      print(
+        "Number of Double chance cards: ${deck.eventCardsLeft[EventCardEnum.DoubleChance]}",
+      );
+      evDoubleChance +=
+          doubleChanceBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.DoubleChance]! /
+          numCardsLeft;
+    } //Else, player has duplicate but is alone, this is neither good nor bad, still 0
+    return evDoubleChance;
+  }
+
+  //Method for calculating EV of redeemer
+  double calculateEVRedeemer(Player currentPlayer, {required bool isAlone}) {
+    int numCardsLeft = deck.deckListLength;
+    double evRedeemer = 0;
+    //Redeemer: If current player does not have redeemer, getting  a
+    //redeemer would be somwhat useful. Else, it is worthless
+    //to get a duplicate redeemer
+    if (!currentPlayer.hasRedeemer) {
+      evRedeemer +=
+          redeemerGoodRawValue *
+          deck.eventCardsLeft[EventCardEnum.Redeemer]! /
+          numCardsLeft;
+      print(
+        "Player currently doesn't have redeemer. Redeemer Raw: $redeemerGoodRawValue",
+      );
+      print(
+        "Number of Redeemer cards: ${deck.eventCardsLeft[EventCardEnum.Redeemer]}",
+      );
+    } // If player already has redeemer, if they are not alone, they must give it to another palyer.
+    //That is not good, negative value.
+    else if (!isAlone) {
+      evRedeemer +=
+          redeemerBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.Redeemer]! /
+          numCardsLeft;
+      print(
+        "Player already has redeemer, and is not alone so they would have to give away the duplicate redeemer!. Redeemer Raw: $redeemerBadRawValue",
+      );
+      print(
+        "Number of Redeemer cards: ${deck.eventCardsLeft[EventCardEnum.Redeemer]}",
+      );
+    } //Else, player has duplicate but is alone, this is neither good nor bad, still 0
+    return evRedeemer;
+  }
+
+  //Method for calculating EV of discarder
+  double calculateEVDiscarder(Player currentPlayer) {
+    //Discarder: First check for cards that are beneficial to discard.
+    //If none exist, check for cards that hurt the least to discard.
+    //If none exist, discarderEV is 0.
+
+    //Good discarder ev
+    double goodDiscarderEV = calculateEVGoodDiscarder(currentPlayer);
+    if (goodDiscarderEV != 0) {
+      return goodDiscarderEV;
+    } else {
+      //Bad discarder ev
+      return calculateEVBadDiscarder(currentPlayer);
+    }
+  }
+
+  //Method for calculating good discarderEV
+  double calculateEVGoodDiscarder(Player currentPlayer) {
+    //Good case
+    //Best case scenario: player has an income tax card after round 1. This is the best card to discard
+    //because it also affects total value.
+    //Then, if current player has a minus card or a multiplier card with multiplier <1,
+    //this is good; for Multiplier cards (this takes priority), take EV as (1-lowest Mult) * sum of number cards.
+    //For minus value cards, take the lowest minus value card, take absolute value,
+    //and let that be the EV value of discarder.
+    double goodDiscarderEV = 0;
+    int numCardsLeft = deck.deckListLength;
+    print(
+      "Discard ev calculation! Number of discarders in deck: ${deck.eventCardsLeft[EventCardEnum.Discarder]}",
+    );
+    if (currentPlayer.hasIncomeTax && currentRound > 1) {
+      double taxRate = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: currentPlayer,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          totalPlayerCount,
+        ),
+      );
+      if (taxRate < 1) {
+        goodDiscarderEV =
+            (currentPlayer.currentValue + currentPlayer.totalValue) /
+            taxRate *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
+      }
+      print(
+        "Player has income tax! Tax rate calculated as: ${taxRate}, so discarder Raw value candidate due to removing income taxis",
+      );
+      print(
+        "(current value + total value) / tax rate * #discarders/#cards in deck = (${currentPlayer.currentValue} + ${currentPlayer.totalValue}) / ${taxRate} = ${(currentPlayer.currentValue + currentPlayer.totalValue) / taxRate}  ",
+      );
+    }
+
+    double lowestMultiplier = 1;
+    for (cd.ValueActionCard multCard in currentPlayer.dch.multHand) {
+      if (multCard.value < lowestMultiplier) {
+        lowestMultiplier = multCard.value;
+      }
+    }
+    if (lowestMultiplier < 1) {
+      print(
+        "Player has a bad multiplier of $lowestMultiplier! Therefore discarder Raw value candidate due to removing bad multiplier is:",
+      );
+      print(
+        "(1 - lowest multiplier) * (sum of number cards)  = ${(1 - lowestMultiplier) * currentPlayer.sumNumberCards()}",
+      );
+      goodDiscarderEV = max(
+        goodDiscarderEV,
+        (1 - lowestMultiplier) *
+            currentPlayer.sumNumberCards() *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft,
+      );
+    }
+    //Now check minus cards and see if player can get a higher EV
+    double lowestMinus = 1;
+    //The keys are absolute values of the minus values of the minus cards,
+    //The value is the list of minus cards corresponding to the key
+    for (final MapEntry(:key, :value)
+        in currentPlayer.dch.minusHandMap.entries) {
+      if (-key < 0 && value.isNotEmpty && -key < lowestMinus) {
+        lowestMinus = -key;
+      }
+    }
+    if (lowestMinus < 0) {
+      print(
+        "Player has a minus card of ${-lowestMinus}! Treated as a potential discarder raw value candidate due to removing the minus card",
+      );
+      goodDiscarderEV = max(
+        goodDiscarderEV,
+        //-lowestMinus because removing the minus card gives the positive value
+        -lowestMinus *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft,
+      );
+    }
+    print(
+      "Ultimate goodDiscarder raw value (Choose max among the candidates): ${goodDiscarderEV / (deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft)}, goodDiscarderEV: ${goodDiscarderEV}",
+    );
+    return goodDiscarderEV;
+  }
+
+  //Method for calculating bad discarderEV
+  double calculateEVBadDiscarder(Player currentPlayer) {
+    int numCardsLeft = deck.deckListLength;
+    double badDiscarderEV = 0;
+    //First, check double chance/redeemer. Those are worst case scenario to be forced to discard
+    if (currentPlayer.doubleChance) {
+      print(
+        "Player might have to discard double chance! Discarder Raw value candidate due to removing double chance: ${doubleChanceBadRawValue}",
+      );
+      badDiscarderEV =
+          doubleChanceBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.Discarder]! /
+          numCardsLeft;
+    }
+    if (currentPlayer.hasRedeemer) {
+      print(
+        "Player might have to discard redeemer! Discarder Raw value candidate due to removing redeemer: ${redeemerBadRawValue}",
+      );
+      //If player has double chance, redeemer is better to discard. If player doesn't have double chance, redeemer is the first candidate.
+      //In any case, assign badDiscarderEV for redeemer case as the candidate.
+      badDiscarderEV =
+          redeemerBadRawValue *
+          deck.eventCardsLeft[EventCardEnum.Discarder]! /
+          numCardsLeft;
+    }
+    //Just make default lowestGoodMult a large multiplier; it will never exceed 2 (which
+    //we don't even implement because x2 is already op)
+    double lowestGoodMult = 6.7;
+    for (cd.ValueActionCard multCard in currentPlayer.multHand) {
+      if (multCard.value >= 1 && multCard.value < lowestGoodMult) {
+        lowestGoodMult = multCard.value;
+      }
+    }
+    if (lowestGoodMult < 6.7) {
+      print(
+        "Player might have to discard a good multiplier! Discarder Raw value candidate due to removing good multiplier: ${-currentPlayer.sumNumberCards() / lowestGoodMult}",
+      );
+      if (badDiscarderEV == 0) {
+        badDiscarderEV =
+            -currentPlayer.sumNumberCards() /
+            lowestGoodMult *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
+      } else {
+        badDiscarderEV = max(
+          badDiscarderEV,
+          -currentPlayer.sumNumberCards() /
+              lowestGoodMult *
+              deck.eventCardsLeft[EventCardEnum.Discarder]! /
+              numCardsLeft,
+        );
+      }
+    }
+    //Now check plus cards to see if we can have a smaller loss
+    double lowestPlus = 67;
+    for (cd.ValueActionCard plusCard in currentPlayer.addHand) {
+      if (plusCard.value < lowestPlus) {
+        lowestPlus = plusCard.value;
+      }
+    }
+    if (lowestPlus < 67) {
+      print(
+        "Player might have to remove a plus card of value ${lowestPlus}! Discarder Raw value candidate due to removing a plus card: ${-lowestPlus} ",
+      );
+    }
+    if (lowestPlus < 67) {
+      if (badDiscarderEV == 0) {
+        badDiscarderEV =
+            -lowestPlus *
+            deck.eventCardsLeft[EventCardEnum.Discarder]! /
+            numCardsLeft;
+      } else {
+        badDiscarderEV = max(
+          badDiscarderEV,
+          -lowestPlus *
+              deck.eventCardsLeft[EventCardEnum.Discarder]! /
+              numCardsLeft,
+        );
+      }
+    }
+    //So discarderEV either has the negative ev of mult or plus, whichever is less bad. If it is
+    //still 0, that means player does not have any card to discard. That is okay, just return it
+    print(
+      "Final badDiscarder raw value: ${badDiscarderEV / (deck.eventCardsLeft[EventCardEnum.Discarder]! / numCardsLeft)}. badDiscarderEV: ${badDiscarderEV}",
+    );
+    return badDiscarderEV;
   }
 
   //Method for calculating failure probability of the last numCard cards in the deck.
@@ -810,11 +1282,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
           // Remove badge
           hud.hideHitCountBadge();
 
-          // Enable hit/stay
-          hud.enableHitAndStayBtns();
-
+          ////The following two lines are commented out; player shouldn't have to have another turn after using flip three
           // Return flipThree, so we can return and the current user gets another chance to hit or stay
-          returnType = EventDifferentAction.flipThree;
+          // returnType = EventDifferentAction.flipThree;
         } else {
           print("ERROR - Flip 3 doesn't have a valid affected player set!");
         }
@@ -1180,6 +1650,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     buttonPressed = true;
     hud.disableHitAndStayBtns();
 
+    calculateEVCumulative(getCurrentPlayer!);
     // Draw cards from deck and handle event
     var eventDifferentAction = await _handleDrawCardFromDeck(
       currentPlayerIndex,
@@ -1187,16 +1658,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Running event finished so clear it
     runningEvent = null;
 
-    if (eventDifferentAction == EventDifferentAction.topPeek ||
-        eventDifferentAction == EventDifferentAction.forecast ||
-        eventDifferentAction == EventDifferentAction.flipThree) {
-      // Restore current player after flip3 stack
-      // if (eventDifferentAction == EventDifferentAction.flipThree) {
-      //   var restored = forcedToPlay.resetRestorePlayer();
-      //   print("After Flip3 - Restoring to player $restored");
-      //   currentPlayerIndex = restored!.playerNum - 1;
-      // }
-
+    if ((eventDifferentAction == EventDifferentAction.topPeek ||
+            eventDifferentAction == EventDifferentAction.forecast) &&
+        !getCurrentPlayer!.isDone) {
       //If you are human player, need buttons reenabled to do another action. Else, should not
       //have them enabled during a CPU's second turn
       if (getCurrentPlayer == null) {
@@ -1222,7 +1686,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       await handleNewRound();
       return;
     }
-
+    // calculateEVCumulative(getCurrentPlayer!);
     // Rotate the players and disable hit/stay when running
     _rotatePlayers();
   }
@@ -1365,7 +1829,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     PlayerCountSlotConfig pcc = PlayerCountSlotConfig.fromPlayerCount(
       totalPlayerCount,
     );
+    // print("Config: $pcc");
 
+    // print("label: ${pcc.label[playerIndex % totalPlayerCount]}");
     return pcc.label[playerIndex % totalPlayerCount];
   }
 
