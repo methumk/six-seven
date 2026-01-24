@@ -44,7 +44,7 @@ class IncomeTax extends TaxHandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the Income tax card.");
-        game.gameManager.deck.addToDiscard([this]);
+        await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
       }
