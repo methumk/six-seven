@@ -35,11 +35,6 @@ class FlipThreeCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description: "The person you select must flip 3 cards!",
-    //   descriptionTitle: "Flip Three",
-    // );
     game.world.add(flipAnnouncement);
   }
 
