@@ -22,17 +22,6 @@ class RedeemerCard extends HandEventActionCard {
     return currentValue;
   }
 
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description:
-    //       "User will have this card for the remainder the round. If they get a duplicate number card, instead of busting, they get 67% of the points from the round (not including duplicate)!",
-    //   descriptionTitle: "Redeemer",
-    // );
-  }
-
   //Grants redeemer
   @override
   Future<void> executeOnEvent() async {
@@ -57,7 +46,7 @@ class RedeemerCard extends HandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the redeemer card.");
-        game.gameManager.deck.addToDiscard([this]);
+        await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
       }
@@ -68,7 +57,12 @@ class RedeemerCard extends HandEventActionCard {
       else if (!cardUser!.isCpu()) {
         bool validChoice = false;
         while (!validChoice) {
-          await choosePlayer();
+          // Chose player not including self if duplicate
+          await choosePlayer(
+            buttonClickVerf: (Player? p) {
+              return p != null && p != cardUser;
+            },
+          );
           //If chosen player is active and has redeemer, it is valid!
           if (!affectedPlayer!.hasRedeemer && !affectedPlayer!.isDone) {
             validChoice = true;
@@ -82,6 +76,7 @@ class RedeemerCard extends HandEventActionCard {
       }
       //If user is CPU, they already have an affectplayer, don't need a case for it
     }
+
     //Give redeemer to affected player
     affectedPlayer!.grantRedeemer();
     await affectedPlayer?.onHit(this);
