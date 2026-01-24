@@ -7,6 +7,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/buttons/player_button.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
+import 'package:six_seven/components/cards/card.dart' show NumberCard;
 import 'package:six_seven/components/cards/card_holders.dart';
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
@@ -351,51 +352,77 @@ abstract class Player extends PositionComponent
     );
   }
 
-  // Will remove all plus cards from current hand and pass it to the transferTo player
-  // NOTE: don't forget to update current value for both players manually
-  Future<void> transferAddHand(
-    Player transferToP, {
-    bool updateDeckPosition = false,
+  Future<void> transferCards(
+    Player transferTo, {
+    bool includeNumbers = false,
+    bool includePlus = false,
+    bool includeMinus = false,
+    bool includeMult = false,
+    bool includeEvent = false,
   }) async {
-    if (transferToP != this) {
-      var remd = await dch.removeAllAddHand(
-        updateDeckPosition: updateDeckPosition,
-      );
-      for (var c in remd) {
-        transferToP.dch.addCardtoHand(c);
+    // Iterate through number hand and transfer
+    // NOTE: this might cause bust in the transfer player
+    final nchLength = nch.getTotalHandLength();
+    for (var i = nchLength - 1; i >= 0; i--) {
+      final c = nch.numberHand[i];
+      if (includeNumbers) {
+        await nch.removeNumberCard(
+          c,
+          removeFromUi: true,
+          updateDeckPosition: true,
+        );
+        bool duplicate = await transferTo.nch.animateCardArrival(c);
+        if (duplicate) {
+          // Duplicate should call bust of the player card is transferring to. The other cards will not be transferred
+          await transferTo.bust();
+          return;
+        } else {
+          // Add to backend if animation to card position is possible
+          transferTo.nch.addCardtoHand(c);
+
+          // Update current value after move for both players
+          updateCurrentValue();
+          transferTo.updateCurrentValue();
+        }
       }
     }
-  }
 
-  // Will remove all minus cards from current hand and pass it to the transferTo player
-  // NOTE: don't forget to update current value for both players manually
-  Future<void> transferMinusHand(
-    Player transferToP, {
-    bool updateDeckPosition = false,
-  }) async {
-    if (transferToP != this) {
-      var remd = await dch.removeAllMinusHand(
-        updateDeckPosition: updateDeckPosition,
-      );
-      for (var c in remd) {
-        transferToP.dch.addCardtoHand(c);
+    // Iterate through DCH and transfer
+    final dchLength = dch.cardHandOrder.length;
+    for (var i = dchLength - 1; i >= 0; i--) {
+      final c = dch.cardHandOrder[i];
+      if (c is PlusCard && includePlus) {
+        await dch.removePlusCard(
+          c,
+          removeFromUi: true,
+          updateDeckPosition: true,
+        );
+      } else if (c is MinusCard && includeMinus) {
+        await dch.removeMinusCard(
+          c,
+          removeFromUi: true,
+          updateDeckPosition: true,
+        );
+      } else if (c is MultCard && includeMult) {
+        await dch.removeMultCard(
+          c,
+          removeFromUi: true,
+          updateDeckPosition: true,
+        );
+      } else if (c is cd.HandEventActionCard && includeEvent) {
+        await dch.removeEventCard(
+          c,
+          removeFromUi: true,
+          updateDeckPosition: true,
+        );
       }
-    }
-  }
 
-  // Will remove all mult cards from current hand and pass it to the transferTo player
-  // NOTE: don't forget to update current value for both players manually
-  Future<void> transferMultHand(
-    Player transferToP, {
-    bool updateDeckPosition = false,
-  }) async {
-    if (transferToP != this) {
-      var remd = await dch.removeAllMultHand(
-        updateDeckPosition: updateDeckPosition,
-      );
-      for (var c in remd) {
-        transferToP.dch.addCardtoHand(c);
-      }
+      // Animate and move card
+      await transferTo.dch.addCardtoHand(c);
+
+      // Update current value after move for both players
+      updateCurrentValue();
+      transferTo.updateCurrentValue();
     }
   }
 
