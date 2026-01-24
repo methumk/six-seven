@@ -125,6 +125,8 @@ class ForecasterCard extends EventActionCard {
           startDelay: 0.2,
         ),
       );
+      //Reset card size afterwards
+      cards[i].resetSize();
     }
   }
 

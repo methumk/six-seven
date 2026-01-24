@@ -73,7 +73,9 @@ class CardDeck extends PositionComponent
   late Map<double, int> multCardsLeft;
   late Map<EventCardEnum, int> eventCardsLeft;
 
-  //Hash map of Numerical values assigned to each event card for EV calculation
+  //Hash map of Numerical values assigned to each event card for EV calculation.
+  //When using these maps, you should check for event hand cards that can be held;
+  //if you already have a double chance, for example, there is no value in getting another double chance
   //case when you are only player left in round
   late Map<EventCardEnum, double> eventNumericalEVAlone;
   //case when other players still in round
@@ -148,7 +150,6 @@ class CardDeck extends PositionComponent
 
     eventCardsLeft = {
       EventCardEnum.ChoiceDraw: 0,
-      EventCardEnum.Cribber: 0,
       EventCardEnum.DoubleChance: 0,
       EventCardEnum.FlipThree: 0,
       EventCardEnum.Forecaster: 0,
@@ -156,7 +157,6 @@ class CardDeck extends PositionComponent
       EventCardEnum.IncomeTax: 0,
       EventCardEnum.LuckyDie: 0,
       EventCardEnum.ReverseTurn: 0,
-      EventCardEnum.SalesTax: 0,
       EventCardEnum.SunkProphet: 0,
       EventCardEnum.Thief: 0,
       EventCardEnum.Discarder: 0,
@@ -165,11 +165,51 @@ class CardDeck extends PositionComponent
     };
 
     eventNumericalEVAlone = {
-      //TO DO: implement
+      EventCardEnum.ChoiceDraw: 5,
+      EventCardEnum.FlipThree: -5.5,
+      EventCardEnum.Forecaster: 3,
+      EventCardEnum.Freeze: 0,
+      //Income tax depends on player's ranking.
+      //Hence the idea is: after the for loop of all the event cards excluding income tax,
+      //calculate player income tax rate should they get the card, and evaluate expected value based on it
+      EventCardEnum.LuckyDie: 4.35,
+      EventCardEnum.ReverseTurn: 0,
+      EventCardEnum.SunkProphet: -4.5,
+      EventCardEnum.TopPeek: 5,
+
+      //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
+      //the current player have minus cards/ multipliers < 1?), income tax
+      // EventCardEnum.DoubleChance: 15 ? 0,
+      // EventCardEnum.Redeemer: 7 ? 0,
+      // EventCardEnum.Discarder: It really depends,
+      // EventCardEnum.IncomeTax: it really depends,
+      // EventCardEnum.Thief: It really depends
     };
 
-    // initNumberCards();
-    // initValueActionCards();
+    eventNumericalEVNotAlone = {
+      EventCardEnum.ChoiceDraw: 5,
+      EventCardEnum.FlipThree: 5.5,
+      EventCardEnum.Forecaster: 3,
+      EventCardEnum.Freeze: 7,
+
+      //Income tax depends on player's ranking.
+      //Hence the idea is: after the for loop of all the event cards excluding income tax,
+      //calculate player income tax rate should they get the card, and evaluate expected value based on it
+      EventCardEnum.LuckyDie: 4.35,
+      EventCardEnum.ReverseTurn: 0,
+      EventCardEnum.SunkProphet: -4.5,
+      EventCardEnum.TopPeek: 5,
+
+      //Need additional conditionals when dealing with: Double Chance, Redeemer, Discarder (does
+      //the current player have minus cards/ multipliers < 1?), income tax
+      // EventCardEnum.DoubleChance: 15 ? 0 or -8,
+      // EventCardEnum.Redeemer: 7 ? 0 or -4,
+      // EventCardEnum.Discarder: It really depends,
+      // EventCardEnum.IncomeTax: it really depends,
+      // EventCardEnum.Thief: It really depends
+    };
+    initNumberCards();
+    initValueActionCards();
     //TO DO: Uncomment once event cards are implemented
     // initEventActionCards();
     // deckList.shuffle();
@@ -275,49 +315,46 @@ class CardDeck extends PositionComponent
       // deckList.add(FreezeCard());
       // deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
-      // deckList.add(TopPeekCard());
-      // deckList.add(ThiefCard());
-      // // deckList.add(CribberCard());
-      // deckList.add(ForecasterCard());
-      // deckList.add(IncomeTax());
-      // // deckList.add(SalesTax());
-      // deckList.add(LuckyDieCard());
-      // deckList.add(SunkProphet());
-      // deckList.add(ChoiceDraw());
-      // deckList.add(ReverseTurnCard());
-      // deckList.add(DiscarderCard());
-      // deckList.add(RedeemerCard());
-      // //Add to eventCardsLeft
-      // eventCardsLeft[EventCardEnum.Freeze] =
-      //     eventCardsLeft[EventCardEnum.Freeze]! + 1;
-      // eventCardsLeft[EventCardEnum.FlipThree] =
-      //     eventCardsLeft[EventCardEnum.FlipThree]! + 1;
+      deckList.add(TopPeekCard());
+      deckList.add(ThiefCard());
+      deckList.add(ForecasterCard());
+      deckList.add(IncomeTax());
+      // deckList.add(SalesTax());
+      deckList.add(LuckyDieCard());
+      deckList.add(SunkProphet());
+      deckList.add(ChoiceDraw());
+      deckList.add(ReverseTurnCard());
+      deckList.add(DiscarderCard());
+      deckList.add(RedeemerCard());
+      //Add to eventCardsLeft
+      eventCardsLeft[EventCardEnum.Freeze] =
+          eventCardsLeft[EventCardEnum.Freeze]! + 1;
+      eventCardsLeft[EventCardEnum.FlipThree] =
+          eventCardsLeft[EventCardEnum.FlipThree]! + 1;
       eventCardsLeft[EventCardEnum.DoubleChance] =
           eventCardsLeft[EventCardEnum.DoubleChance]! + 1;
-      // eventCardsLeft[EventCardEnum.Thief] =
-      //     eventCardsLeft[EventCardEnum.Thief]! + 1;
-      // eventCardsLeft[EventCardEnum.TopPeek] =
-      //     eventCardsLeft[EventCardEnum.TopPeek]! + 1;
-      // // eventCardsLeft[EventCardEnum.Cribber] =
-      // //     eventCardsLeft[EventCardEnum.Cribber]! + 1;
-      // eventCardsLeft[EventCardEnum.Forecaster] =
-      //     eventCardsLeft[EventCardEnum.Forecaster]! + 1;
-      // eventCardsLeft[EventCardEnum.IncomeTax] =
-      //     eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
+      eventCardsLeft[EventCardEnum.Thief] =
+          eventCardsLeft[EventCardEnum.Thief]! + 1;
+      eventCardsLeft[EventCardEnum.TopPeek] =
+          eventCardsLeft[EventCardEnum.TopPeek]! + 1;
+      eventCardsLeft[EventCardEnum.Forecaster] =
+          eventCardsLeft[EventCardEnum.Forecaster]! + 1;
+      eventCardsLeft[EventCardEnum.IncomeTax] =
+          eventCardsLeft[EventCardEnum.IncomeTax]! + 1;
       // eventCardsLeft[EventCardEnum.SalesTax] =
       //     eventCardsLeft[EventCardEnum.SalesTax]! + 1;
-      // eventCardsLeft[EventCardEnum.LuckyDie] =
-      //     eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
-      // eventCardsLeft[EventCardEnum.SunkProphet] =
-      //     eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
-      // eventCardsLeft[EventCardEnum.ChoiceDraw] =
-      //     eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
-      // eventCardsLeft[EventCardEnum.ReverseTurn] =
-      //     eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
-      // eventCardsLeft[EventCardEnum.Discarder] =
-      //     eventCardsLeft[EventCardEnum.Discarder]! + 1;
-      // eventCardsLeft[EventCardEnum.Redeemer] =
-      //     eventCardsLeft[EventCardEnum.Redeemer]! + 1;
+      eventCardsLeft[EventCardEnum.LuckyDie] =
+          eventCardsLeft[EventCardEnum.LuckyDie]! + 1;
+      eventCardsLeft[EventCardEnum.SunkProphet] =
+          eventCardsLeft[EventCardEnum.SunkProphet]! + 1;
+      eventCardsLeft[EventCardEnum.ChoiceDraw] =
+          eventCardsLeft[EventCardEnum.ChoiceDraw]! + 1;
+      eventCardsLeft[EventCardEnum.ReverseTurn] =
+          eventCardsLeft[EventCardEnum.ReverseTurn]! + 1;
+      eventCardsLeft[EventCardEnum.Discarder] =
+          eventCardsLeft[EventCardEnum.Discarder]! + 1;
+      eventCardsLeft[EventCardEnum.Redeemer] =
+          eventCardsLeft[EventCardEnum.Redeemer]! + 1;
     }
   }
 

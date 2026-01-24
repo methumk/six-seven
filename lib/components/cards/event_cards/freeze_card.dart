@@ -79,6 +79,11 @@ class FreezeCard extends EventActionCard {
     await affectedPlayer!.handleStay();
     game.gameManager.donePlayers.add(affectedPlayer!);
     finishEventCompleter();
+    if (affectedPlayer!.totalValue + affectedPlayer!.currentValue >=
+        game.gameManager.winningThreshold) {
+      game.gameManager.handleEndGame();
+    }
+    return;
   }
 
   //Method for finding player in First Priority Search: Find the active player with double chance.
