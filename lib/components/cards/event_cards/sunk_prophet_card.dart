@@ -10,7 +10,13 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class SunkProphet extends EventActionCard {
-  SunkProphet() {
+  SunkProphet()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Sunk Prophet",
+        descripText:
+            "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
+      ) {
     eventEnum = EventCardEnum.SunkProphet;
   }
 
@@ -18,17 +24,6 @@ class SunkProphet extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
-      descriptionTitle: "Sunk Prophet",
-    );
   }
 
   @override

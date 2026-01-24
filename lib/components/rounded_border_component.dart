@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 
-class RoundedBorderComponent extends PositionComponent {
+class RoundedBorderComponent extends PositionComponent with HasVisibility {
   double borderWidth;
   Color borderColor;
   Color? fillColor;
@@ -32,7 +29,6 @@ class RoundedBorderComponent extends PositionComponent {
     super.render(canvas);
 
     final rect = Rect.fromLTWH(0, 0, size.x, size.y);
-
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
 
     if (fillColor != null) {
@@ -43,37 +39,11 @@ class RoundedBorderComponent extends PositionComponent {
       canvas.drawRRect(rrect, fillPaint);
     }
 
-    // Border
     final borderPaint =
         Paint()
           ..color = borderColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = borderWidth;
     canvas.drawRRect(rrect, borderPaint);
-  }
-
-  Future<void> moveTo(
-    Vector2 target,
-    double duration, {
-    Curve curve = Curves.easeInOut,
-  }) async {
-    final completer = Completer<void>();
-
-    // Remove existing MoveEffect if any
-    removeWhere((c) => c is MoveEffect);
-
-    add(
-      MoveEffect.to(
-        target,
-        EffectController(duration: duration, curve: curve),
-        onComplete: () {
-          if (!completer.isCompleted) {
-            completer.complete();
-          }
-        },
-      ),
-    );
-
-    return completer.future;
   }
 }

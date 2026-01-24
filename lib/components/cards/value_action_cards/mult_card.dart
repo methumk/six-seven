@@ -2,9 +2,13 @@ import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
 
 class MultCard extends ValueActionCard {
-  MultCard({required super.value}) {
-    cardType = CardType.valueActionMultCard;
-  }
+  MultCard({required super.value})
+    : super(
+        cardType: CardType.valueActionMultCard,
+        actionText: "x",
+        descripTitleText: "Multiply Value",
+        descripText: "Current value gets multiplied by $value",
+      );
 
   @override
   double executeOnStay(double cv) {
@@ -19,11 +23,11 @@ class MultCard extends ValueActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    initTitleText("x");
-    initDescriptionText(
-      descriptionTitle: "Multiply Value",
-      description: "Current value gets multiplied by $value",
-    );
+    // initTitleText("x");
+    // initDescriptionText(
+    //   descriptionTitle: "Multiply Value",
+    //   description: "Current value gets multiplied by $value",
+    // );
   }
 
   @override

@@ -7,7 +7,13 @@ import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class LuckyDieCard extends EventActionCard {
-  LuckyDieCard() {
+  LuckyDieCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Lucky Die",
+        descripText:
+            "Roll a 7 sided die. Rolling a 1,2,3,4, or 5 gets you those points respectively. Rolling a 6 or 7 gets you -6 or -7 points respectively. Max roll 7 times!",
+      ) {
     eventEnum = EventCardEnum.LuckyDie;
   }
 
@@ -15,17 +21,6 @@ class LuckyDieCard extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "Roll a 7 sided die. Rolling a 1,2,3,4, or 5 gets you those points respectively. Rolling a 6 or 7 gets you -6 or -7 points respectively. Max roll 7 times!",
-      descriptionTitle: "Lucky Die",
-    );
   }
 
   @override

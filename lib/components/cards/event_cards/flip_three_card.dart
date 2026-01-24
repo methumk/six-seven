@@ -13,7 +13,12 @@ class FlipThreeCard extends EventActionCard {
   mat.Color announcementColor = mat.Colors.blue;
   late EventAnnouncementText flipAnnouncement;
 
-  FlipThreeCard() {
+  FlipThreeCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Flip Three",
+        descripText: "The person you select must flip 3 cards!",
+      ) {
     eventEnum = EventCardEnum.FlipThree;
 
     // Adding to world, so 0 will be center
@@ -30,11 +35,6 @@ class FlipThreeCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "The person you select must flip 3 cards!",
-      descriptionTitle: "Flip Three",
-    );
     game.world.add(flipAnnouncement);
   }
 

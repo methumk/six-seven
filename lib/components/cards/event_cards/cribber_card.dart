@@ -7,7 +7,13 @@ import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class CribberCard extends EventActionCard {
-  CribberCard() {
+  CribberCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Cribber",
+        descripText:
+            "You get to crib a random card from the deck, then give it to any player!",
+      ) {
     eventEnum = EventCardEnum.Cribber;
   }
 
@@ -21,12 +27,12 @@ class CribberCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "You get to crib a random card from the deck, then give it to any player!",
-      descriptionTitle: "Cribber",
-    );
+    // await initCardIcon("game_ui/test.png");
+    // initDescriptionText(
+    //   description:
+    //       "You get to crib a random card from the deck, then give it to any player!",
+    //   descriptionTitle: "Cribber",
+    // );
   }
 
   @override
