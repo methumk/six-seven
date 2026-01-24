@@ -14,24 +14,33 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
   Set<double> numHandSet = Set();
   final List<NumberCard> numberHand = [];
   static final Vector2 cardPosOffset = Vector2(Card.cardSize.x * .27, 0);
-  int currCardPriority = 0;
 
   NumberCardHolder() : super(anchor: Anchor.bottomRight) {
     priority = 10;
-    currCardPriority += priority;
   }
 
   int getTotalHandLength() {
     return numberHand.length;
   }
 
+  int _getNextCardPriority() {
+    return priority + numberHand.length + 1;
+  }
+
+  int _getOrderBasedCardPriority(int index) {
+    return priority + index + 1;
+  }
+
+  /// Finds the locations for a card given it's index position in cardHandOrder array
+  Vector2 _getOrderBasedCardPosition(int index) {
+    if (index < 0) return Vector2.all(0);
+    Vector2 newCardPos = Vector2(position.x - Card.halfCardSize.x, 0);
+    newCardPos.x = newCardPos.x - ((index + 1) * cardPosOffset.x);
+    return newCardPos;
+  }
+
   Vector2 _getNewCardPos() {
-    return Vector2(
-      position.x -
-          Card.halfCardSize.x -
-          ((numberHand.length + 1) * cardPosOffset.x),
-      0,
-    );
+    return _getOrderBasedCardPosition(numberHand.length);
   }
 
   bool isDuplicate(NumberCard nc) {
@@ -55,16 +64,19 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
       card.removeFromParent();
     }
 
+    // Set card priority extremely high to make it render above everything when moving
+    card.priority = 100;
+
     // Add it to the deck and then update position to start off where it currently was
-    add(card);
     card.position = cardAbsolutePos - absolutePosition;
+    add(card);
 
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
 
-    card.priority = currCardPriority++;
     card.flip(duration: 0.3);
     await card.moveTo(newHandPos, EffectController(duration: 0.5));
+    card.priority = _getNextCardPriority();
 
     // Set position after movement
     card.position = newHandPos;
@@ -83,7 +95,11 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     card.onDragEndReturnTo(card.position, card.priority);
   }
 
-  void removeNumberCard(NumberCard card, {bool removeFromUi = true}) {
+  Future<void> removeNumberCard(
+    NumberCard card, {
+    bool updateDeckPosition = true,
+    bool removeFromUi = true,
+  }) async {
     if (card.isMounted && removeFromUi) {
       card.removeFromParent();
     }
@@ -94,10 +110,15 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     numberHand.remove(card);
     numHandSet.remove(card.value);
 
-    currCardPriority--;
+    if (updateDeckPosition) {
+      await updateCardPositionOnRemoval();
+    }
   }
 
-  void removeAllCards({bool removeFromUi = true}) {
+  Future<void> removeAllCards({
+    bool updateDeckPosition = true,
+    bool removeFromUi = true,
+  }) async {
     for (final c in numberHand) {
       if (c.isMounted && removeFromUi) {
         c.removeFromParent();
@@ -106,9 +127,33 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
       c.setClickable(false);
     }
 
-    currCardPriority = priority;
     numberHand.clear();
     numHandSet.clear();
+
+    if (updateDeckPosition) {
+      await updateCardPositionOnRemoval();
+    }
+  }
+
+  /// This will update the cards in cardHandOrder starting at a given index to update it so that they are all next to each other
+  Future<void> updateCardPositionOnRemoval({int startCardIdx = 0}) async {
+    if (startCardIdx < 0) return;
+
+    for (int i = startCardIdx; i < numberHand.length; ++i) {
+      final c = numberHand[i];
+      Vector2 newCardPos = _getOrderBasedCardPosition(i);
+      c.priority = _getOrderBasedCardPriority(i);
+
+      // Only update position if it needs to
+      if (newCardPos.x != c.deckReturnTo?.x ||
+          newCardPos.y != c.deckReturnTo?.y) {
+        // Disable drag then set up new card position and re-enable drag to it
+        c.setDraggable(false);
+        await c.moveTo(newCardPos, EffectController(duration: 0.2));
+        c.setDraggable(true);
+        c.onDragEndReturnTo(newCardPos, c.priority);
+      }
+    }
   }
 }
 
@@ -435,16 +480,16 @@ class DynamicCardHolder extends PositionComponent {
     // Remove from game world so we can add the card to the hand
     Vector2 cardAbsolutePos = c.absolutePosition;
 
-    // Add to the end of the existing position
-    c.priority = _getNextCardPriority();
-
     if (c.parent != null) {
       c.removeFromParent();
     }
 
+    // Set card priority extremely high to make it render above everything when moving
+    c.priority = 100;
+
     // Add it to the deck and then update position to start off where it currently was
-    add(c);
     c.position = cardAbsolutePos - absolutePosition;
+    add(c);
 
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
@@ -453,6 +498,8 @@ class DynamicCardHolder extends PositionComponent {
       c.flip(duration: 0.3);
     }
     await c.moveTo(newHandPos, EffectController(duration: 0.5));
+    // Add to the end of the existing position
+    c.priority = _getNextCardPriority();
     c.setDraggable(true);
     c.onDragEndReturnTo(newHandPos, c.priority);
 
@@ -684,6 +731,39 @@ class DynamicCardHolder extends PositionComponent {
       }
     }
     return mcs;
+  }
+
+  /// Removes a minus card by reference
+  Future<void> removeMinusCard(
+    MinusCard minusCard, {
+    bool updateDeckPosition = true,
+    bool removeFromUi = true,
+  }) async {
+    for (final c in cardHandOrder) {
+      if (c == minusCard) {
+        // Remove from parent ui
+        if (removeFromUi && c.isMounted) {
+          c.removeFromParent();
+        }
+
+        // Remove minus value from hand map
+        final minusList = minusHandMap[minusCard.value];
+        if (minusList != null && minusList.isNotEmpty) {
+          var mc = minusList.removeLast();
+          minusHandLength--;
+        }
+
+        // remove from card Hand order
+        cardHandOrder.remove(c);
+
+        break;
+      }
+    }
+
+    if (updateDeckPosition) {
+      // _updateDeckPositionsOnCardRemoval(CardType.valueActionMinusCard);
+      await updateCardPositionOnRemoval();
+    }
   }
 
   // Removes card from hand and updates all other card positions
