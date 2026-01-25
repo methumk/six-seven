@@ -74,7 +74,7 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
 
-    card.flip(duration: 0.3);
+    card.flipUp(duration: 0.3);
     await card.moveTo(newHandPos, EffectController(duration: 0.5));
     card.priority = _getNextCardPriority();
 
