@@ -311,8 +311,16 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Update round counter
     currentRound++;
 
+    animatePlayerRotation = false;
     buttonPressed = false;
-    hud.enableHitAndStayBtns();
+    if (players[currentPlayerIndex].isCpu()) {
+      hud.disableHitAndStayBtns();
+      print("Current player${currentPlayerIndex + 1} is CPU");
+      await aiTurn(players[currentPlayerIndex] as CpuPlayer);
+      // print("next bottom index: ${nextPlayerBottomIndex}");
+    } else {
+      hud.enableHitAndStayBtns();
+    }
   }
 
   Future<void> aiTurn(CpuPlayer currentCPUPlayer) async {
