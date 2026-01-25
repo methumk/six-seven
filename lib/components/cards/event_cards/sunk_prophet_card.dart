@@ -26,13 +26,15 @@ class SunkProphet extends EventActionCard {
     await initCardIcon("game_ui/test.png");
     initDescriptionText(
       description:
-          "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
+          "Roll a 7 sided die. Five of the sides have a -6 value, two of the sides have a +7 value! Max loss capped at -25 points.",
       descriptionTitle: "Sunk Prophet",
     );
   }
 
   @override
   Future<void> executeOnEvent() async {
+    //max cap integer
+    int maxLossCap = -25;
     Player? p = game.gameManager.getCurrentPlayer;
     if (p == null) {
       return;
@@ -51,6 +53,11 @@ class SunkProphet extends EventActionCard {
       isLuckyDie: false,
     );
 
+    //Compare points to max cap
+    if (points < maxLossCap) {
+      points = maxLossCap;
+    }
+
     p.updateBonusValue(points.toDouble());
 
     // Resolve event complete to stop waiting
@@ -60,7 +67,7 @@ class SunkProphet extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} player of choice is forced to roll a 13-sided die! A roll that is not a 6 or 7 loses them 7 points, while a roll of 6 or 7 gains them 13 points! They must continue to roll until they roll a 6 or 7.",
+      "${cardType.label} Roll a 7 sided die. Five of the sides have a -6 value, two of the sides have a +7 value! Max loss capped at -25 points.",
     );
   }
 }
