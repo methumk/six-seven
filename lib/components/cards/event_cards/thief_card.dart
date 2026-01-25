@@ -185,12 +185,14 @@ class ThiefCard extends EventActionCard {
           currentMinusValue,
           player,
         );
-        print(
-          "Current chosen player: ${affectedPlayer!.playerName}, current value: ${currentHypotheticalValue}",
-        );
-        print(
-          "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",
-        );
+        if (affectedPlayer != null) {
+          print(
+            "Current chosen player: ${affectedPlayer!.playerName}, current value: ${currentHypotheticalValue}",
+          );
+          print(
+            "Rival player: ${player.playerName}, rival player's value: ${rivalHypotheticalValue}",
+          );
+        }
         if (affectedPlayer == null ||
             rivalHypotheticalValue >= currentHypotheticalValue) {
           affectedPlayer = player;

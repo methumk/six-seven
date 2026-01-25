@@ -52,7 +52,7 @@ class LuckyDieCard extends EventActionCard {
   @override
   void description() {
     print(
-      "${cardType.label} player of choice gets to roll a lucky seven sided die! A roll that is between 1 and 5 earns you 1 to 5 points, while a roll of 6 or 7 makes you lose 6 to 7 points!",
+      "${cardType.label} Roll a 7 sided die. Five of the sides have a -6 value, two of the sides have a +7 value!",
     );
   }
 

@@ -148,7 +148,7 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
 
   //Calculates expected value of a single roll
   double evRoll() {
-    return -(1 + 2 + 3 + 4 + 5) / 7 + 6 / 7 + 7 / 7;
+    return -6 * 5 / 7 + 7 * 2 / 7;
   }
 
   Future<void> _startRoll() async {
@@ -177,10 +177,10 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
           _currentFace = _finalValue;
           int pointsFromRoll = 0;
           if (_finalValue == 6 || _finalValue == 7) {
-            pointsFromRoll = _finalValue;
+            pointsFromRoll = 7;
             sixOrSevenRolled = true;
           } else {
-            pointsFromRoll = -_finalValue;
+            pointsFromRoll = -6;
           }
           _totalScore += 1 * pointsFromRoll;
         });
@@ -325,10 +325,10 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                       child:
                           _currentFace < 6
                               ? SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_red_dots.svg',
+                                'assets/images/game_ui/dice_${6}_red_dots_${_currentFace}.svg',
                               )
                               : SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_white_dots.svg',
+                                'assets/images/game_ui/dice_${7}_white_dots_${_currentFace % 5}.svg',
                               ),
                     );
                   },
@@ -362,11 +362,11 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                                 child:
                                     val < 6
                                         ? SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                          'assets/images/game_ui/dice_${6}_red_dots_${val}.svg',
                                           width: 28,
                                         )
                                         : SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                          'assets/images/game_ui/dice_${7}_white_dots_${val % 5}.svg',
                                           width: 28,
                                         ),
                               );
@@ -377,11 +377,11 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                           child =
                               val < 6
                                   ? SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                    'assets/images/game_ui/dice_${6}_red_dots_${val}.svg',
                                     width: 28,
                                   )
                                   : SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                    'assets/images/game_ui/dice_${7}_white_dot_${val % 5}.svg',
                                     width: 28,
                                   );
                         }
