@@ -5,7 +5,12 @@ import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/player.dart';
 
 class DoubleChanceCard extends HandEventActionCard {
-  DoubleChanceCard() {
+  DoubleChanceCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Double Chance",
+        descripText: "The player that gets chosen is granted double chance!",
+      ) {
     eventEnum = EventCardEnum.DoubleChance;
   }
 
@@ -14,16 +19,6 @@ class DoubleChanceCard extends HandEventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "The player that gets chosen is granted double chance!",
-      descriptionTitle: "Double Chance",
-    );
   }
 
   //Grants double chance
@@ -50,7 +45,7 @@ class DoubleChanceCard extends HandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the double chance card.");
-        game.gameManager.deck.addToDiscard([this]);
+        await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
       }
@@ -79,7 +74,6 @@ class DoubleChanceCard extends HandEventActionCard {
     affectedPlayer!.grantDoubleChance();
     await affectedPlayer?.onHit(this);
     finishEventCompleter();
-    return;
   }
 
   @override

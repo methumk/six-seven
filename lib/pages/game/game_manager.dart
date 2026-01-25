@@ -2,21 +2,27 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/deck.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
+import 'package:six_seven/components/cards/event_cards/discarder_card.dart';
+import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
+import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
+import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
+import 'package:six_seven/components/cards/event_cards/redeemer_card.dart';
+import 'package:six_seven/components/cards/event_cards/reverse_turn_card.dart';
+import 'package:six_seven/components/cards/event_cards/sunk_prophet_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
-import 'package:six_seven/components/cards/value_action_cards/minus_card.dart'
-    as cd;
-import 'package:six_seven/components/cards/value_action_cards/mult_card.dart'
-    as cd;
-import 'package:six_seven/components/cards/value_action_cards/plus_card.dart'
-    as cd;
+import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
+import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/hud.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/human_player.dart';
@@ -57,8 +63,6 @@ enum EventDifferentAction { none, topPeek, forecast }
 
 class GameManager extends Component with HasGameReference<GameScreen> {
   // Game Logic
-  CardDeck deck = CardDeck();
-
   // Index doesn't match position, but 0-Total count goes in clock wise direction, 0 at center initially then everything goes clock wise as index increases
   List<Player> players = [];
   int aiPlayerCount;
@@ -94,6 +98,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final Leaderboard<Player> totalCurrentLeaderBoard;
   // Game UI
   static final Vector2 thirdPersonScale = Vector2.all(.7);
+  static final Vector2 gameCenter = Vector2.all(0);
   late final Hud hud;
   // late final TopHud hud;
   // late final BottomHud bHud;
@@ -140,6 +145,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Pot
   late final Pot pot;
+  // anchored at center bottom with reference to the game.world
+  static final Vector2 worldPotPos = gameCenter;
+
+  // Deck
+  late final CardDeck deck;
+  // anchor at center bottom with refernece to the game.world
+  static final Vector2 worldDeckPos = gameCenter;
 
   // current Round, ones based
   int currentRound = 1;
@@ -391,10 +403,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       }
     }
     //Plus cards are always good, hit them.
-    else if (peekCard is cd.PlusCard) {
+    else if (peekCard is PlusCard) {
       print("Peeked card was a plus card. Hit!");
       await _aiHits();
-    } else if (peekCard is cd.MinusCard) {
+    } else if (peekCard is MinusCard) {
       //For minus card, AI Player will choose to hit anyways if E[Hit] >= n
       //because they can still continue getting points with more hits.
       //Else, they stay because E[Hit] < n, and hence it is not worth the risk
@@ -403,7 +415,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         "Peeked card was a number card. Comparing Expected Value to decide",
       );
       await EVBasedComparison(currentCPUPlayer);
-    } else if (peekCard is cd.MultCard) {
+    } else if (peekCard is MultCard) {
       // await Future.delayed(const Duration(milliseconds: 1500));
       if (currentCPUPlayer.isPeekedMultCardBad(peekCard)) {
         print("Peeked card was a  Multiplier card with value <1. Stay!");
@@ -1158,7 +1170,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // Show current player decided to hit
     await currentPlayer.playerActionText.setAsHitting();
 
-    final card = deck.draw();
+    // Draw card and add it to deck game world start position
+    final card = await deck.draw();
+    card.isVisible = false;
+    game.world.add(card);
+    card.startAtDeckSetting();
     print("Got card: $card ${card.cardType}");
 
     if (card is! cd.EventActionCard) {
@@ -1168,33 +1184,29 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       // Show event card animations
       runningEvent = card;
       runningEvent?.cardUser = currentPlayer;
-      runningEvent!.position = deck.position;
-      game.world.add(runningEvent!);
+
+      // Set completer for event to be toggled by user or manually removed for AI
       runningEvent!.drawAnimation.init();
 
       // Wait for deck draw animation to finish
-      if (currentPlayer.isCpu()) {
-        await runningEvent!.drawFromDeckAnimation(isInfinite: false);
+      await runningEvent!.drawEventCardAnimation(
+        isInfinite: !currentPlayer.isCpu(),
+      );
+      await runningEvent!.drawAnimation.wait();
 
-        await runningEvent!.drawAnimation.wait();
-      } else {
-        await runningEvent!.drawFromDeckAnimation(isInfinite: true);
-
-        await runningEvent!.drawAnimation.wait();
-      }
-
-      // Sets up event completer
-      runningEvent!.eventCompleted.init();
-
-      // Execute action
-      await runningEvent!.executeOnEvent();
-      // Wait for event execution to complete
-      await runningEvent!.eventCompleted.wait();
-      // If card is not handeventaction card or if it is a discarded handEventAction card, after event is done, add card to discard pile
+      // Send event card to discard if not handEventAction
       if (runningEvent is cd.EventActionCard &&
           runningEvent is! cd.HandEventActionCard) {
-        deck.addToDiscard([runningEvent as cd.Card]);
+        await deck.sendToDiscardPileAnimation(runningEvent as cd.Card);
+        await Future.delayed(Duration(milliseconds: 300));
       }
+
+      // Sets up event completer, so we can wait on user input if necessary
+      runningEvent!.eventCompleted.init();
+      // Execute action
+      await runningEvent!.executeOnEvent();
+      // Wait for event/user interaction to complete
+      await runningEvent!.eventCompleted.wait();
     }
 
     // Default return type
@@ -1223,6 +1235,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         returnType = EventDifferentAction.topPeek;
       } else if (card is ChoiceDraw && card.drawEventCardAgain) {
         print("Choice Draw - needs to draw event card again");
+        card.drawEventCardAgain = false;
         return await _handleDrawCardFromDeck(currentPlayerIndex);
       } else if (card is ForecasterCard) {
         print(
@@ -1332,6 +1345,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
+    // Add deck/discard pile
+    deck = CardDeck(position: worldDeckPos);
+    game.world.add(deck);
+
     // Determine game resolution constants
     final double gameResX = game.gameResolution.x,
         gameResY = game.gameResolution.y;
@@ -1389,8 +1406,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
     game.camera.viewport.add(hud);
 
-    // Set Up Game pot
-    pot = Pot(startScore: 0, position: Vector2(0, 0), size: Vector2(10, 10));
+    // // Set Up Game pot
+    pot = Pot(startScore: 0, position: worldPotPos, size: Vector2(10, 10));
     game.world.add(pot);
 
     // PathDebugComponent

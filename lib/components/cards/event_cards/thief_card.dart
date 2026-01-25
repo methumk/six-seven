@@ -14,7 +14,14 @@ class ThiefCard extends EventActionCard {
   Color announcementFailColor = Colors.red;
   Color announcementColor = Colors.blue;
   late EventAnnouncementText playerStealingAnnouncement;
-  ThiefCard() {
+
+  ThiefCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Thief",
+        descripText:
+            "You get to choose a player to steal all their value action cards!",
+      ) {
     eventEnum = EventCardEnum.Thief;
 
     // Adding to world, so 0 will be center
@@ -33,12 +40,6 @@ class ThiefCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "You get to choose a player to steal all their value action cards!",
-      descriptionTitle: "Thief",
-    );
     game.world.add(playerStealingAnnouncement);
   }
 
@@ -97,12 +98,9 @@ class ThiefCard extends EventActionCard {
       affectedPlayer = aiPlayerChoice(cardUser!);
     }
     //For either human player or CPU player, the affectedUser is chosen. Proceed to steal the cards
-
-    print("chosen player: ${affectedPlayer!.playerName}");
     //If affectedPlayer is the same as the cardUser, then there's
     //nothing to steal. Return early
     if (affectedPlayer == cardUser || affectedPlayer == null) {
-      print("exiting early!");
       finishEventCompleter();
       return;
     }
@@ -118,14 +116,13 @@ class ThiefCard extends EventActionCard {
       shrinkAndRemoveAtEndSec: .9,
     );
 
-    // Steal all value cards besides event
-    affectedPlayer!.transferAddHand(cardUser!, updateDeckPosition: true);
-    affectedPlayer!.transferMinusHand(cardUser!, updateDeckPosition: true);
-    affectedPlayer!.transferMultHand(cardUser!, updateDeckPosition: true);
-
-    // Update current status
-    affectedPlayer?.updateCurrentValue();
-    cardUser?.updateCurrentValue();
+    // Steal all value cards besides event, this will auto update the value
+    await affectedPlayer!.transferCards(
+      cardUser!,
+      includePlus: true,
+      includeMinus: true,
+      includeMult: true,
+    );
 
     // Signal to event completer
     finishEventCompleter();

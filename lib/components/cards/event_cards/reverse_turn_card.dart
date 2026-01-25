@@ -11,7 +11,12 @@ class ReverseTurnCard extends EventActionCard {
   mat.Color announcementColor = mat.Colors.blue;
   late EventAnnouncementText announcementText;
 
-  ReverseTurnCard() {
+  ReverseTurnCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Reverse Turn",
+        descripText: "Reverses turn order!",
+      ) {
     eventEnum = EventCardEnum.ReverseTurn;
     announcementText = EventAnnouncementText(position: Vector2.all(0));
   }
@@ -25,11 +30,6 @@ class ReverseTurnCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "Reverses turn order!",
-      descriptionTitle: "Reverse Turn",
-    );
     game.world.add(announcementText);
   }
 

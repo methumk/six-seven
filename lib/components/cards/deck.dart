@@ -1,8 +1,13 @@
 import 'dart:math';
-
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
+import 'package:flame/extensions.dart';
+import 'package:flutter/material.dart' show Curves;
+import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/cards/card_component.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
 import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
@@ -19,9 +24,48 @@ import 'package:six_seven/components/cards/event_cards/thief_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
+import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
+import 'package:six_seven/pages/game/game_screen.dart';
 
-class CardDeck extends PositionComponent with TapCallbacks {
+class CardDeck extends PositionComponent
+    with HasGameReference<GameScreen>, TapCallbacks {
+  static final Vector2 discardPosOffset = Vector2(Card.cardSize.x * 2.5, 0);
+  static final Vector2 deckPosOffset = Vector2(Card.cardSize.x * -2.5, 0);
+  static final Vector2 deckOutlineSize = Vector2(
+    Card.cardSize.x * 1.33,
+    Card.cardSize.y * 1.15,
+  );
+  // top card positioned from bottom center, so it will be shifted up by this amount
+  static final Vector2 deckTopOffset = Vector2(
+    0,
+    (deckOutlineSize.y - Card.cardSize.y) / 2,
+  );
+
+  // Absolute gameworld position
+  static Vector2 getDiscardCardPosition() {
+    return discardPosOffset - deckTopOffset;
+  }
+
+  // Absolute gameworld position
+  static Vector2 getDeckCardPosition() {
+    return deckPosOffset - deckTopOffset;
+  }
+
+  // Deck pile visualization
+  late final RoundedBorderComponent _deckOutline; // To show where the deck goes
+  late final CardComponent _deckTopCard; // To show that the deck has 1+ cards
+  late final TextComponent
+  _deckTextLabel; // Shows deck with the count of the cards remaining
+  late final TextComponent _shufflingLabel;
+
+  // Discard pile visualization
+  late final RoundedBorderComponent
+  _discardOutline; // To show where the discard goes
+  // points to card used to show last discarded card flipped up
+  Card? _discardTopCard;
+  late final TextComponent _discardTextLabel;
+
   late List<Card> deckList;
   late List<Card> discardPile;
   late Map<int, int> numberCardsLeft;
@@ -42,7 +86,7 @@ class CardDeck extends PositionComponent with TapCallbacks {
   int get deckListLength => deckList.length;
   int get discardLength => discardPile.length;
 
-  CardDeck() {
+  CardDeck({required super.position}) : super(anchor: Anchor.bottomCenter) {
     deckList = [];
     discardPile = [];
     numberCardsLeft = {
@@ -166,7 +210,6 @@ class CardDeck extends PositionComponent with TapCallbacks {
     };
     initNumberCards();
     initValueActionCards();
-    //TO DO: Uncomment once event cards are implemented
     initEventActionCards();
     deckList.shuffle();
   }
@@ -256,9 +299,9 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 10; i++) {
-      deckList.add(FreezeCard());
-      deckList.add(FlipThreeCard());
+    for (int i = 1; i <= 50; i++) {
+      // deckList.add(FreezeCard());
+      // deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
@@ -304,18 +347,22 @@ class CardDeck extends PositionComponent with TapCallbacks {
   }
 
   //Refilling the deck
-  void refill() {
+  Future<void> refill() async {
     int numDiscardedCards = discardPile.length;
     for (int i = 0; i < numDiscardedCards; i++) {
+      // Remove from discard and then reset card settings
       Card discardedCard = discardPile.removeLast();
+      print("Refilling discard card priority: ${discardedCard.priority}");
+      discardedCard.resetCardSettings();
 
-      discardedCard.resetSize();
+      // Add to deck pile
       deckList.add(discardedCard);
+
+      // Update special event card holders
       if (discardedCard is NumberCard) {
         double value = discardedCard.value;
         numberCardsLeft[value.toInt()] = numberCardsLeft[value.toInt()]! + 1;
       } else if (discardedCard is PlusCard) {
-        deckList.add(discardedCard);
         double value = discardedCard.value;
         plusMinusCardsLeft[value.toInt()] =
             plusMinusCardsLeft[value.toInt()]! + 1;
@@ -323,25 +370,48 @@ class CardDeck extends PositionComponent with TapCallbacks {
         double value = discardedCard.value;
         plusMinusCardsLeft[-1 * value.toInt()] =
             plusMinusCardsLeft[-1 * value.toInt()]! + 1;
+      } else if (discardedCard is MultCard) {
+        multCardsLeft[discardedCard.value] =
+            multCardsLeft[discardedCard.value]! + 1;
       } else {
-        //Currently there is no data structure seeing the number of each event action cards]
-        //left in deck, but there was,
-        //make changes here
+        final eventEnum = discardedCard.eventEnum;
+        eventCardsLeft[eventEnum] = eventCardsLeft[eventEnum]! + 1;
       }
     }
+
     //After all cards from discard pile is added, reshuffle deck
     deckList.shuffle();
+
+    // Show top card for deck/remove top discard card
+    _setDeckCardVisibility(true);
+    _removeTopDiscardedCard();
+
+    // Update deck and discard labels
+    _updateDeckTextLabel();
+    _updateDiscardTextLabel();
+
+    // Show shuffling text
+    _shufflingLabel.text = getShufflingTextLabel(true);
+    await Future.delayed(Duration(milliseconds: 700));
+    _shufflingLabel.text = getShufflingTextLabel(false);
   }
 
   //Method for drawing
-  Card draw() {
+  Future<Card> draw({bool hideTopDeckOnEmpty = true}) async {
     //First, check if deck is empty. Then refill before drawing
     if (deckList.isEmpty) {
       print("DECK IS EMPTY - refilling!");
-      refill();
+      await refill();
     }
 
     Card newCard = deckList.removeLast();
+
+    // TODO: Determine if setDeckCardVisibility should be public and also used when card draw animation is running and not in draw itself
+    // Update text label and hide top deck card if no cards left after this card is drawn
+    _updateDeckTextLabel();
+    if (deckList.isEmpty && hideTopDeckOnEmpty) {
+      _setDeckCardVisibility(false);
+    }
 
     if (newCard is NumberCard) {
       double value = newCard.value;
@@ -361,15 +431,50 @@ class CardDeck extends PositionComponent with TapCallbacks {
       eventCardsLeft[newCard.eventEnum] =
           eventCardsLeft[newCard.eventEnum]! - 1;
     }
+
     return newCard;
   }
 
-  // Stores card at front of the deck (aka, last item)
+  // NOTE this doesn't remove the card from the deck, it just holds a reference to the last card element
+  // This means that deckTextLabel updating will do nothing because the deck didn't change - maybe call draw
+  Card peek() {
+    //First, check if deck is empty. Then refill before peeking
+    // TODO: refill might have to be awaited
+    if (deckList.isEmpty) {
+      refill();
+    }
+
+    return deckList[deckList.length - 1];
+  }
+
+  List<Card> forecast() {
+    //This is only if deckList is entirely empty
+    //If length >0 and <3, just forecast rest of cards in deck
+    if (deckList.isEmpty) {
+      refill();
+    }
+    int numPeek = min(deckList.length, 4);
+    List<Card> forecastCards = [];
+    for (int i = 1; i <= numPeek; i++) {
+      forecastCards.add(peek());
+    }
+    return forecastCards;
+  }
+
+  // Stores a card at front of the deck (aka, last item)
   void putCardBack(Card c, {int index = -1}) {
     if (index >= deckList.length || index == -1) {
       deckList.add(c);
     } else {
       deckList.insert(index, c);
+    }
+
+    // Update text after putting card back
+    _updateDeckTextLabel();
+    _updateDiscardTextLabel();
+    // Make sure to update deck visiblity if deck not empty
+    if (deckList.isNotEmpty) {
+      _setDeckCardVisibility(true);
     }
 
     if (c is NumberCard) {
@@ -391,68 +496,233 @@ class CardDeck extends PositionComponent with TapCallbacks {
     }
   }
 
-  void addToDiscard(List<Card> newTrash) {
+  void addToDiscard(List<Card> newTrash, {int indexOfFaceUpDiscard = 0}) {
+    if (newTrash.isEmpty) {
+      debugPrint("Error - addToDiscard newTrash is empty");
+      return;
+    }
+
     discardPile = discardPile + newTrash;
-    return;
+
+    // Update discard UI
+    if (indexOfFaceUpDiscard >= newTrash.length || indexOfFaceUpDiscard < 0) {
+      indexOfFaceUpDiscard = 0;
+    }
+    _setNewDiscardedCard(newTrash[indexOfFaceUpDiscard]);
+
+    // Update discard label
+    _updateDiscardTextLabel();
   }
 
-  //Warning:Both peek and forecasting are shallow copies and hence point to
-  // the same memory. In other words, changing the values of the copy will change
-  //the values of the original deck element.
-  Card peek() {
-    //First, check if deck is empty. Then refill before peeking
-    if (deckList.isEmpty) {
-      refill();
+  // Animates an already drawn card (at game's rotation center), back to the deck
+  // And handles backend card structure for put back by calling putCardBack
+  // NOTE: this assumes a card has been taken out from deck and has been added to the game tree
+  Future<void> putBackToDeckAnimation(Card c, {int index = -1}) async {
+    // Undo drag and click
+    c.setDraggable(false);
+    c.setClickable(false);
+
+    // Make sure it's face down before going back
+    if (!c.isFaceDown) {
+      await c.flip(duration: 0.3);
     }
-    //Dart does NOT have negative indices unlike Python, meaning
-    //you can NOT do deckList[-1];
-    return deckList[deckList.length - 1];
+
+    // Scale and then move to deck position
+    c.scaleTo(Vector2.all(1.0), EffectController(duration: 0.3));
+    await c.moveTo(getDeckCardPosition(), EffectController(duration: 0.4));
+
+    // Make sure top deck card is visible (0 check cuz we are putting card in)
+    if (deckListLength >= 0) {
+      _setDeckCardVisibility(true);
+    }
+
+    // Remove existing card from gameworld
+    c.resetCardSettings();
+    c.removeFromParent();
+
+    // This will put the card back in the strucutre,
+    putCardBack(c, index: index);
   }
 
-  List<Card> forecast() {
-    //This is only if deckList is entirely empty
-    //If length >0 and <3, just forecast rest of cards in deck
-    if (deckList.isEmpty) {
-      refill();
+  // Animates card going from it's current position to the discard pile
+  // NOTE: this assumes a card has been taken out from deck and has been added to the game tree
+  Future<void> sendToDiscardPileAnimation(
+    Card c, {
+    double flipTime = 0.0,
+  }) async {
+    // Make sure card is rendered in game world, so it can be transferred to discard
+    // Get the card's absolute position in game world coordinates BEFORE removing from parent
+    final absolutePosition = c.absolutePosition;
+    final oldParent = c.parent;
+    if (oldParent != game.world) {
+      c.removeFromParent();
+      game.world.add(c);
+      // Set position in game world coordinates so it appears in same spot
+      c.position = absolutePosition;
     }
-    int numPeek = min(deckList.length, 4);
-    List<Card> forecastCards = [];
-    for (int i = 1; i <= numPeek; i++) {
-      forecastCards.add(peek());
+
+    // Ensure card is face up
+    if (c.isFaceDown) {
+      if (flipTime <= 0.0) {
+        c.flipInstant();
+      } else {
+        await c.flip(duration: flipTime);
+      }
     }
-    return forecastCards;
+
+    // Make sure scale is corrected
+    await c.scaleTo(Vector2.all(1), EffectController(duration: 0.2));
+
+    // Move the card to discard
+    await c.moveTo(getDiscardCardPosition(), EffectController(duration: 0.2));
+
+    // hand over card management to deck discard pile
+    addToDiscard([c]);
   }
 
-  @override
-  void onTapUp(TapUpEvent event) {
-    super.onTapUp(event);
-    print("Tap up");
+  void printDeck() {
+    print("Deck list (${deckList.length}): $deckList");
+  }
+
+  void printDiscard() {
+    print("Discard list (${discardPile.length}): $discardPile");
+  }
+
+  // Animates a list of card from start to finish and sets them as discarded
+  Future<void> sendAllToDiscardPileAnimation(
+    List<Card> cards, {
+    double flipTime = 0.0,
+    int delayMs = 0,
+  }) async {
+    for (final c in cards) {
+      await sendToDiscardPileAnimation(c, flipTime: flipTime);
+      if (delayMs <= 0) {
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
+  }
+
+  void _setDeckCardVisibility(bool show) {
+    print("Setting deck card visibility: $show");
+    _deckTopCard.setVisibility(show);
+  }
+
+  void _setNewDiscardedCard(Card card) {
+    // Remove existing card from tree
+    if (_discardTopCard != null && _discardTopCard!.isMounted) {
+      _discardTopCard!.removeFromParent();
+    }
+
+    // Save current discarded card
+    _discardTopCard = card;
+    _discardTopCard!.setGlowing(false);
+    _discardTopCard!.setClickable(false);
+    _discardTopCard!.setDraggable(false);
+  }
+
+  Card? _removeTopDiscardedCard() {
+    late Card? c;
+    if (_discardTopCard != null) {
+      c = _discardTopCard;
+      _discardTopCard!.removeFromParent();
+      _discardTopCard = null;
+    }
+    return c;
+  }
+
+  String getDeckTextLabel() {
+    return "${deckList.length} Cards";
+  }
+
+  String getDiscardTextLabel() {
+    return "${discardPile.length} Discarded";
+  }
+
+  String getShufflingTextLabel(bool show) {
+    return show ? "Shuffling..." : "";
+  }
+
+  void _updateDeckTextLabel() {
+    if (_deckTextLabel.isMounted) {
+      _deckTextLabel.text = getDeckTextLabel();
+    }
+  }
+
+  void _updateDiscardTextLabel() {
+    if (_discardTextLabel.isMounted) {
+      _discardTextLabel.text = getDiscardTextLabel();
+    }
   }
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    // final faceDownCardImage = await Flame.images.load(
-    //   "game_ui/card_face_down.jpg",
-    // );
+    // Deck visualization
+    // The deck open outline
+    _deckOutline =
+        RoundedBorderComponent(borderRadius: 0, size: deckOutlineSize)
+          ..priority = -1000
+          ..anchor = anchor
+          ..position = deckPosOffset;
+    // Deck top card to show that cards are avilable to be drawn
+    _deckTopCard =
+        CardComponent(
+            totalCardSize: Card.cardSize,
+            isClickable: false,
+            isDraggable: false,
+            isGlowing: false,
+            animateGlow: false,
+            position: deckPosOffset - deckTopOffset,
+          )
+          ..priority = -1000
+          ..anchor = anchor;
+    // Show total cards in drawable deck
+    _deckTextLabel = TextComponent(
+      text: getDeckTextLabel(),
+      size: Vector2(Card.cardSize.x * 4 / 6, Card.cardSize.y * 1 / 8),
+      textRenderer: TextPaint(style: TextStyle(fontSize: 15)),
+      anchor: Anchor.topCenter,
+      priority: -1000,
+      position: deckPosOffset,
+    );
 
-    // deckComponent = SpriteComponent(
-    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-    //   size: Card.cardSizeFirstPerson,
-    //   position: Vector2(
-    //     position.x - (Card.cardSizeFirstPerson.x * 1.15),
-    //     position.y - Card.cardSizeFirstPerson.y,
-    //   ),
-    // );
-    // discardComponent = SpriteComponent(
-    //   sprite: Sprite(faceDownCardImage, srcSize: Vector2(323, 466)),
-    //   size: Card.cardSizeFirstPerson,
-    //   position: Vector2(
-    //     position.x + (Card.cardSizeFirstPerson.x * .15),
-    //     position.y - Card.cardSizeFirstPerson.y,
-    //   ),
-    // );
+    // Shuffling label for the deck
+    _shufflingLabel = TextComponent(
+      text: getShufflingTextLabel(false),
+      size: Vector2(Card.cardSize.x * 4 / 6, Card.cardSize.y * 1 / 8),
+      textRenderer: TextPaint(style: TextStyle(fontSize: 15)),
+      anchor: Anchor.topLeft,
+      priority: -1000,
+      // start shuffling text right below deck card text
+      position: Vector2(
+        deckPosOffset.x - (_deckTextLabel.size.x / 2),
+        deckPosOffset.y + _deckTextLabel.size.y,
+      ),
+    );
 
-    // addAll([deckComponent, discardComponent]);
+    // Discard visualization
+    _discardOutline =
+        RoundedBorderComponent(borderRadius: 0, size: deckOutlineSize)
+          ..priority = -1000
+          ..anchor = anchor
+          ..position = discardPosOffset;
+    // Show total cards in drawable deck
+    _discardTextLabel = TextComponent(
+      text: getDiscardTextLabel(),
+      size: Vector2(Card.cardSize.x * 4 / 6, Card.cardSize.y * 1 / 8),
+      textRenderer: TextPaint(style: TextStyle(fontSize: 15)),
+      anchor: Anchor.topCenter,
+      priority: -1000,
+      position: discardPosOffset,
+    );
+
+    addAll([
+      _deckOutline,
+      _deckTopCard,
+      _deckTextLabel,
+      _shufflingLabel,
+      _discardOutline,
+      _discardTextLabel,
+    ]);
   }
 }

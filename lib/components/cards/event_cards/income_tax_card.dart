@@ -1,13 +1,16 @@
 //Progressive Income Tax Card
 import 'dart:async';
-
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
-import 'package:six_seven/pages/game/game_manager.dart';
 
 class IncomeTax extends TaxHandEventActionCard {
-  IncomeTax() {
+  IncomeTax()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Income Tax",
+        descripText: "Enforces a progressive income tax on the player!",
+      ) {
     eventEnum = EventCardEnum.IncomeTax;
   }
 
@@ -15,16 +18,6 @@ class IncomeTax extends TaxHandEventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description: "Enforces a progressive income tax on the player!",
-      descriptionTitle: "Income Tax",
-    );
   }
 
   //Grants Income tax
@@ -51,7 +44,7 @@ class IncomeTax extends TaxHandEventActionCard {
       //that is, affected user is still null, return early
       if (affectedPlayer == null) {
         print("No remaining player can have the Income tax card.");
-        game.gameManager.deck.addToDiscard([this]);
+        await game.gameManager.deck.sendToDiscardPileAnimation(this);
         finishEventCompleter();
         return;
       }
@@ -62,7 +55,11 @@ class IncomeTax extends TaxHandEventActionCard {
       else if (!cardUser!.isCpu()) {
         bool validChoice = false;
         while (!validChoice) {
-          await choosePlayer();
+          await choosePlayer(
+            buttonClickVerf: (Player? p) {
+              return p != null && p != cardUser;
+            },
+          );
           //If chosen player is active and has Income tax, it is valid!
           if (!affectedPlayer!.hasIncomeTax && !affectedPlayer!.isDone) {
             validChoice = true;

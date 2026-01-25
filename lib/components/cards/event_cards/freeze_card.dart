@@ -5,7 +5,13 @@ import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class FreezeCard extends EventActionCard {
-  FreezeCard() {
+  FreezeCard()
+    : super(
+        imagePath: "game_ui/test.png",
+        descripTitleText: "Freeze",
+        descripText:
+            "The player that gets chosen will be frozen, forcing them to stay for the round!",
+      ) {
     eventEnum = EventCardEnum.Freeze;
   }
 
@@ -14,17 +20,6 @@ class FreezeCard extends EventActionCard {
   double executeOnStay(double currentValue) {
     print("This function does nothing");
     return currentValue;
-  }
-
-  @override
-  FutureOr<void> onLoad() async {
-    super.onLoad();
-    await initCardIcon("game_ui/test.png");
-    initDescriptionText(
-      description:
-          "The player that gets chosen will be frozen, forcing them to stay for the round!",
-      descriptionTitle: "Freeze",
-    );
   }
 
   //Freezes other player
@@ -117,7 +112,6 @@ class FreezeCard extends EventActionCard {
     if (bestDoubleChancePlayer != null) {
       affectedPlayer = bestDoubleChancePlayer;
     }
-    return;
   }
 
   //Method for second priority search: Find an active player with highest (total value + current value) points
@@ -140,7 +134,6 @@ class FreezeCard extends EventActionCard {
     if (highestScorePlayer != null) {
       affectedPlayer = highestScorePlayer;
     }
-    return;
   }
 
   //Method for third priority: Just find an active player
@@ -152,7 +145,6 @@ class FreezeCard extends EventActionCard {
         break;
       }
     }
-    return;
   }
 
   @override
