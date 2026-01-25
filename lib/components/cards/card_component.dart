@@ -213,6 +213,22 @@ class CardComponent extends PositionComponent
     }
   }
 
+  //Flip up
+  Future<void> flipUp({double duration = 0.6}) async {
+    if (isFaceDown) {
+      await flip(duration: duration);
+    }
+    return;
+  }
+
+  //Flip down
+  Future<void> flipDown({double duration = 0.6}) async {
+    if (!isFaceDown) {
+      await flip(duration: duration);
+    }
+    return;
+  }
+
   /// Instantly flip without animation
   void flipInstant() {
     _isFlipped = !_isFlipped;
