@@ -209,7 +209,7 @@ class ChoiceDraw extends EventActionCard {
     // Add card to hand, or start new event
     if (selected is NumberCard || selected is ValueActionCard) {
       print('Selected card is number getting added to number hand $selected');
-      currPlayer.onHit(selected);
+      await currPlayer.onHit(selected);
     } else {
       print("Selected card is event card $selected");
 
