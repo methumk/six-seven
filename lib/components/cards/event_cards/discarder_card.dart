@@ -28,11 +28,6 @@ class DiscarderCard extends EventActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // await initCardIcon("game_ui/test.png");
-    // initDescriptionText(
-    //   description: "You must remove one event or operator card from your hand.",
-    //   descriptionTitle: "Discarder",
-    // );
   }
 
   Future<Card> _determineAiChoice(CpuPlayer currPlayer) async {
@@ -201,6 +196,9 @@ class DiscarderCard extends EventActionCard {
       removeFromUi: false,
       updateDeckPosition: false,
     );
+
+    // Send card to discard
+    await game.gameManager.deck.sendToDiscardPileAnimation(selected);
 
     // Update current handle value
     currPlayer.updateCurrentValue();
