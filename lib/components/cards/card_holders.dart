@@ -385,18 +385,7 @@ class DynamicCardHolder extends PositionComponent {
   // Order is minus first, then event,  then mult, then add,
   List<Card> getAsSingleList() {
     List<Card> allCards = [];
-    minusHandMap.forEach((key, minusList) {
-      for (var c in minusList) {
-        allCards.add(c);
-      }
-    });
-    for (var c in eventHand) {
-      allCards.add(c);
-    }
-    for (var c in multHand) {
-      allCards.add(c);
-    }
-    for (var c in addHand) {
+    for (final c in cardHandOrder) {
       allCards.add(c);
     }
 
@@ -404,14 +393,11 @@ class DynamicCardHolder extends PositionComponent {
   }
 
   int getTotalHandLength() {
-    return addHand.length +
-        multHand.length +
-        eventHand.length +
-        minusHandLength;
+    return cardHandOrder.length;
   }
 
   bool isEmpty() {
-    return getTotalHandLength() == 0;
+    return cardHandOrder.isEmpty;
   }
 
   void setCardsClickable(bool clickable) {
