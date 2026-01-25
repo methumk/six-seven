@@ -148,7 +148,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
 
   //Calculates expected value of a single roll
   double evRoll() {
-    return (1 + 2 + 3 + 4 + 5) / 7 - 6 / 7 - 7 / 7;
+    return 6 * 5 / 7 - 7 * 2 / 7;
   }
 
   Future<void> _startRoll() async {
@@ -170,13 +170,7 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
         t.cancel();
         setState(() {
           _currentFace = _finalValue;
-          _totalScore +=
-              1 *
-              (_finalValue == 6
-                  ? -6
-                  : _finalValue == 7
-                  ? -7
-                  : _finalValue);
+          _totalScore += (_finalValue >= 6 ? -7 : 6);
         });
 
         // Insert into history and run wobble there
@@ -309,10 +303,10 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                       child:
                           _currentFace < 6
                               ? SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_white_dots.svg',
+                                'assets/images/game_ui/dice_${6}_white_dots_${_currentFace}.svg',
                               )
                               : SvgPicture.asset(
-                                'assets/images/game_ui/dice_${_currentFace}_red_dots.svg',
+                                'assets/images/game_ui/dice_${7}_red_dots_${_currentFace % 5}.svg',
                               ),
                     );
                   },
@@ -346,11 +340,11 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                                 child:
                                     val < 6
                                         ? SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                          'assets/images/game_ui/dice_${6}_white_dots_${val}.svg',
                                           width: 28,
                                         )
                                         : SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                          'assets/images/game_ui/dice_${7}_red_dots_${val % 5}.svg',
                                           width: 28,
                                         ),
                               );
@@ -361,11 +355,11 @@ class _LuckyDieWidgetState extends State<LuckyDieWidget>
                           child =
                               val < 6
                                   ? SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_white_dots.svg',
+                                    'assets/images/game_ui/dice_${6}_white_dots_${val}.svg',
                                     width: 28,
                                   )
                                   : SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${val}_red_dots.svg',
+                                    'assets/images/game_ui/dice_${7}_red_dots_${val % 5}.svg',
                                     width: 28,
                                   );
                         }
