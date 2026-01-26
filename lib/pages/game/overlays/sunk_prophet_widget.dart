@@ -381,7 +381,7 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                                     width: 28,
                                   )
                                   : SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${7}_white_dot_${val % 5}.svg',
+                                    'assets/images/game_ui/dice_${7}_white_dots_${val % 5}.svg',
                                     width: 28,
                                   );
                         }
