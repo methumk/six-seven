@@ -299,9 +299,9 @@ class CardDeck extends PositionComponent
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 50; i++) {
-      // deckList.add(FreezeCard());
-      // deckList.add(FlipThreeCard());
+    for (int i = 1; i <= 10; i++) {
+      deckList.add(FreezeCard());
+      deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
@@ -562,13 +562,7 @@ class CardDeck extends PositionComponent
     }
 
     // Ensure card is face up
-    if (c.isFaceDown) {
-      if (flipTime <= 0.0) {
-        c.flipInstant();
-      } else {
-        await c.flip(duration: flipTime);
-      }
-    }
+    await c.flipUp(duration: flipTime);
 
     // Make sure scale is corrected
     await c.scaleTo(Vector2.all(1), EffectController(duration: 0.2));
