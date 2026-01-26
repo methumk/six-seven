@@ -22,6 +22,8 @@ class CountingNumberComponent extends TextComponent {
     double duration = 1.0, // seconds for full change
     super.position,
     super.textRenderer,
+    super.anchor,
+    super.priority,
   }) : _startValue = value,
        _targetValue = value,
        _currentValue = value,
