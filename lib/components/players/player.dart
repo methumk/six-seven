@@ -510,6 +510,8 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   Future<void> bust() async {
     print("Bust!");
+    status = PlayerStatus.bust;
+    await playerActionText.setAsBusted();
     await handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
@@ -524,8 +526,6 @@ abstract class Player extends PositionComponent
     }
     taxMultiplier = 1;
     mandatoryHits = 0;
-    status = PlayerStatus.bust;
-    await playerActionText.setAsBusted();
   }
 
   //Grant player double chance status
