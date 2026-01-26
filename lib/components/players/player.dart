@@ -633,7 +633,7 @@ abstract class Player extends PositionComponent
         );
         print("Current value after 67%: ${currentValue}");
         //Remove all cards from player's hand
-        handRemoval(saveScoreToPot: true);
+        await handRemoval(saveScoreToPot: true);
       } else {
         // Add card even though it's a duplicate so it can get removed manually
         nch.addCardtoHand(nc);
