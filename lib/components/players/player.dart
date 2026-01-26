@@ -421,38 +421,46 @@ abstract class Player extends PositionComponent
     final dchLength = dch.cardHandOrder.length;
     for (var i = dchLength - 1; i >= 0; i--) {
       final c = dch.cardHandOrder[i];
+      bool removed = false;
       if (c is PlusCard && includePlus) {
         await dch.removePlusCard(
           c,
           removeFromUi: true,
           updateDeckPosition: true,
         );
+        removed = true;
       } else if (c is MinusCard && includeMinus) {
         await dch.removeMinusCard(
           c,
           removeFromUi: true,
           updateDeckPosition: true,
         );
+        removed = true;
       } else if (c is MultCard && includeMult) {
         await dch.removeMultCard(
           c,
           removeFromUi: true,
           updateDeckPosition: true,
         );
+        removed = true;
       } else if (c is cd.HandEventActionCard && includeEvent) {
         await dch.removeEventCard(
           c,
           removeFromUi: true,
           updateDeckPosition: true,
         );
+        removed = true;
       }
 
-      // Animate and move card
-      await transferTo.dch.addCardtoHand(c);
+      // If card was removed then animate card movement and update values
+      if (removed) {
+        // Animate and move card
+        await transferTo.dch.addCardtoHand(c);
 
-      // Update current value after move for both players
-      updateCurrentValue();
-      transferTo.updateCurrentValue();
+        // Update current value after move for both players
+        updateCurrentValue();
+        transferTo.updateCurrentValue();
+      }
     }
   }
 
