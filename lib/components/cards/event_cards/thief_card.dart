@@ -256,16 +256,16 @@ double calculateRivalHypotheticalValue(
     numberCardsValue = 1;
   }
   //Mult card values
-  for (MultCard multCard in cardUser!.multHand) {
+  for (MultCard multCard in cardUser.multHand) {
     currentMultValue *= multCard.value;
   }
   //Plus card values
-  for (PlusCard plusCard in cardUser!.addHand) {
+  for (PlusCard plusCard in cardUser.addHand) {
     currentPlusValue += plusCard.value;
   }
 
   //Minus card values
-  for (List<MinusCard> minusCardList in cardUser!.minusHandMap.values) {
+  for (List<MinusCard> minusCardList in cardUser.minusHandMap.values) {
     for (MinusCard minusCard in minusCardList) {
       currentMinusValue -= minusCard.value;
     }

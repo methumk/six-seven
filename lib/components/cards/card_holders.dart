@@ -735,7 +735,7 @@ class DynamicCardHolder extends PositionComponent {
         // Remove minus value from hand map
         final minusList = minusHandMap[minusCard.value];
         if (minusList != null && minusList.isNotEmpty) {
-          var mc = minusList.removeLast();
+          minusList.removeLast();
           minusHandLength--;
         }
 

@@ -218,7 +218,6 @@ class CardComponent extends PositionComponent
     if (isFaceDown) {
       await flip(duration: duration);
     }
-    return;
   }
 
   //Flip down
@@ -226,7 +225,6 @@ class CardComponent extends PositionComponent
     if (!isFaceDown) {
       await flip(duration: duration);
     }
-    return;
   }
 
   /// Instantly flip without animation
