@@ -29,6 +29,7 @@ import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/overlays.dart/text_animations.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/pot/pot.dart';
+import 'package:six_seven/components/spinning_arrow_ring.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
@@ -126,6 +127,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   // Animation rotation
   PlayerRotation rotationDirection = PlayerRotation.counterClockWise;
+  // Next player rotation indication
+  late final SpinningArrowRing rotationIndicator;
+
   bool animatePlayerRotation = false;
   // We don't push AI's to bottom screen, so this keeps track of offset to rotate user to the bottom after AI players
   int rotationPlayerOffset = 0;
@@ -1409,6 +1413,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     // // Set Up Game pot
     pot = Pot(startScore: 0, position: worldPotPos, size: Vector2(10, 10));
     game.world.add(pot);
+
+    // Rotation indicator
+    rotationIndicator = SpinningArrowRing(
+      rotationSpeed: 0.3,
+      rotationDirection: rotationDirection,
+      position: Vector2(worldPotPos.x, worldPotPos.y - pot.size.y * 2),
+      size: Vector2.all(120),
+    );
+    game.world.add(rotationIndicator);
 
     // PathDebugComponent
     // var lp = determineBezierRotationPoints(

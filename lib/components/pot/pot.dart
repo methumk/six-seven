@@ -20,22 +20,22 @@ class Pot extends PositionComponent with HasGameReference<GameScreen> {
     totalScore = startScore;
     priority = -1;
 
-    _totalScore = CountingNumberComponent(
-      value: startScore,
-      duration: 1.0,
-      position: Vector2(0, size.y * -3),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-      ),
-      priority: priority,
-    );
-
     _potLabel = TextComponent(
       text: "Pot",
       anchor: Anchor.center,
       position: Vector2.all(0),
       textRenderer: TextPaint(style: TextStyle(fontSize: 25)),
+      priority: priority,
+    );
+
+    _totalScore = CountingNumberComponent(
+      value: startScore,
+      duration: 1.0,
+      position: Vector2(0, _potLabel.size.y * -1),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+      ),
       priority: priority,
     );
   }
