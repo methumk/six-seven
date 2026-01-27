@@ -7,7 +7,9 @@ import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/cards/card_component.dart';
 import 'package:six_seven/components/cards/event_cards/choice_draw.dart';
 import 'package:six_seven/components/cards/event_cards/double_chance_card.dart';
+import 'package:six_seven/components/cards/event_cards/flip_three_card.dart';
 import 'package:six_seven/components/cards/event_cards/forecaster_card.dart';
+import 'package:six_seven/components/cards/event_cards/freeze_card.dart';
 import 'package:six_seven/components/cards/event_cards/income_tax_card.dart';
 import 'package:six_seven/components/cards/event_cards/lucky_die_card.dart';
 import 'package:six_seven/components/cards/event_cards/top_peek_card.dart';
@@ -294,9 +296,9 @@ class CardDeck extends PositionComponent
   }
 
   void initEventActionCards() {
-    for (int i = 1; i <= 50; i++) {
-      // deckList.add(FreezeCard());
-      // deckList.add(FlipThreeCard());
+    for (int i = 1; i <= 10; i++) {
+      deckList.add(FreezeCard());
+      deckList.add(FlipThreeCard());
       deckList.add(DoubleChanceCard());
       deckList.add(TopPeekCard());
       deckList.add(ThiefCard());
@@ -557,13 +559,7 @@ class CardDeck extends PositionComponent
     }
 
     // Ensure card is face up
-    if (c.isFaceDown) {
-      if (flipTime <= 0.0) {
-        c.flipInstant();
-      } else {
-        await c.flip(duration: flipTime);
-      }
-    }
+    await c.flipUp(duration: flipTime);
 
     // Make sure scale is corrected
     await c.scaleTo(Vector2.all(1), EffectController(duration: 0.2));

@@ -370,8 +370,8 @@ abstract class Player extends PositionComponent
     }
 
     // Let discard handle removing card from UI, no reason to update deck for DCH cuz all cards removed
-    nch.removeAllCards(removeFromUi: false);
-    dch.removeAllCards(removeFromUi: false, updateDeckPosition: false);
+    await nch.removeAllCards(removeFromUi: false);
+    await dch.removeAllCards(removeFromUi: false, updateDeckPosition: false);
 
     // Animate each card going to discard
     await game.gameManager.deck.sendAllToDiscardPileAnimation(
@@ -516,7 +516,9 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   Future<void> bust() async {
     print("Bust!");
-    handRemoval(saveScoreToPot: true);
+    status = PlayerStatus.bust;
+    await playerActionText.setAsBusted();
+    await handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
     if (hasIncomeTax && game.gameManager.currentRound > 1) {
@@ -530,8 +532,6 @@ abstract class Player extends PositionComponent
     }
     taxMultiplier = 1;
     mandatoryHits = 0;
-    status = PlayerStatus.bust;
-    await playerActionText.setAsBusted();
   }
 
   //Grant player double chance status
@@ -633,7 +633,7 @@ abstract class Player extends PositionComponent
         );
         print("Current value after 67%: ${currentValue}");
         //Remove all cards from player's hand
-        handRemoval(saveScoreToPot: true);
+        await handRemoval(saveScoreToPot: true);
       } else {
         // Add card even though it's a duplicate so it can get removed manually
         nch.addCardtoHand(nc);

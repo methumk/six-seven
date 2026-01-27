@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
+import 'package:six_seven/utils/dice_helper.dart';
 
 class SunkProphetWidget extends StatefulWidget {
   final double startSize;
@@ -325,10 +326,16 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                       child:
                           _currentFace < 6
                               ? SvgPicture.asset(
-                                'assets/images/game_ui/dice_${6}_red_dots_${_currentFace}.svg',
+                                getRedDiePath(
+                                  numDots: 6,
+                                  version: _currentFace,
+                                ),
                               )
                               : SvgPicture.asset(
-                                'assets/images/game_ui/dice_${7}_white_dots_${_currentFace % 5}.svg',
+                                getWhiteDiePath(
+                                  numDots: 7,
+                                  version: _currentFace % 5,
+                                ),
                               ),
                     );
                   },
@@ -362,11 +369,17 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                                 child:
                                     val < 6
                                         ? SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${6}_red_dots_${val}.svg',
+                                          getRedDiePath(
+                                            numDots: 6,
+                                            version: val,
+                                          ),
                                           width: 28,
                                         )
                                         : SvgPicture.asset(
-                                          'assets/images/game_ui/dice_${7}_white_dots_${val % 5}.svg',
+                                          getWhiteDiePath(
+                                            numDots: 7,
+                                            version: val % 5,
+                                          ),
                                           width: 28,
                                         ),
                               );
@@ -377,11 +390,14 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
                           child =
                               val < 6
                                   ? SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${6}_red_dots_${val}.svg',
+                                    getRedDiePath(numDots: 6, version: val),
                                     width: 28,
                                   )
                                   : SvgPicture.asset(
-                                    'assets/images/game_ui/dice_${7}_white_dot_${val % 5}.svg',
+                                    getWhiteDiePath(
+                                      numDots: 7,
+                                      version: val % 5,
+                                    ),
                                     width: 28,
                                   );
                         }
