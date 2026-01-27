@@ -206,6 +206,10 @@ class ChoiceDraw extends EventActionCard {
       flipTime: 0.3,
     );
 
+    // Reset border color and glowing
+    selected.setGlowing(false);
+    selected.resetBorderColor();
+
     // Add card to hand, or start new event
     if (selected is NumberCard || selected is ValueActionCard) {
       print('Selected card is number getting added to number hand $selected');

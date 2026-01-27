@@ -550,13 +550,9 @@ class CardDeck extends PositionComponent
     // Make sure card is rendered in game world, so it can be transferred to discard
     // Get the card's absolute position in game world coordinates BEFORE removing from parent
     final absolutePosition = c.absolutePosition;
-    final oldParent = c.parent;
-    if (oldParent != game.world) {
-      c.removeFromParent();
-      game.world.add(c);
-      // Set position in game world coordinates so it appears in same spot
-      c.position = absolutePosition;
-    }
+    game.world.add(c);
+    c.position = absolutePosition;
+    c.priority = 90;
 
     // Ensure card is face up
     await c.flipUp(duration: flipTime);
@@ -606,6 +602,7 @@ class CardDeck extends PositionComponent
 
     // Save current discarded card
     _discardTopCard = card;
+    _discardTopCard!.priority = priority;
     _discardTopCard!.setGlowing(false);
     _discardTopCard!.setClickable(false);
     _discardTopCard!.setDraggable(false);
