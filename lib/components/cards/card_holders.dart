@@ -60,9 +60,6 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
   Future<bool> animateCardArrival(NumberCard card) async {
     // Remove from game world so we can add the card to the hand
     Vector2 cardAbsolutePos = card.absolutePosition;
-    if (card.parent != null) {
-      card.removeFromParent();
-    }
 
     // Set card priority extremely high to make it render above everything when moving
     card.priority = 100;
@@ -466,12 +463,8 @@ class DynamicCardHolder extends PositionComponent {
     // Remove from game world so we can add the card to the hand
     Vector2 cardAbsolutePos = c.absolutePosition;
 
-    if (c.parent != null) {
-      c.removeFromParent();
-    }
-
     // Set card priority extremely high to make it render above everything when moving
-    c.priority = 100;
+    c.priority = 90;
 
     // Add it to the deck and then update position to start off where it currently was
     c.position = cardAbsolutePos - absolutePosition;
