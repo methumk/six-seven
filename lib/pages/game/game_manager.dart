@@ -215,6 +215,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     } else {
       rotationDirection = PlayerRotation.clockWise;
     }
+    rotationIndicator.setRotation(rotDir: rotationDirection);
     print("\nChanged rotation direction to $rotationDirection \n");
   }
 

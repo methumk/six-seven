@@ -19,13 +19,13 @@ class SpinningArrowRing extends SvgComponent {
   bool isClockwise() => rotationDirection == PlayerRotation.clockWise;
 
   String _getRotationString(PlayerRotation rotDir) {
-    return isClockwise()
+    return rotDir == PlayerRotation.clockWise
         ? 'images/game_ui/rotation_arrows_cw.svg'
         : 'images/game_ui/rotation_arrows_ccw.svg';
   }
 
   void setRotation({PlayerRotation rotDir = PlayerRotation.clockWise}) {
-    if (isClockwise()) {
+    if (rotDir == PlayerRotation.clockWise) {
       svg = cwSvg;
     } else {
       svg = ccwSvg;
@@ -34,8 +34,12 @@ class SpinningArrowRing extends SvgComponent {
 
   @override
   Future<void> onLoad() async {
-    cwSvg = await Svg.load(_getRotationString(rotationDirection));
-    ccwSvg = await Svg.load(_getRotationString(rotationDirection));
+    cwSvg = await Svg.load(_getRotationString(PlayerRotation.clockWise));
+    ccwSvg = await Svg.load(
+      _getRotationString(PlayerRotation.counterClockWise),
+    );
+
+    print("ROTATION DIRECTION $rotationDirection");
 
     // Sets the svg to current spin orientation
     setRotation(rotDir: rotationDirection);
@@ -45,7 +49,13 @@ class SpinningArrowRing extends SvgComponent {
   void update(double dt) {
     super.update(dt);
 
-    final direction = isClockwise() ? -1 : 1;
-    angle += direction * rotationSpeed * dt;
+    if (isClockwise()) {
+      angle -= rotationSpeed * dt;
+    } else {
+      angle -= rotationSpeed * dt;
+    }
+
+    // final direction = isClockwise() ? 1 : -1;
+    // angle += (direction) * rotationSpeed * dt;
   }
 }
