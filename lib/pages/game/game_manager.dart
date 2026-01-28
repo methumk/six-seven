@@ -1417,7 +1417,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
     // Rotation indicator
     rotationIndicator = SpinningArrowRing(
-      rotationSpeed: 0.3,
       rotationDirection: rotationDirection,
       position: Vector2(worldPotPos.x, worldPotPos.y - pot.size.y * 2),
       size: Vector2.all(120),
