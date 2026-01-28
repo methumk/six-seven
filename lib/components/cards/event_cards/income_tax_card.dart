@@ -28,13 +28,13 @@ class IncomeTax extends TaxHandEventActionCard {
       affectedPlayer = cardUser;
     } else {
       //See if there are any readily available players.
-      List<Player> worstPlayers = game.gameManager.totalLeaderBoard.bottomN(
+      List<Player> bestPlayers = game.gameManager.totalLeaderBoard.topN(
         game.gameManager.totalPlayerCount,
       );
       //If there is an available player, let affectedPlayer be that player.
       //For CPU players, this affectedPlayer will be their choice for who
       //will get Income tax.
-      for (Player player in worstPlayers) {
+      for (Player player in bestPlayers) {
         if (!player.isDone && !player.hasIncomeTax) {
           affectedPlayer = player;
           break;
@@ -49,8 +49,8 @@ class IncomeTax extends TaxHandEventActionCard {
         return;
       }
       //Else, there is an available player to give Income tax to.
-      //We don't have to worry about CPU because they will automatically choose the worst
-      //player available, in terms of total score, to give the Income tax to
+      //We don't have to worry about CPU because they will automatically choose the best
+      //player available, in terms of total score, to give the Income tax to (highest score player will get hurt the most by income tax)
       //All that is left is to check if they are not CPU
       else if (!cardUser!.isCpu()) {
         bool validChoice = false;
