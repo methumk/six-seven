@@ -30,6 +30,7 @@ class SpinningArrowRing extends SvgComponent {
     } else {
       svg = ccwSvg;
     }
+    rotationDirection = rotDir;
   }
 
   @override
@@ -49,13 +50,7 @@ class SpinningArrowRing extends SvgComponent {
   void update(double dt) {
     super.update(dt);
 
-    if (isClockwise()) {
-      angle -= rotationSpeed * dt;
-    } else {
-      angle -= rotationSpeed * dt;
-    }
-
-    // final direction = isClockwise() ? 1 : -1;
-    // angle += (direction) * rotationSpeed * dt;
+    final direction = isClockwise() ? 1 : -1;
+    angle += (direction) * rotationSpeed * dt;
   }
 }
