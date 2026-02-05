@@ -10,18 +10,18 @@ class SpinningArrowRing extends SvgComponent {
   late final Svg ccwSvg;
 
   SpinningArrowRing({
-    this.rotationSpeed = 0.3,
+    this.rotationSpeed = 0.12,
     this.rotationDirection = PlayerRotation.clockWise,
     super.size,
     super.position,
-  }) : super(anchor: Anchor.center, priority: -10);
+  }) : super(anchor: Anchor.center, priority: 100);
 
   bool isClockwise() => rotationDirection == PlayerRotation.clockWise;
 
   String _getRotationString(PlayerRotation rotDir) {
     return rotDir == PlayerRotation.clockWise
-        ? 'images/game_ui/rotation_arrows_cw.svg'
-        : 'images/game_ui/rotation_arrows_ccw.svg';
+        ? 'images/game_ui/rot_arrow_cw.svg'
+        : 'images/game_ui/rot_arrow_ccw.svg';
   }
 
   void setRotation({PlayerRotation rotDir = PlayerRotation.clockWise}) {
@@ -30,6 +30,7 @@ class SpinningArrowRing extends SvgComponent {
     } else {
       svg = ccwSvg;
     }
+    rotationDirection = rotDir;
   }
 
   @override
@@ -49,13 +50,7 @@ class SpinningArrowRing extends SvgComponent {
   void update(double dt) {
     super.update(dt);
 
-    if (isClockwise()) {
-      angle -= rotationSpeed * dt;
-    } else {
-      angle -= rotationSpeed * dt;
-    }
-
-    // final direction = isClockwise() ? 1 : -1;
-    // angle += (direction) * rotationSpeed * dt;
+    final direction = isClockwise() ? 1 : -1;
+    angle += (direction) * rotationSpeed * dt;
   }
 }
