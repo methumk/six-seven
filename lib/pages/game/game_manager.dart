@@ -29,12 +29,14 @@ import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/overlays.dart/text_animations.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/pot/pot.dart';
+import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/spinning_arrow_ring.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/data/enums/player_slots.dart';
 import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
+import 'package:six_seven/utils/flame_svg_component.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/player_stack.dart';
 
@@ -1423,6 +1425,17 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     );
     game.world.add(rotationIndicator);
 
+    List<cd.NumberCard> ls = [];
+    for (var i = 0; i <= 13; i++) {
+      final nc = cd.NumberCard(
+        value: i.toDouble(),
+        faceUp: true,
+        isDraggable: true,
+      );
+
+      ls.add(nc);
+    }
+    game.world.addAll(ls);
     // PathDebugComponent
     // var lp = determineBezierRotationPoints(
     //   PlayerSlot.top,
