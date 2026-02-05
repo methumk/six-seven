@@ -1,4 +1,6 @@
 import 'package:flame/components.dart';
+import 'package:flame_svg/svg.dart';
+import 'package:flame_svg/svg_component.dart';
 import 'package:flutter/material.dart';
 
 class RoundedBorderComponent extends PositionComponent with HasVisibility {
@@ -6,6 +8,7 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
   Color borderColor;
   Color? fillColor;
   double borderRadius;
+  SvgComponent? fillImage;
 
   RoundedBorderComponent({
     Vector2? position,
@@ -23,6 +26,22 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
   void setFillColor(Color? color) => fillColor = color;
   void setBorderWidth(double width) => borderWidth = width;
   void setBorderRadius(double radius) => borderRadius = radius;
+  Future<void> setFillImage(SvgComponent svgImage) async {
+    try {
+      fillImage?.removeFromParent(); // remove old one if exists
+      fillImage = svgImage;
+      svgImage
+        ..position = Vector2.zero()
+        ..size = size
+        ..anchor = Anchor.topLeft;
+      fillImage = svgImage;
+      add(fillImage!);
+
+      fillColor = null;
+    } catch (err) {
+      print("Caught error on setFillImage $err");
+    }
+  }
 
   @override
   void render(Canvas canvas) {
@@ -31,6 +50,9 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
     final rect = Rect.fromLTWH(0, 0, size.x, size.y);
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
 
+    canvas.save();
+    canvas.clipRRect(rrect);
+
     if (fillColor != null) {
       final fillPaint =
           Paint()
@@ -38,6 +60,8 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
             ..style = PaintingStyle.fill;
       canvas.drawRRect(rrect, fillPaint);
     }
+
+    canvas.restore();
 
     final borderPaint =
         Paint()
