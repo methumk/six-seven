@@ -22,3 +22,22 @@ Future<SvgComponent?> loadSvgFromPath(
   }
   return null;
 }
+
+Future<SvgComponent?> loadSvgFromSvg(
+  Svg svg, {
+  Vector2? position,
+  Vector2? size,
+}) async {
+  try {
+    final svgComponent = SvgComponent(
+      size: size ?? Vector2.all(100), // To show size if user forgot to set
+      position: position ?? Vector2.all(0),
+      svg: svg,
+    );
+
+    return svgComponent;
+  } catch (err) {
+    debugPrint("Error on loadSvgFrompath $err");
+  }
+  return null;
+}

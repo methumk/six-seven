@@ -89,6 +89,9 @@ abstract class Card extends CardComponent
     defaultBorderColor = Colors.white;
   }
 
+  // Override this function for each card, this returns the key used to store the svg in gameManagers cardSvgs map
+  String getCardSvgKey();
+
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
   Future<void> executeOnEvent();
@@ -280,12 +283,19 @@ class NumberCard extends Card {
       "images/game_ui/number_card_${_value.toInt()}.svg";
 
   @override
-  Future<void> buildFront(RoundedBorderComponent container) async {
-    final frontSvg = await loadSvgFromPath(cardSvgPathBuilder());
+  String getCardSvgKey() => "nc_${_value.toInt()}";
 
-    if (frontSvg != null) {
-      frontFace.setFillImage(frontSvg);
+  @override
+  Future<void> buildFront(RoundedBorderComponent container) async {
+    try {
+      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
+      if (frontSvg != null) {
+        frontFace.setFillImage(frontSvg);
+      }
+    } catch (e) {
+      print("ERROR building front of number card $e");
     }
+
     // TextPaint small = TextPaint(
     //   style: TextStyle(
     //     color: Colors.black,
@@ -446,6 +456,9 @@ abstract class EventActionCard extends Card {
     // x is top and bottom padding y is left, right
     _bodyDescripPadding = Vector2(7, 5);
   }
+
+  @override
+  String getCardSvgKey() => "ec_${eventEnum.label}";
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
@@ -654,6 +667,10 @@ abstract class ValueActionCard extends Card {
   }
 
   double get value => _value;
+  String get valueAsString => doubleToStringNoTrailingZeros(_value, 5);
+
+  @override
+  String getCardSvgKey() => "vc_$valueAsString";
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
