@@ -238,11 +238,11 @@ class CardDeck extends PositionComponent
     }
     //Let's have two minus cards of the same value for now
     for (int i = 1; i <= 13; i++) {
-      for (int j = 1; j <= 2; j++) {
-        deckList.add(MinusCard(value: i.toDouble()));
-        plusMinusCardsLeft[-1 * i] = plusMinusCardsLeft[-1 * i]! + 1;
-      }
+      int negValue = -1 * i;
+      deckList.add(MinusCard(value: i.toDouble()));
+      plusMinusCardsLeft[negValue] = 2;
     }
+
     //Add the mult cards (since this is digital, we can easily make x.5's, etc)
     //We first add the mult cards that actually hurt your score. These should be rarer
     //because of their negative effects.

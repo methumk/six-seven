@@ -23,11 +23,6 @@ class PlusCard extends ValueActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // initTitleText("+");
-    // initDescriptionText(
-    //   descriptionTitle: "Plus Value",
-    //   description: "Current value gets increased by $value",
-    // );
   }
 
   @override

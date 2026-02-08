@@ -670,113 +670,124 @@ abstract class ValueActionCard extends Card {
   String get valueAsString => doubleToStringNoTrailingZeros(_value, 5);
 
   @override
-  String getCardSvgKey() => "vc_$valueAsString";
+  String getCardSvgKey() {
+    String valueActionKey = "$actionText$valueAsString";
+    return "vc_$valueActionKey";
+  }
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
-    _descripTitle = TextComponent(
-      text: descripTitleText,
-      position: Vector2(
-        Card.halfCardSize.x,
-        _bodyDescripPos.y + _bodyDescripPadding.x,
-      ),
-      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 7.6,
-          fontWeight: FontWeight.bold,
+    if (actionText == "-" || actionText == "+") {
+      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
+      if (frontSvg != null) {
+        frontFace.setFillImage(frontSvg);
+      }
+    } else {
+      _descripTitle = TextComponent(
+        text: descripTitleText,
+        position: Vector2(
+          Card.halfCardSize.x,
+          _bodyDescripPos.y + _bodyDescripPadding.x,
         ),
-      ),
-    );
-
-    _descrip = WrappingTextBox(
-      text: descripText,
-      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
-      boxSize: Vector2(
-        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
-        Card.cardSize.y * .45 - _descripTitle.size.y,
-      ),
-      position: Vector2(
-        Card.halfCardSize.x,
-        _descripTitle.position.y + _descripTitle.size.y + .5,
-      ),
-      anchor: Anchor.topCenter,
-    );
-
-    _bodyDescriptionBorder = RoundedBorderComponent(
-      position: _bodyDescripPos,
-      size: _bodyDescripSize,
-      borderWidth: 1.5,
-      borderColor: Colors.black,
-      borderRadius: 5.0,
-    );
-
-    String valueString = doubleToStringNoTrailingZeros(_value, 5);
-    _titleText = ValueActionTitleText(
-      valueTypeText: actionText,
-      numberTitleText: valueString,
-    );
-    container.add(_titleText);
-
-    // TODO: Check that you can set center before adding it to container?
-    final center = _titleText.getCenterSize();
-    _titleText.position =
-        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
-
-    container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
-  }
-
-  void initDescriptionText({
-    String descriptionTitle = "",
-    String description = "",
-  }) {
-    _descripTitle = TextComponent(
-      text: descriptionTitle,
-      position: Vector2(
-        Card.halfCardSize.x,
-        _bodyDescripPos.y + _bodyDescripPadding.x,
-      ),
-      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 7.6,
-          fontWeight: FontWeight.bold,
+        size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+        anchor: Anchor.center,
+        textRenderer: TextPaint(
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 7.6,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-    );
+      );
 
-    _descrip = WrappingTextBox(
-      text: description,
-      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
-      boxSize: Vector2(
-        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
-        Card.cardSize.y * .45 - _descripTitle.size.y,
-      ),
-      position: Vector2(
-        Card.halfCardSize.x,
-        _descripTitle.position.y + _descripTitle.size.y + .5,
-      ),
-      anchor: Anchor.topCenter,
-    );
+      _descrip = WrappingTextBox(
+        text: descripText,
+        textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+        boxSize: Vector2(
+          _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+          Card.cardSize.y * .45 - _descripTitle.size.y,
+        ),
+        position: Vector2(
+          Card.halfCardSize.x,
+          _descripTitle.position.y + _descripTitle.size.y + .5,
+        ),
+        anchor: Anchor.topCenter,
+      );
 
-    addAll([_descripTitle, _descrip]);
+      _bodyDescriptionBorder = RoundedBorderComponent(
+        position: _bodyDescripPos,
+        size: _bodyDescripSize,
+        borderWidth: 1.5,
+        borderColor: Colors.black,
+        borderRadius: 5.0,
+      );
+
+      String valueString = doubleToStringNoTrailingZeros(_value, 5);
+      _titleText = ValueActionTitleText(
+        valueTypeText: actionText,
+        numberTitleText: valueString,
+      );
+      container.add(_titleText);
+
+      // TODO: Check that you can set center before adding it to container?
+      final center = _titleText.getCenterSize();
+      _titleText.position =
+          Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+
+      container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
+    }
   }
 
-  void initTitleText(String valueAction) {
-    String valueString = doubleToStringNoTrailingZeros(_value, 5);
-    _titleText = ValueActionTitleText(
-      valueTypeText: valueAction,
-      numberTitleText: valueString,
-    );
-    add(_titleText);
-    final center = _titleText.getCenterSize();
-    _titleText.position =
-        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
-  }
+  // REMOVE: not used
+  // void initDescriptionText({
+  //   String descriptionTitle = "",
+  //   String description = "",
+  // }) {
+  //   _descripTitle = TextComponent(
+  //     text: descriptionTitle,
+  //     position: Vector2(
+  //       Card.halfCardSize.x,
+  //       _bodyDescripPos.y + _bodyDescripPadding.x,
+  //     ),
+  //     size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+  //     anchor: Anchor.center,
+  //     textRenderer: TextPaint(
+  //       style: TextStyle(
+  //         color: Colors.black,
+  //         fontSize: 7.6,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //     ),
+  //   );
+
+  //   _descrip = WrappingTextBox(
+  //     text: description,
+  //     textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+  //     boxSize: Vector2(
+  //       _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+  //       Card.cardSize.y * .45 - _descripTitle.size.y,
+  //     ),
+  //     position: Vector2(
+  //       Card.halfCardSize.x,
+  //       _descripTitle.position.y + _descripTitle.size.y + .5,
+  //     ),
+  //     anchor: Anchor.topCenter,
+  //   );
+
+  //   addAll([_descripTitle, _descrip]);
+  // }
+
+  // void initTitleText(String valueAction) {
+  //   String valueString = doubleToStringNoTrailingZeros(_value, 5);
+  //   _titleText = ValueActionTitleText(
+  //     valueTypeText: valueAction,
+  //     numberTitleText: valueString,
+  //   );
+  //   add(_titleText);
+  //   final center = _titleText.getCenterSize();
+  //   _titleText.position =
+  //       Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+  // }
 
   @override
   Future<void> executeOnEvent() async {}

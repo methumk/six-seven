@@ -58,7 +58,32 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     cardSvgs["nc_11"] = await Svg.load('images/game_ui/number_card_11.svg');
     cardSvgs["nc_12"] = await Svg.load('images/game_ui/number_card_12.svg');
     cardSvgs["nc_13"] = await Svg.load('images/game_ui/number_card_13.svg');
-    // TODO: Load value cards
+    // Value action cards
+    // Load Minus value cards
+    cardSvgs["vc_-1"] = await Svg.load('images/game_ui/minus_card_1.svg');
+    cardSvgs["vc_-2"] = await Svg.load('images/game_ui/minus_card_2.svg');
+    cardSvgs["vc_-3"] = await Svg.load('images/game_ui/minus_card_3.svg');
+    cardSvgs["vc_-4"] = await Svg.load('images/game_ui/minus_card_4.svg');
+    cardSvgs["vc_-5"] = await Svg.load('images/game_ui/minus_card_5.svg');
+    cardSvgs["vc_-6"] = await Svg.load('images/game_ui/minus_card_6.svg');
+    cardSvgs["vc_-7"] = await Svg.load('images/game_ui/minus_card_7.svg');
+    cardSvgs["vc_-8"] = await Svg.load('images/game_ui/minus_card_8.svg');
+    cardSvgs["vc_-9"] = await Svg.load('images/game_ui/minus_card_9.svg');
+    cardSvgs["vc_-10"] = await Svg.load('images/game_ui/minus_card_10.svg');
+    cardSvgs["vc_-11"] = await Svg.load('images/game_ui/minus_card_11.svg');
+    cardSvgs["vc_-12"] = await Svg.load('images/game_ui/minus_card_12.svg');
+    cardSvgs["vc_-13"] = await Svg.load('images/game_ui/minus_card_13.svg');
+    // Load Plus value cards
+    cardSvgs["vc_+1"] = await Svg.load('images/game_ui/plus_card_1.svg');
+    cardSvgs["vc_+2"] = await Svg.load('images/game_ui/plus_card_2.svg');
+    cardSvgs["vc_+3"] = await Svg.load('images/game_ui/plus_card_3.svg');
+    cardSvgs["vc_+4"] = await Svg.load('images/game_ui/plus_card_4.svg');
+    cardSvgs["vc_+5"] = await Svg.load('images/game_ui/plus_card_5.svg');
+    cardSvgs["vc_+6"] = await Svg.load('images/game_ui/plus_card_6.svg');
+    cardSvgs["vc_+7"] = await Svg.load('images/game_ui/plus_card_7.svg');
+    cardSvgs["vc_+8"] = await Svg.load('images/game_ui/plus_card_8.svg');
+    cardSvgs["vc_+9"] = await Svg.load('images/game_ui/plus_card_9.svg');
+    cardSvgs["vc_+10"] = await Svg.load('images/game_ui/plus_card_10.svg');
     // TODO: Load event cards
   }
 

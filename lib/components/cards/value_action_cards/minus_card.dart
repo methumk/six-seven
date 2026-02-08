@@ -24,11 +24,6 @@ class MinusCard extends ValueActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // initTitleText("-");
-    // initDescriptionText(
-    //   descriptionTitle: "Subtract Value",
-    //   description: "Current value gets decreased by $value",
-    // );
   }
 
   @override

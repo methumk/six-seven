@@ -159,7 +159,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   // Load card svgs
   // number cards are with key nc_<number>
   // event cards are with key ec_<EventCardEnum.label>
-  // value action cards are with key vc_<number> e.g. vc_-3, vc_+4
+  // value action cards are with key vc_<number> e.g. vc_-3, vc_+4, vc_x4
   String? getCardSvgKey(cd.Card card) {
     return card.getCardSvgKey();
   }
