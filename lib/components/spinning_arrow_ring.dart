@@ -14,7 +14,7 @@ class SpinningArrowRing extends SvgComponent {
     this.rotationDirection = PlayerRotation.clockWise,
     super.size,
     super.position,
-  }) : super(anchor: Anchor.center, priority: 100);
+  }) : super(anchor: Anchor.center, priority: -1);
 
   bool isClockwise() => rotationDirection == PlayerRotation.clockWise;
 
