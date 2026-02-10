@@ -83,7 +83,7 @@ abstract class Player extends PositionComponent
         if (button.buttonIsClickable) {
           final runningEvent = game.gameManager.runningEvent;
           runningEvent?.affectedPlayer = this;
-          print("We're supposed to be robbing $playerNum");
+          print("Player $playerNum has been chosen!");
           runningEvent?.inputSelect.resolve();
         } else {
           print("buttonIsClickable is false!");
@@ -155,24 +155,21 @@ abstract class Player extends PositionComponent
     }
     //If player flipped 6 cards, get bonus 6.7 points (multiplier not included)
     if (nch.numHandSet.length == 6) {
+      print("Bonus for 6 number cards!");
       currentValue += 6.7;
     }
     //Else if player  flipped >= 7 cards, get bonus 21.67 points (multiplier not included)
     if (nch.numHandSet.length >= 7) {
+      print("Bonus for >=7 number cards!");
       currentValue += 21.67;
     }
     currentValue += currentBonusValue;
 
-    if (hasIncomeTax && game.gameManager.currentRound > 1) {
-      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
-        currentPlayer: this,
-        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
-          game.gameManager.totalPlayerCount,
-        ),
-      );
-      //Both current value and total value are affected by tax multiplier
-      currentValue *= taxMultiplier;
-    }
+    //Both current value and total value are affected by tax multiplier
+    //current value affected by tax in updateCurrentValue. total value affected by
+    //tax multiplier on stay,bust
+    currentValue *= taxMultiplier;
+    updateTaxMultiplier();
     playerCurrentScore.updateText(
       "Round Score: ${roundAndStringify(currentValue)}",
     );
@@ -340,17 +337,19 @@ abstract class Player extends PositionComponent
 
     //Update current value to reflect final points accrued in this round
     updateCurrentValue();
-    if (hasIncomeTax) {
-      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
-        currentPlayer: this,
-        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
-          game.gameManager.totalPlayerCount,
-        ),
-      );
-    }
+    print("Does player have income tax: ${hasIncomeTax}");
+    print("Current game round: ${game.gameManager.currentRound}");
+    updateTaxMultiplier();
+    print("Tax rate: ${taxMultiplier}");
     totalValue *= taxMultiplier;
     //Remove all cards from player's hand
     await handRemoval(saveScoreToPot: true);
+    playerCurrentScore.updateText(
+      "Round Score: ${roundAndStringify(currentValue)}",
+    );
+    playerTotalScore.updateText(
+      "Actual Total: ${roundAndStringify(totalValue)}",
+    );
   }
 
   //Method for discarding cards on bust/staying
@@ -521,17 +520,22 @@ abstract class Player extends PositionComponent
     await handRemoval(saveScoreToPot: true);
     currentValue = 0;
     currentBonusValue = 0;
-    if (hasIncomeTax && game.gameManager.currentRound > 1) {
-      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
-        currentPlayer: this,
-        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
-          game.gameManager.totalPlayerCount,
-        ),
-      );
-      totalValue *= taxMultiplier;
-    }
+    print("Does player have income tax: ${hasIncomeTax}");
+    updateTaxMultiplier();
+    print("Current game round: ${game.gameManager.currentRound > 1}");
+    print("Tax rate: ${taxMultiplier}");
+    //Do tax multiplier
+    //tax multiplier is updated by value notifier on hasIncomeTax,
+    //so player tax rate should be automatically calculated
+    totalValue *= taxMultiplier;
     taxMultiplier = 1;
     mandatoryHits = 0;
+    playerCurrentScore.updateText(
+      "Round Score: ${roundAndStringify(currentValue)}",
+    );
+    playerTotalScore.updateText(
+      "Actual Total: ${roundAndStringify(totalValue)}",
+    );
   }
 
   //Grant player double chance status
@@ -625,6 +629,13 @@ abstract class Player extends PositionComponent
         //make current value 67% after the updateCurrentValue call method
         print("Current Value before 67%: ${currentValue}");
         currentValue *= .67;
+
+        //Multiply total score by income tax
+        print("Does player have income tax: ${hasIncomeTax}");
+        updateTaxMultiplier();
+        print("Current game round: ${game.gameManager.currentRound > 1}");
+        print("Tax rate: ${taxMultiplier}");
+        totalValue *= taxMultiplier;
         playerCurrentScore.updateText(
           "Round Score: ${roundAndStringify(currentValue)}",
         );
@@ -701,6 +712,20 @@ abstract class Player extends PositionComponent
     super.onLoad();
     playerActionText = PlayerActionText(position: Vector2(0, -80));
     add(playerActionText);
+  }
+
+  void updateTaxMultiplier() {
+    //If income tax is true after round 1, calculate income tax
+    if (hasIncomeTax && game.gameManager.currentRound > 1) {
+      taxMultiplier = playerIncomeTaxRateAfterFirstRound(
+        currentPlayer: this,
+        playerRankings: game.gameManager.totalCurrentLeaderBoard.topN(
+          game.gameManager.totalPlayerCount,
+        ),
+      );
+    } else {
+      taxMultiplier = 1.0;
+    }
   }
 
   @override
