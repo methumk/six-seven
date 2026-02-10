@@ -273,19 +273,37 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       for (int i = 0; i < totalPlayerCount; ++i) {
         if (i != currentPlayerIndex) {
           potDistrib[players[i]] = distributedPot;
+        } else {
+          potDistrib[players[i]] = 0;
         }
       }
     } else {
-      potDistrib[lp] = pot.totalScore;
+      for (int i = 0; i < totalPlayerCount; ++i) {
+        if (i == currentPlayerIndex) {
+          potDistrib[players[i]] = pot.totalScore;
+        } else {
+          potDistrib[players[i]] = 0;
+        }
+      }
     }
 
     // update current and end game leaderboards
     currentLeaderBoard.updateEntireLeaderboard();
     totalLeaderBoard.updateEntireLeaderboard();
+
+    //pot distribution ONLY happens on game.showLeaderboard.
+    //So to check if a winning threshold is met, right now pot distribution has not occurred,
+    //so our if conditions check for total + current + potdistrib and see if it meets winning threshold
     for (Player currentPlayer in players) {
       print("winning threshold: ${winningThreshold}");
-      print("currentPlayer.totalValue: ${currentPlayer.totalValue}");
-      if (currentPlayer.totalValue >= winningThreshold) {
+      print(
+        "currentPlayer.totalValue: ${currentPlayer.totalValue + currentPlayer.currentValue + potDistrib[currentPlayer]!}",
+      );
+
+      if ((currentPlayer.totalValue + currentPlayer.currentValue) *
+                  currentPlayer.taxMultiplier +
+              potDistrib[currentPlayer]! >=
+          winningThreshold) {
         await handleEndGame();
       }
     }
