@@ -15,7 +15,7 @@ class SunkProphet extends EventActionCard {
         imagePath: "game_ui/test.png",
         descripTitleText: "Sunk Prophet",
         descripText:
-            "Roll a 7 sided die. Getting 6 or 7 gains 13 points. Otherwise, lose 7 points. Keep rolling a 7 max rolls or until your first 6 or 7!",
+            "Roll a 7 sided die. Five of the sides have a -6 value, two of the sides have a +7 value! Max loss capped at -25 points.",
       ) {
     eventEnum = EventCardEnum.SunkProphet;
   }
