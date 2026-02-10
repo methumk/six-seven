@@ -23,11 +23,6 @@ class MultCard extends ValueActionCard {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
-    // initTitleText("x");
-    // initDescriptionText(
-    //   descriptionTitle: "Multiply Value",
-    //   description: "Current value gets multiplied by $value",
-    // );
   }
 
   @override

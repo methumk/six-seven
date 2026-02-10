@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card.dart' as cd;
 import 'package:six_seven/components/cards/deck.dart';
@@ -156,6 +155,14 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   late final CardDeck deck;
   // anchor at center bottom with refernece to the game.world
   static final Vector2 worldDeckPos = gameCenter;
+
+  // Load card svgs
+  // number cards are with key nc_<number>
+  // event cards are with key ec_<EventCardEnum.label>
+  // value action cards are with key vc_<number> e.g. vc_-3, vc_+4, vc_x4
+  String? getCardSvgKey(cd.Card card) {
+    return card.getCardSvgKey();
+  }
 
   // current Round, ones based
   int currentRound = 1;

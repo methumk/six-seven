@@ -1,11 +1,16 @@
 import 'package:flame/components.dart';
+import 'package:flame_svg/svg_component.dart';
 import 'package:flutter/material.dart';
 
 class RoundedBorderComponent extends PositionComponent with HasVisibility {
   double borderWidth;
   Color borderColor;
   Color? fillColor;
+  SvgComponent? fillImage;
   double borderRadius;
+
+  final Paint _borderPaint = Paint();
+  final Paint _fillPaint = Paint();
 
   RoundedBorderComponent({
     Vector2? position,
@@ -15,14 +20,45 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
     this.borderRadius = 12.0,
     this.fillColor,
   }) {
-    this.position = position ?? Vector2.all(0);
-    this.size = size ?? Vector2.all(0);
+    this.position = position ?? Vector2.zero();
+    this.size = size ?? Vector2.zero();
+
+    _updatePaints();
   }
 
-  void setBorderColor(Color color) => borderColor = color;
-  void setFillColor(Color? color) => fillColor = color;
-  void setBorderWidth(double width) => borderWidth = width;
-  void setBorderRadius(double radius) => borderRadius = radius;
+  void _updatePaints() {
+    _borderPaint
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth;
+
+    if (fillColor != null) {
+      _fillPaint
+        ..color = fillColor!
+        ..style = PaintingStyle.fill;
+    }
+  }
+
+  void setBorderColor(Color color) {
+    borderColor = color;
+    _updatePaints();
+  }
+
+  void setFillColor(Color? color) {
+    fillColor = color;
+    _updatePaints();
+  }
+
+  void setFillImage(SvgComponent image) {
+    fillImage?.removeFromParent();
+    fillImage =
+        image
+          ..position = Vector2.zero()
+          ..size = size
+          ..anchor = Anchor.topLeft;
+    fillColor = null;
+    add(fillImage!);
+  }
 
   @override
   void render(Canvas canvas) {
@@ -32,18 +68,9 @@ class RoundedBorderComponent extends PositionComponent with HasVisibility {
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
 
     if (fillColor != null) {
-      final fillPaint =
-          Paint()
-            ..color = fillColor!
-            ..style = PaintingStyle.fill;
-      canvas.drawRRect(rrect, fillPaint);
+      canvas.drawRRect(rrect, _fillPaint);
     }
 
-    final borderPaint =
-        Paint()
-          ..color = borderColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = borderWidth;
-    canvas.drawRRect(rrect, borderPaint);
+    canvas.drawRRect(rrect, _borderPaint);
   }
 }

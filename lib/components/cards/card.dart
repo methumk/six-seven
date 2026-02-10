@@ -1,22 +1,20 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:six_seven/components/cards/card_component.dart';
 import 'package:six_seven/components/cards/deck.dart';
-import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/cards/value_action_text.dart';
 import 'package:six_seven/components/circular_image_component.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/rounded_border_component.dart';
 import 'package:six_seven/components/wrapping_text_box.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
-import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/data_helpers.dart';
 import 'package:six_seven/utils/event_completer.dart';
+import 'package:six_seven/utils/flame_svg_component.dart';
 
 enum CardType {
   numberCard("Number card of value: "),
@@ -84,10 +82,15 @@ abstract class Card extends CardComponent
     super.isDraggable = false,
     super.isGlowing = false,
     super.animateGlow = true,
+    super.faceUp = true,
+    super.showCard = true,
   }) : super(totalCardSize: totalCardSize ?? cardSize) {
     anchor = Anchor.bottomCenter;
     defaultBorderColor = Colors.white;
   }
+
+  // Override this function for each card, this returns the key used to store the svg in gameManagers cardSvgs map
+  String getCardSvgKey();
 
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
@@ -254,8 +257,15 @@ class NumberCard extends Card {
   bool componentInitialized = false;
   Vector2? dragOffset;
 
-  NumberCard({required double value})
-    : super(cardType: CardType.numberCard, totalCardSize: Card.cardSize) {
+  NumberCard({
+    required double value,
+    super.isClickable,
+    super.isDraggable,
+    super.isGlowing,
+    super.animateGlow,
+    super.faceUp,
+    super.showCard,
+  }) : super(cardType: CardType.numberCard, totalCardSize: Card.cardSize) {
     _value = value;
   }
 
@@ -269,73 +279,88 @@ class NumberCard extends Card {
   //   }
   // }
 
+  String cardSvgPathBuilder() =>
+      "images/game_ui/number_card_${_value.toInt()}.svg";
+
+  @override
+  String getCardSvgKey() => "nc_${_value.toInt()}";
+
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
-    TextPaint small = TextPaint(
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: 15,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    TextPaint big = TextPaint(
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-
-    bool isInt = _value % 1 == 0;
-    String textvalue;
-    if (isInt) {
-      textvalue = _value.toInt().toString();
-    } else {
-      textvalue = _value.toString();
+    try {
+      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
+      if (frontSvg != null) {
+        frontFace.setFillImage(frontSvg);
+      }
+    } catch (e) {
+      print("ERROR building front of number card $e");
     }
 
-    _tlText = TextComponent(
-      text: textvalue,
-      position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .1),
-      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-      anchor: Anchor.center,
-      angle: angle,
-      textRenderer: small,
-    );
-    _trText = TextComponent(
-      text: textvalue,
-      position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .1),
-      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-      anchor: Anchor.center,
-      angle: angle,
-      textRenderer: small,
-    );
-    _blText = TextComponent(
-      text: textvalue,
-      position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .9),
-      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-      anchor: Anchor.center,
-      angle: math.pi,
-      textRenderer: small,
-    );
-    _brText = TextComponent(
-      text: textvalue,
-      position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .9),
-      size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
-      anchor: Anchor.center,
-      angle: math.pi,
-      textRenderer: small,
-    );
-    _cText = TextComponent(
-      text: textvalue,
-      position: Vector2(Card.cardSize.x * .5, Card.cardSize.y * .5),
-      size: Vector2(Card.cardSize.x * .4, Card.cardSize.y * .4),
-      anchor: Anchor.center,
-      angle: 0,
-      textRenderer: big,
-    );
+    // TextPaint small = TextPaint(
+    //   style: TextStyle(
+    //     color: Colors.black,
+    //     fontSize: 15,
+    //     fontWeight: FontWeight.bold,
+    //   ),
+    // );
+    // TextPaint big = TextPaint(
+    //   style: TextStyle(
+    //     color: Colors.black,
+    //     fontSize: 30,
+    //     fontWeight: FontWeight.bold,
+    //   ),
+    // );
 
-    container.addAll([_tlText, _trText, _blText, _brText, _cText]);
+    // bool isInt = _value % 1 == 0;
+    // String textvalue;
+    // if (isInt) {
+    //   textvalue = _value.toInt().toString();
+    // } else {
+    //   textvalue = _value.toString();
+    // }
+
+    // _tlText = TextComponent(
+    //   text: textvalue,
+    //   position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .1),
+    //   size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+    //   anchor: Anchor.center,
+    //   angle: angle,
+    //   textRenderer: small,
+    // );
+    // _trText = TextComponent(
+    //   text: textvalue,
+    //   position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .1),
+    //   size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+    //   anchor: Anchor.center,
+    //   angle: angle,
+    //   textRenderer: small,
+    // );
+    // _blText = TextComponent(
+    //   text: textvalue,
+    //   position: Vector2(Card.cardSize.x * .15, Card.cardSize.y * .9),
+    //   size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+    //   anchor: Anchor.center,
+    //   angle: math.pi,
+    //   textRenderer: small,
+    // );
+    // _brText = TextComponent(
+    //   text: textvalue,
+    //   position: Vector2(Card.cardSize.x * .85, Card.cardSize.y * .9),
+    //   size: Vector2(Card.cardSize.x * .2, Card.cardSize.x * .2),
+    //   anchor: Anchor.center,
+    //   angle: math.pi,
+    //   textRenderer: small,
+    // );
+    // _cText = TextComponent(
+    //   text: textvalue,
+    //   position: Vector2(Card.cardSize.x * .5, Card.cardSize.y * .5),
+    //   size: Vector2(Card.cardSize.x * .4, Card.cardSize.y * .4),
+    //   anchor: Anchor.center,
+    //   angle: 0,
+    //   textRenderer: big,
+    // );
+
+    // container.addAll([_tlText, _trText, _blText, _brText, _cText]);
   }
 
   @override
@@ -431,6 +456,9 @@ abstract class EventActionCard extends Card {
     // x is top and bottom padding y is left, right
     _bodyDescripPadding = Vector2(7, 5);
   }
+
+  @override
+  String getCardSvgKey() => "ec_${eventEnum.label}";
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
@@ -639,112 +667,127 @@ abstract class ValueActionCard extends Card {
   }
 
   double get value => _value;
+  String get valueAsString => doubleToStringNoTrailingZeros(_value, 5);
+
+  @override
+  String getCardSvgKey() {
+    String valueActionKey = "$actionText$valueAsString";
+    return "vc_$valueActionKey";
+  }
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
-    _descripTitle = TextComponent(
-      text: descripTitleText,
-      position: Vector2(
-        Card.halfCardSize.x,
-        _bodyDescripPos.y + _bodyDescripPadding.x,
-      ),
-      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 7.6,
-          fontWeight: FontWeight.bold,
+    if (actionText == "-" || actionText == "+") {
+      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
+      if (frontSvg != null) {
+        frontFace.setFillImage(frontSvg);
+      }
+    } else {
+      _descripTitle = TextComponent(
+        text: descripTitleText,
+        position: Vector2(
+          Card.halfCardSize.x,
+          _bodyDescripPos.y + _bodyDescripPadding.x,
         ),
-      ),
-    );
-
-    _descrip = WrappingTextBox(
-      text: descripText,
-      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
-      boxSize: Vector2(
-        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
-        Card.cardSize.y * .45 - _descripTitle.size.y,
-      ),
-      position: Vector2(
-        Card.halfCardSize.x,
-        _descripTitle.position.y + _descripTitle.size.y + .5,
-      ),
-      anchor: Anchor.topCenter,
-    );
-
-    _bodyDescriptionBorder = RoundedBorderComponent(
-      position: _bodyDescripPos,
-      size: _bodyDescripSize,
-      borderWidth: 1.5,
-      borderColor: Colors.black,
-      borderRadius: 5.0,
-    );
-
-    String valueString = doubleToStringNoTrailingZeros(_value, 5);
-    _titleText = ValueActionTitleText(
-      valueTypeText: actionText,
-      numberTitleText: valueString,
-    );
-    container.add(_titleText);
-
-    // TODO: Check that you can set center before adding it to container?
-    final center = _titleText.getCenterSize();
-    _titleText.position =
-        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
-
-    container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
-  }
-
-  void initDescriptionText({
-    String descriptionTitle = "",
-    String description = "",
-  }) {
-    _descripTitle = TextComponent(
-      text: descriptionTitle,
-      position: Vector2(
-        Card.halfCardSize.x,
-        _bodyDescripPos.y + _bodyDescripPadding.x,
-      ),
-      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 7.6,
-          fontWeight: FontWeight.bold,
+        size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+        anchor: Anchor.center,
+        textRenderer: TextPaint(
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 7.6,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-    );
+      );
 
-    _descrip = WrappingTextBox(
-      text: description,
-      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
-      boxSize: Vector2(
-        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
-        Card.cardSize.y * .45 - _descripTitle.size.y,
-      ),
-      position: Vector2(
-        Card.halfCardSize.x,
-        _descripTitle.position.y + _descripTitle.size.y + .5,
-      ),
-      anchor: Anchor.topCenter,
-    );
+      _descrip = WrappingTextBox(
+        text: descripText,
+        textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+        boxSize: Vector2(
+          _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+          Card.cardSize.y * .45 - _descripTitle.size.y,
+        ),
+        position: Vector2(
+          Card.halfCardSize.x,
+          _descripTitle.position.y + _descripTitle.size.y + .5,
+        ),
+        anchor: Anchor.topCenter,
+      );
 
-    addAll([_descripTitle, _descrip]);
+      _bodyDescriptionBorder = RoundedBorderComponent(
+        position: _bodyDescripPos,
+        size: _bodyDescripSize,
+        borderWidth: 1.5,
+        borderColor: Colors.black,
+        borderRadius: 5.0,
+      );
+
+      String valueString = doubleToStringNoTrailingZeros(_value, 5);
+      _titleText = ValueActionTitleText(
+        valueTypeText: actionText,
+        numberTitleText: valueString,
+      );
+      container.add(_titleText);
+
+      // TODO: Check that you can set center before adding it to container?
+      final center = _titleText.getCenterSize();
+      _titleText.position =
+          Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+
+      container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
+    }
   }
 
-  void initTitleText(String valueAction) {
-    String valueString = doubleToStringNoTrailingZeros(_value, 5);
-    _titleText = ValueActionTitleText(
-      valueTypeText: valueAction,
-      numberTitleText: valueString,
-    );
-    add(_titleText);
-    final center = _titleText.getCenterSize();
-    _titleText.position =
-        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
-  }
+  // REMOVE: not used
+  // void initDescriptionText({
+  //   String descriptionTitle = "",
+  //   String description = "",
+  // }) {
+  //   _descripTitle = TextComponent(
+  //     text: descriptionTitle,
+  //     position: Vector2(
+  //       Card.halfCardSize.x,
+  //       _bodyDescripPos.y + _bodyDescripPadding.x,
+  //     ),
+  //     size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+  //     anchor: Anchor.center,
+  //     textRenderer: TextPaint(
+  //       style: TextStyle(
+  //         color: Colors.black,
+  //         fontSize: 7.6,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //     ),
+  //   );
+
+  //   _descrip = WrappingTextBox(
+  //     text: description,
+  //     textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+  //     boxSize: Vector2(
+  //       _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+  //       Card.cardSize.y * .45 - _descripTitle.size.y,
+  //     ),
+  //     position: Vector2(
+  //       Card.halfCardSize.x,
+  //       _descripTitle.position.y + _descripTitle.size.y + .5,
+  //     ),
+  //     anchor: Anchor.topCenter,
+  //   );
+
+  //   addAll([_descripTitle, _descrip]);
+  // }
+
+  // void initTitleText(String valueAction) {
+  //   String valueString = doubleToStringNoTrailingZeros(_value, 5);
+  //   _titleText = ValueActionTitleText(
+  //     valueTypeText: valueAction,
+  //     numberTitleText: valueString,
+  //   );
+  //   add(_titleText);
+  //   final center = _titleText.getCenterSize();
+  //   _titleText.position =
+  //       Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+  // }
 
   @override
   Future<void> executeOnEvent() async {}
