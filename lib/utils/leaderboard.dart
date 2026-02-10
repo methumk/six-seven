@@ -23,7 +23,7 @@ class Leaderboard<T> {
     return _set.remove(obj);
   }
 
-  // This will clear the entire leaderboard and store the contents back in in it's proper order
+  // This will clear the entire leaderboard and store the contents back in its proper order
   // This assumes all items are already in the leaderboard and their values have been updated internally
   void updateEntireLeaderboard() {
     var list = topN(_set.length);
