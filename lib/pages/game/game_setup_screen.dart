@@ -55,7 +55,7 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   SingleSlider(
-                                    settingName: "Total Players (including AI)",
+                                    settingName: "Total Players \n(with AI)",
                                     isInt: true,
                                     minRange:
                                         GameSetupSettingsConstants
