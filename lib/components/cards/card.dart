@@ -92,6 +92,9 @@ abstract class Card extends CardComponent
   // Override this function for each card, this returns the key used to store the svg in gameManagers cardSvgs map
   String getCardSvgKey();
 
+  // Override this function for plus, mult, minus, event, number cards to locate path to svg
+  String cardSvgPathBuilder() => "";
+
   //TO DO: Add players as param inputs for executeOnEvent
   //once player classes have been constructed
   Future<void> executeOnEvent();
@@ -272,13 +275,7 @@ class NumberCard extends Card {
   double get value => _value;
   set value(double value) => _value = value;
 
-  // void _removeText() {
-  //   if (componentInitialized) {
-  //     removeAll([_tlText, _trText, _blText, _brText, _cText]);
-  //     componentInitialized = false;
-  //   }
-  // }
-
+  @override
   String cardSvgPathBuilder() =>
       "images/game_ui/number_card_${_value.toInt()}.svg";
 
@@ -288,9 +285,14 @@ class NumberCard extends Card {
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
     try {
-      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
-      if (frontSvg != null) {
-        frontFace.setFillImage(frontSvg);
+      // final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
+      // if (frontSvg != null) {
+      //   frontFace.setFillImage(frontSvg);
+      // }
+      final svg = await game.getCardSvg(this);
+      if (svg != null) {
+        final svgComponent = await loadSvgFromSvg(svg!);
+        frontFace.setFillImage(svgComponent!);
       }
     } catch (e) {
       print("ERROR building front of number card $e");
@@ -670,72 +672,63 @@ abstract class ValueActionCard extends Card {
   String get valueAsString => doubleToStringNoTrailingZeros(_value, 5);
 
   @override
-  String getCardSvgKey() {
-    String valueActionKey = "$actionText$valueAsString";
-    return "vc_$valueActionKey";
-  }
+  String getCardSvgKey() => "vc_$actionText$valueAsString";
 
   @override
   Future<void> buildFront(RoundedBorderComponent container) async {
-    if (actionText == "-" || actionText == "+") {
-      final frontSvg = await loadSvgFromSvg(game.cardSvgs[getCardSvgKey()]!);
-      if (frontSvg != null) {
-        frontFace.setFillImage(frontSvg);
-      }
-    } else {
-      _descripTitle = TextComponent(
-        text: descripTitleText,
-        position: Vector2(
-          Card.halfCardSize.x,
-          _bodyDescripPos.y + _bodyDescripPadding.x,
+    print("BUILD FRONT VALUE ACTION");
+    _descripTitle = TextComponent(
+      text: descripTitleText,
+      position: Vector2(
+        Card.halfCardSize.x,
+        _bodyDescripPos.y + _bodyDescripPadding.x,
+      ),
+      size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 7.6,
+          fontWeight: FontWeight.bold,
         ),
-        size: Vector2(_bodyDescripSize.x, _bodyDescripSize.y * .2),
-        anchor: Anchor.center,
-        textRenderer: TextPaint(
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 7.6,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
+      ),
+    );
 
-      _descrip = WrappingTextBox(
-        text: descripText,
-        textStyle: const TextStyle(fontSize: 7, color: Colors.black),
-        boxSize: Vector2(
-          _bodyDescripSize.x - _bodyDescripPadding.y * 2,
-          Card.cardSize.y * .45 - _descripTitle.size.y,
-        ),
-        position: Vector2(
-          Card.halfCardSize.x,
-          _descripTitle.position.y + _descripTitle.size.y + .5,
-        ),
-        anchor: Anchor.topCenter,
-      );
+    _descrip = WrappingTextBox(
+      text: descripText,
+      textStyle: const TextStyle(fontSize: 7, color: Colors.black),
+      boxSize: Vector2(
+        _bodyDescripSize.x - _bodyDescripPadding.y * 2,
+        Card.cardSize.y * .45 - _descripTitle.size.y,
+      ),
+      position: Vector2(
+        Card.halfCardSize.x,
+        _descripTitle.position.y + _descripTitle.size.y + .5,
+      ),
+      anchor: Anchor.topCenter,
+    );
 
-      _bodyDescriptionBorder = RoundedBorderComponent(
-        position: _bodyDescripPos,
-        size: _bodyDescripSize,
-        borderWidth: 1.5,
-        borderColor: Colors.black,
-        borderRadius: 5.0,
-      );
+    _bodyDescriptionBorder = RoundedBorderComponent(
+      position: _bodyDescripPos,
+      size: _bodyDescripSize,
+      borderWidth: 1.5,
+      borderColor: Colors.black,
+      borderRadius: 5.0,
+    );
 
-      String valueString = doubleToStringNoTrailingZeros(_value, 5);
-      _titleText = ValueActionTitleText(
-        valueTypeText: actionText,
-        numberTitleText: valueString,
-      );
-      container.add(_titleText);
+    String valueString = doubleToStringNoTrailingZeros(_value, 5);
+    _titleText = ValueActionTitleText(
+      valueTypeText: actionText,
+      numberTitleText: valueString,
+    );
+    container.add(_titleText);
 
-      // TODO: Check that you can set center before adding it to container?
-      final center = _titleText.getCenterSize();
-      _titleText.position =
-          Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
+    // TODO: Check that you can set center before adding it to container?
+    final center = _titleText.getCenterSize();
+    _titleText.position =
+        Vector2(Card.halfCardSize.x, Card.cardSize.y * .3) - center;
 
-      container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
-    }
+    container.addAll([_descripTitle, _descrip, _bodyDescriptionBorder]);
   }
 
   // REMOVE: not used

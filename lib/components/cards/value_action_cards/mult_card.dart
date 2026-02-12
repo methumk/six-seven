@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/rounded_border_component.dart';
+import 'package:six_seven/utils/flame_svg_component.dart';
 
 class MultCard extends ValueActionCard {
   MultCard({required super.value})
@@ -11,9 +13,23 @@ class MultCard extends ValueActionCard {
       );
 
   @override
+  String cardSvgPathBuilder() => "images/game_ui/mult_card_$valueAsString.svg";
+
+  @override
   double executeOnStay(double cv) {
     return cv * value;
   }
+
+  // TODO after mult cards
+  // @override
+  // Future<void> buildFront(RoundedBorderComponent container) async {
+  //   print("PLUS CARD BUILD FRONT");
+  //   final svg = await game.getCardSvg(this);
+  //   if (svg != null) {
+  //     final svgComponent = await loadSvgFromSvg(svg!);
+  //     frontFace.setFillImage(svgComponent!);
+  //   }
+  // }
 
   @override
   void description() {
