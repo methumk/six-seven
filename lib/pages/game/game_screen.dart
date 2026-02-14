@@ -20,7 +20,10 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   final BuildContext context;
   late final GameSetupSettings setupSettings;
   late final GameManager gameManager;
-  late final Vector2 gameResolution;
+  late Vector2 gameResolution;
+
+  @override
+  Color backgroundColor() => const Color(0xFFAC3232);
 
   // Card SVGs
   // Load card svgs
@@ -52,15 +55,27 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
       aiPlayerCount: setupSettings.aiPlayerCount,
       winningThreshold: setupSettings.winningScore,
     );
-    gameResolution = Vector2(1280, 720);
+    // gameResolution = Vector2(1280, 720);
   }
 
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
+    print("ON LOAD");
     // causes letter boxing
-    camera.viewport = FixedResolutionViewport(resolution: gameResolution);
+    // camera.viewport = FixedResolutionViewport(resolution: gameResolution);
+    camera.viewport = MaxViewport();
+    gameResolution = camera.viewport.size;
     add(gameManager);
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    print("====RESIZE");
+    gameResolution = size;
+    // TODO: Need to work on resizing components inside game manager on update
+    gameManager.handleResize(size); // Pass to your game manager if needed
   }
 
   Future<void> showExitDialog() async {
