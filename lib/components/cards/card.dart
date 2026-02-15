@@ -140,8 +140,10 @@ abstract class Card extends CardComponent
     toggleAllUserCardMovement(false);
   }
 
-  Future<void> dragEndReturnEffect() async {
-    if (deckReturnTo == null) return;
+  Future<void> dragEndReturnEffect({double duration = 0.3}) async {
+    if (deckReturnTo == null || deckReturnTo!.distanceTo(position) < 0.0001)
+      return;
+
     await moveTo(
       deckReturnTo!,
       EffectController(duration: 0.3, curve: Curves.easeInOut),

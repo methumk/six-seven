@@ -54,6 +54,17 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     }
   }
 
+  /// Toggle drag for all cards
+  Future<void> setDraggable(bool enable) async {
+    for (final card in numberHand) {
+      card.setDraggable(enable);
+      // On Disable send to original position
+      if (!enable) {
+        await card.dragEndReturnEffect(duration: 0.03);
+      }
+    }
+  }
+
   /// Animates the card going to new position in hand, BUT DOESN"T ADD IT TO THE HAND
   /// See addCardToHand to add if the card is not a duplicate
   /// Returns: true if adding card would be a duplicate (have to handle removal), false if adding card would not be a duplicate (safe to add to hand)
@@ -457,6 +468,17 @@ class DynamicCardHolder extends PositionComponent {
         c.onTapDownSelector = null;
       }
     });
+  }
+
+  /// Toggles drag for all cards
+  Future<void> setDraggable(bool enable) async {
+    for (final card in cardHandOrder) {
+      card.setDraggable(enable);
+      // On Disable send to original position
+      if (!enable) {
+        await card.dragEndReturnEffect(duration: 0.03);
+      }
+    }
   }
 
   Future<void> addCardtoHand(Card c) async {

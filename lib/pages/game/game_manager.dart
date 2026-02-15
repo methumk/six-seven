@@ -1755,6 +1755,10 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   Future<void> _rotatePlayers() async {
+    for (final player in players) {
+      await player.setHandDraggable(enableDch: false, enableNch: false);
+    }
+
     //Get the next player to be rotated to
     currentPlayerIndex = _getNextBottomPlayerIndex(
       currentPlayerIndex,

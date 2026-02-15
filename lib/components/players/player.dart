@@ -326,11 +326,22 @@ abstract class Player extends PositionComponent
     return potentialScore + hypotheticalTotalValue + currentBonusValue;
   }
 
+  /// Set the deck nch or dch hands as draggable
+  Future<void> setHandDraggable({
+    bool enableNch = true,
+    bool enableDch = true,
+  }) async {
+    if (isDone) return;
+    await dch.setDraggable(enableDch);
+    await nch.setDraggable(enableNch);
+  }
+
   //Method for handling when player stays
   Future<void> handleStay() async {
     print("Handling stay");
     //Make status bool true
     status = PlayerStatus.stay;
+    await setHandDraggable(enableDch: false, enableNch: false);
 
     // Set text as staying
     await playerActionText.setAsStaying();
@@ -515,6 +526,7 @@ abstract class Player extends PositionComponent
   //Method for when player busts
   Future<void> bust() async {
     print("Bust!");
+    await setHandDraggable(enableDch: false, enableNch: false);
     status = PlayerStatus.bust;
     await playerActionText.setAsBusted();
     await handRemoval(saveScoreToPot: true);
@@ -674,9 +686,11 @@ abstract class Player extends PositionComponent
       _isRotating = true;
       _nextPlayerRotateEffect = SequenceEffect(
         mp,
-        onComplete: () {
+        onComplete: () async {
           _nextPlayerRotateEffect = null;
           _isRotating = false;
+
+          await setHandDraggable(enableDch: true, enableNch: true);
         },
       );
       add(_nextPlayerRotateEffect!);
