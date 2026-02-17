@@ -9,6 +9,9 @@ class GameSetupSettingsNotifier extends Notifier<GameSetupSettings> {
     return GameSetupSettings(
       totalPlayerCount: GameSetupSettingsConstants.defTotalPlayerCount,
       aiPlayerCount: GameSetupSettingsConstants.defAiPlayerCount,
+      sfxVolume: GameSetupSettingsConstants.defSfxVolume,
+      isMuted: GameSetupSettingsConstants.defIsMuted,
+      bgmVolume: GameSetupSettingsConstants.defBgmVolume,
       aiDifficulty: GameSetupSettingsConstants.defAiDifficulty,
       showDeckDistribution: GameSetupSettingsConstants.defShowDeckDistribution,
       showFailureProbability:
@@ -33,6 +36,26 @@ class GameSetupSettingsNotifier extends Notifier<GameSetupSettings> {
       state.totalPlayerCount - 1,
     );
     state = state.copyWith(aiPlayerCount: clampedAiCount);
+  }
+
+  void updateSfxVolume(double v) {
+    final clampedSfxVolume = v.clamp(
+      GameSetupSettingsConstants.sfxMin,
+      GameSetupSettingsConstants.sfxMax,
+    );
+    state = state.copyWith(sfxVolume: clampedSfxVolume);
+  }
+
+  void updateBgmVolume(double v) {
+    final clampedBgmVolume = v.clamp(
+      GameSetupSettingsConstants.bgmMin,
+      GameSetupSettingsConstants.bgmMax,
+    );
+    state = state.copyWith(bgmVolume: clampedBgmVolume);
+  }
+
+  void updateMuteOption(bool v) {
+    state = state.copyWith(isMuted: v);
   }
 
   void updateAiDifficulty(int v) {

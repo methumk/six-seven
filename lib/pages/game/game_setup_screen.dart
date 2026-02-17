@@ -109,6 +109,37 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                                         (value) => dataNotifier
                                             .updateAiDifficulty(value.toInt()),
                                   ),
+                                  SingleSlider(
+                                    settingName: "Sound Effects",
+                                    isInt: false,
+                                    minRange: GameSetupSettingsConstants.sfxMin,
+                                    maxRange: GameSetupSettingsConstants.sfxMax,
+                                    startValue:
+                                        GameSetupSettingsConstants.defSfxVolume,
+                                    onChanged:
+                                        (value) =>
+                                            dataNotifier.updateSfxVolume(value),
+                                  ),
+                                  SingleSlider(
+                                    settingName: "Background Music",
+                                    isInt: false,
+                                    minRange: GameSetupSettingsConstants.bgmMin,
+                                    maxRange: GameSetupSettingsConstants.bgmMax,
+                                    startValue:
+                                        GameSetupSettingsConstants.defBgmVolume,
+                                    onChanged:
+                                        (value) =>
+                                            dataNotifier.updateBgmVolume(value),
+                                  ),
+                                  SwitchSetting(
+                                    settingName: "Mute",
+                                    switchValue:
+                                        GameSetupSettingsConstants.defIsMuted,
+                                    enableColor: Colors.red,
+                                    onChanged:
+                                        (value) => dataNotifier
+                                            .updateMuteOption(value),
+                                  ),
                                 ],
                               ),
                             ),

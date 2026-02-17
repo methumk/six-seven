@@ -5,6 +5,10 @@ class GameSetupSettings {
   // AI difficulty might be enum (e.g. easy, medium, hard)
   int aiDifficulty;
 
+  //Audio Options
+  double sfxVolume;
+  bool isMuted;
+  double bgmVolume;
   // Game Options
   bool showDeckDistribution;
   bool showFailureProbability;
@@ -15,6 +19,9 @@ class GameSetupSettings {
     required this.totalPlayerCount,
     required this.aiPlayerCount,
     required this.aiDifficulty,
+    required this.sfxVolume,
+    required this.isMuted,
+    required this.bgmVolume,
     required this.showDeckDistribution,
     required this.showFailureProbability,
     required this.showOtherPlayersHand,
@@ -25,6 +32,9 @@ class GameSetupSettings {
     int? totalPlayerCount,
     int? aiPlayerCount,
     int? aiDifficulty,
+    double? sfxVolume,
+    bool? isMuted,
+    double? bgmVolume,
     bool? showDeckDistribution,
     bool? showFailureProbability,
     bool? showOtherPlayersHand,
@@ -34,6 +44,9 @@ class GameSetupSettings {
       totalPlayerCount: totalPlayerCount ?? this.totalPlayerCount,
       aiPlayerCount: aiPlayerCount ?? this.aiPlayerCount,
       aiDifficulty: aiDifficulty ?? this.aiDifficulty,
+      sfxVolume: sfxVolume ?? this.sfxVolume,
+      bgmVolume: bgmVolume ?? this.bgmVolume,
+      isMuted: isMuted ?? this.isMuted,
       showDeckDistribution: showDeckDistribution ?? this.showDeckDistribution,
       showFailureProbability:
           showFailureProbability ?? this.showFailureProbability,
