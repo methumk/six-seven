@@ -57,13 +57,16 @@ class ForecasterCard extends EventActionCard {
 
     // Animate cards going to correct offset
     await _cardSpreadAnimation(cards);
+    final flipAllCards = () async {
+      if (!game.gameManager.getCurrentPlayer!.isCpu()) {
+        for (int i = 0; i < 4; ++i) {
+          cards[i].flip(duration: 0.3);
+        }
+      }
+    };
 
     // After all cards drawn and in correct place then flip only for humans
-    if (!game.gameManager.getCurrentPlayer!.isCpu()) {
-      for (int i = 0; i < 4; ++i) {
-        cards[i].flip(duration: 0.3);
-      }
-    }
+    await Future.wait([flipAllCards()]);
 
     // Show cards for a bit before putting them back
     await Future.delayed(Duration(milliseconds: 2000));

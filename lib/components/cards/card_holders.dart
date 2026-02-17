@@ -82,8 +82,11 @@ class NumberCardHolder extends PositionComponent with DragCallbacks {
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
 
-    card.flipUp(duration: 0.3);
-    await card.moveTo(newHandPos, EffectController(duration: 0.5));
+    // Run move and flip at the same time
+    await Future.wait([
+      card.flipUp(duration: 0.5),
+      card.moveTo(newHandPos, EffectController(duration: 0.6)),
+    ]);
     card.priority = _getNextCardPriority();
 
     // Set position after movement
@@ -495,10 +498,10 @@ class DynamicCardHolder extends PositionComponent {
     // Move to new location and set priority
     Vector2 newHandPos = _getNewCardPos();
 
-    if (c.isFaceDown) {
-      c.flip(duration: 0.3);
-    }
-    await c.moveTo(newHandPos, EffectController(duration: 0.5));
+    await Future.wait([
+      c.flipUp(duration: 0.5),
+      c.moveTo(newHandPos, EffectController(duration: 0.6)),
+    ]);
     // Add to the end of the existing position
     c.priority = _getNextCardPriority();
     c.setDraggable(true);
