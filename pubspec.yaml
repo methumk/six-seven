@@ -47,6 +47,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.1
   flame_svg: ^1.11.14
+  flame_audio: ^2.11.14
   
 
 dev_dependencies:
@@ -65,7 +66,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -73,6 +73,7 @@ flutter:
 
   assets:
     - assets/images/game_ui/
+    - assets/audio/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
