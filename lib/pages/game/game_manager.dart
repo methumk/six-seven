@@ -36,7 +36,7 @@ import 'package:six_seven/data/enums/player_rotation.dart';
 import 'package:six_seven/pages/game/game_screen.dart';
 import 'package:six_seven/utils/leaderboard.dart';
 import 'package:six_seven/utils/player_stack.dart';
-
+import 'package:six_seven/components/sounds/audio_manager.dart';
 // class PathDebugComponent extends PositionComponent {
 //   final Path path;
 //   final Paint paintStyle;
@@ -91,6 +91,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //Bad EV for these cases is when other players are active, because then you are forced to
   //give this card to someone else
   final double redeemerBadRawValue = -4;
+
+  //Audio Manager
+  late final AudioManager audioManager;
 
   bool buttonPressed = false;
   late final Leaderboard<Player> totalLeaderBoard;
@@ -224,6 +227,15 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     rotationIndicator.setRotation(rotDir: rotationDirection);
     print("\nChanged rotation direction to $rotationDirection \n");
+  }
+
+  //Apply game setting singleton's params into audio manager
+  Future<void> _applyAudioSettings() async {
+    audioManager.setSfxVolume =
+        game.setupSettings.isMuted ? 0.0 : game.setupSettings.sfxVolume;
+    await audioManager.setBgmVolume(
+      game.setupSettings.isMuted ? 0.0 : game.setupSettings.bgmVolume,
+    );
   }
 
   int getNextPlayer(int player) {
@@ -1379,6 +1391,13 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     deck = CardDeck(position: worldDeckPos);
     game.world.add(deck);
 
+    audioManager = AudioManager();
+    await audioManager.onLoad();
+    _applyAudioSettings();
+    print(audioManager.bgmVolume);
+    print(audioManager.sfxVolume);
+
+    await audioManager.playBgm();
     // Determine game resolution constants
     final double gameResX = game.gameResolution.x,
         gameResY = game.gameResolution.y;
@@ -2053,5 +2072,11 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   void update(double dt) {
     super.update(dt);
     _rotatePlayersOnUpdate(dt);
+  }
+
+  @override
+  void onRemove() async {
+    super.onRemove();
+    audioManager.onRemove();
   }
 }

@@ -68,6 +68,7 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     // Pause the game ending
     pauseEngine();
 
+    await gameManager.audioManager.pauseBgm();
     // Show Flutter dialog
     final result = await showDialog<bool>(
       context: context,
@@ -77,11 +78,17 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
             content: const Text('Do you want to go back?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () async {
+                  gameManager.audioManager.resumeBgm();
+                  Navigator.of(context).pop(false);
+                },
                 child: const Text('No'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () async {
+                  await gameManager.audioManager.stopBgm();
+                  Navigator.of(context).pop(true);
+                },
                 child: const Text('Yes'),
               ),
             ],
