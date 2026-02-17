@@ -46,6 +46,7 @@ class AudioManager {
   }
 
   Future<void> playBgm() async {
+    await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
     await _bgmPlayer.stop();
     await _bgmPlayer.play(AssetSource('audio/music.mp3'), volume: _bgmVolume);
   }
