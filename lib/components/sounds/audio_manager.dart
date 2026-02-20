@@ -1,22 +1,17 @@
-import 'dart:collection';
-
-import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
 
 class AudioManager {
-  // late final SoldierFireSfx soldierSfx;
-  // late final PowerUpSfx pupSfx;
-
   AudioManager._();
   static final AudioManager instance = AudioManager._();
 
   late double _bgmVolume;
   late double _sfxVolume;
-  late bool _isMuted;
+  // late bool _isMuted;
+
   AudioManager() {
-    this._sfxVolume = .75;
-    this._isMuted = false;
-    this._bgmVolume = .25;
+    _sfxVolume = .75;
+    // _isMuted = false;
+    _bgmVolume = .25;
   }
 
   Future<void> init() async {
@@ -42,41 +37,66 @@ class AudioManager {
       return;
     }
     _sfxVolume = newSfxVolume;
-    //Set new sfx volume
-    // soldierSfx.setSfxVolume = _sfxVolume;
-    // pupSfx.setSfxVolume = _sfxVolume;
   }
 
   Future<void> playMusic(String filename) async {
-    await FlameAudio.bgm.play(filename, volume: _bgmVolume);
+    try {
+      await FlameAudio.bgm.play(filename, volume: _bgmVolume);
+    } catch (e) {
+      print("Audio Manager playMusic - $e");
+    }
   }
 
   Future<void> setBgmVolume(double newBgmVolume) async {
-    _bgmVolume = newBgmVolume.clamp(0.0, 1.0);
-    await FlameAudio.bgm.audioPlayer?.setVolume(_bgmVolume);
+    try {
+      _bgmVolume = newBgmVolume.clamp(0.0, 1.0);
+      await FlameAudio.bgm.audioPlayer.setVolume(_bgmVolume);
+    } catch (e) {
+      print("Audio Manager setBgmVolume - $e");
+    }
   }
 
   Future<void> stopMusic() async {
-    await FlameAudio.bgm.stop();
+    try {
+      await FlameAudio.bgm.stop();
+    } catch (e) {
+      print("Audio Manager stopMusic - $e");
+    }
   }
 
   Future<void> pauseMusic() async {
-    await FlameAudio.bgm.pause();
+    try {
+      await FlameAudio.bgm.pause();
+    } catch (e) {
+      print("Audio Manager pauseMusic - $e");
+    }
   }
 
   Future<void> resumeMusic() async {
-    await FlameAudio.bgm.resume();
+    try {
+      await FlameAudio.bgm.resume();
+    } catch (e) {
+      print("Audio Manager resumeMusic - $e");
+    }
   }
 
   Future<void> switchMusic(String fileName) async {
-    await FlameAudio.bgm.stop();
-    await playMusic(fileName);
+    try {
+      await FlameAudio.bgm.stop();
+      await playMusic(fileName);
+    } catch (e) {
+      print("Audio Manager switchMusic - $e");
+    }
   }
 
-  //Destructor
+  // Destructor
   Future<void> onRemove() async {
-    // soldierSfx.onRemove();
-    // pupSfx.onRemove();
-    await FlameAudio.bgm.dispose();
+    try {
+      // soldierSfx.onRemove();
+      // pupSfx.onRemove();
+      await FlameAudio.bgm.dispose();
+    } catch (e) {
+      print("Audio Manager onRemove - $e");
+    }
   }
 }

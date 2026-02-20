@@ -226,15 +226,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("\nChanged rotation direction to $rotationDirection \n");
   }
 
-  //Apply game setting singleton's params into audio manager
-  Future<void> _applyAudioSettings() async {
-    AudioManager.instance.setSfxVolume =
-        game.setupSettings.isMuted ? 0.0 : game.setupSettings.sfxVolume;
-    await AudioManager.instance.setBgmVolume(
-      game.setupSettings.isMuted ? 0.0 : game.setupSettings.bgmVolume,
-    );
-  }
-
   int getNextPlayer(int player) {
     if (rotationDirection == PlayerRotation.counterClockWise) {
       player = (player + 1) % totalPlayerCount;
@@ -1388,12 +1379,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     deck = CardDeck(position: worldDeckPos);
     game.world.add(deck);
 
-    await AudioManager.instance.init();
-    _applyAudioSettings();
-    print(AudioManager.instance.bgmVolume);
-    print(AudioManager.instance.sfxVolume);
-
-    await AudioManager.instance.playMusic('music/bgm.mp3');
     // Determine game resolution constants
     final double gameResX = game.gameResolution.x,
         gameResY = game.gameResolution.y;
@@ -2072,7 +2057,8 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   @override
   void onRemove() async {
+    print("GAME MANAGER DISPOSED");
     super.onRemove();
-    AudioManager.instance.onRemove();
+    // AudioManager.instance.onRemove();
   }
 }
