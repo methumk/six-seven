@@ -59,9 +59,26 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
+
+    await AudioManager.instance.init();
+    _applyAudioSettings();
+    print(AudioManager.instance.bgmVolume);
+    print(AudioManager.instance.sfxVolume);
+
+    await AudioManager.instance.playMusic('music.mp3');
+
     // causes letter boxing
     camera.viewport = FixedResolutionViewport(resolution: gameResolution);
     add(gameManager);
+  }
+
+  /// Apply game setting singleton's params into audio manager
+  Future<void> _applyAudioSettings() async {
+    AudioManager.instance.setSfxVolume =
+        setupSettings.isMuted ? 0.0 : setupSettings.sfxVolume;
+    await AudioManager.instance.setBgmVolume(
+      setupSettings.isMuted ? 0.0 : setupSettings.bgmVolume,
+    );
   }
 
   Future<void> showExitDialog() async {
@@ -245,5 +262,23 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     resumeEngine();
 
     return dieScore ?? 0;
+  }
+
+  /// Pause/resume music automatically with the app lifecycle
+  @override
+  void lifecycleStateChange(AppLifecycleState state) {
+    super.lifecycleStateChange(state);
+    if (state == AppLifecycleState.resumed) {
+      print("Audo manager resuming at state: $state");
+      AudioManager.instance.resumeMusic();
+    } else {
+      // Pause at:
+      // AppLifecycleState.paused idk what this is ?? If you close app it happens though
+      // AppLifecycleState.inactive | When screen off or off app or drag top screen down to see phone settings
+      // AppLifecycleState.hidden | If you hit 3 horizontal bars
+      // Default
+      print("Audo manager pausing at state: $state");
+      AudioManager.instance.pauseMusic();
+    }
   }
 }
