@@ -92,9 +92,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   //give this card to someone else
   final double redeemerBadRawValue = -4;
 
-  //Audio Manager
-  late final AudioManager audioManager;
-
   bool buttonPressed = false;
   late final Leaderboard<Player> totalLeaderBoard;
   late final Leaderboard<Player> currentLeaderBoard;
@@ -231,9 +228,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
   //Apply game setting singleton's params into audio manager
   Future<void> _applyAudioSettings() async {
-    audioManager.setSfxVolume =
+    AudioManager.instance.setSfxVolume =
         game.setupSettings.isMuted ? 0.0 : game.setupSettings.sfxVolume;
-    await audioManager.setBgmVolume(
+    await AudioManager.instance.setBgmVolume(
       game.setupSettings.isMuted ? 0.0 : game.setupSettings.bgmVolume,
     );
   }
@@ -1391,13 +1388,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     deck = CardDeck(position: worldDeckPos);
     game.world.add(deck);
 
-    audioManager = AudioManager();
-    await audioManager.onLoad();
+    await AudioManager.instance.init();
     _applyAudioSettings();
-    print(audioManager.bgmVolume);
-    print(audioManager.sfxVolume);
+    print(AudioManager.instance.bgmVolume);
+    print(AudioManager.instance.sfxVolume);
 
-    await audioManager.playBgm();
+    await AudioManager.instance.playMusic('music.mp3');
     // Determine game resolution constants
     final double gameResX = game.gameResolution.x,
         gameResY = game.gameResolution.y;
@@ -2077,6 +2073,6 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   @override
   void onRemove() async {
     super.onRemove();
-    audioManager.onRemove();
+    AudioManager.instance.onRemove();
   }
 }

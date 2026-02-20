@@ -8,6 +8,7 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/sounds/audio_manager.dart';
 import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/overlays/leaderboard_widget.dart';
@@ -68,7 +69,7 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     // Pause the game ending
     pauseEngine();
 
-    await gameManager.audioManager.pauseBgm();
+    await AudioManager.instance.pauseMusic();
     // Show Flutter dialog
     final result = await showDialog<bool>(
       context: context,
@@ -79,14 +80,14 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
             actions: [
               TextButton(
                 onPressed: () async {
-                  gameManager.audioManager.resumeBgm();
+                  AudioManager.instance.resumeMusic();
                   Navigator.of(context).pop(false);
                 },
                 child: const Text('No'),
               ),
               TextButton(
                 onPressed: () async {
-                  await gameManager.audioManager.stopBgm();
+                  await AudioManager.instance.stopMusic();
                   Navigator.of(context).pop(true);
                 },
                 child: const Text('Yes'),

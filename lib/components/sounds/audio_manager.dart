@@ -7,28 +7,30 @@ class AudioManager {
   // late final SoldierFireSfx soldierSfx;
   // late final PowerUpSfx pupSfx;
 
+  AudioManager._();
+  static final AudioManager instance = AudioManager._();
+
   late double _bgmVolume;
   late double _sfxVolume;
   late bool _isMuted;
-  late AudioPlayer _bgmPlayer;
   AudioManager() {
     this._sfxVolume = .75;
     this._isMuted = false;
     this._bgmVolume = .25;
   }
 
-  Future<void> onLoad() async {
-    //SoldierSfx
-    // soldierSfx = SoldierFireSfx(sfxVolume: _sfxVolume, isMuted: _isMuted);
-    // soldierSfx.onLoad();
+  Future<void> init() async {
+    // Pre-cache everything so there's no playback delay
+    await FlameAudio.audioCache.loadAll([
+      // 'music/menu.mp3',
+      'music.mp3',
+      // 'sfx/jump.mp3',
+      // 'sfx/shoot.mp3',
+      // 'sfx/explosion.mp3',
+      // 'sfx/coin.mp3',
+    ]);
 
-    // //PowerUpSfx
-    // pupSfx = PowerUpSfx(sfxVolume: _sfxVolume, isMuted: _isMuted);
-    // pupSfx.onLoad();
-
-    //Bgm
-    _bgmPlayer = AudioPlayer();
-    print("Loaded audio!");
+    FlameAudio.bgm.initialize();
   }
 
   //Getters
@@ -45,40 +47,36 @@ class AudioManager {
     // pupSfx.setSfxVolume = _sfxVolume;
   }
 
-  Future<void> playBgm() async {
-    await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-    await _bgmPlayer.stop();
-    await _bgmPlayer.play(AssetSource('audio/music.mp3'), volume: _bgmVolume);
+  Future<void> playMusic(String filename) async {
+    await FlameAudio.bgm.play(filename, volume: _bgmVolume);
   }
 
   Future<void> setBgmVolume(double newBgmVolume) async {
-    if (newBgmVolume < 0 || newBgmVolume > 1) {
-      print("BGM Volume needs to be a double between 0,1");
-      return;
-    }
-    _bgmVolume = newBgmVolume;
-    await _bgmPlayer.setVolume(_bgmVolume);
+    _bgmVolume = newBgmVolume.clamp(0.0, 1.0);
+    await FlameAudio.bgm.audioPlayer?.setVolume(_bgmVolume);
   }
 
-  //Pause music
-  Future<void> pauseBgm() async {
-    await _bgmPlayer.pause();
+  Future<void> stopMusic() async {
+    await FlameAudio.bgm.stop();
   }
 
-  //Resume music
-  Future<void> resumeBgm() async {
-    await _bgmPlayer.resume();
+  Future<void> pauseMusic() async {
+    await FlameAudio.bgm.pause();
   }
 
-  //Stop music
-  Future<void> stopBgm() async {
-    await _bgmPlayer.stop();
+  Future<void> resumeMusic() async {
+    await FlameAudio.bgm.resume();
+  }
+
+  Future<void> switchMusic(String fileName) async {
+    await FlameAudio.bgm.stop();
+    await playMusic(fileName);
   }
 
   //Destructor
   Future<void> onRemove() async {
     // soldierSfx.onRemove();
     // pupSfx.onRemove();
-    await _bgmPlayer.dispose();
+    await FlameAudio.bgm.dispose();
   }
 }
