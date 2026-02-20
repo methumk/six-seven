@@ -1393,7 +1393,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print(AudioManager.instance.bgmVolume);
     print(AudioManager.instance.sfxVolume);
 
-    await AudioManager.instance.playMusic('music.mp3');
+    await AudioManager.instance.playMusic('music/bgm.mp3');
     // Determine game resolution constants
     final double gameResX = game.gameResolution.x,
         gameResY = game.gameResolution.y;

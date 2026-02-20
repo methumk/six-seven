@@ -23,7 +23,7 @@ class AudioManager {
     // Pre-cache everything so there's no playback delay
     await FlameAudio.audioCache.loadAll([
       // 'music/menu.mp3',
-      'music.mp3',
+      'music/bgm.mp3',
       // 'sfx/jump.mp3',
       // 'sfx/shoot.mp3',
       // 'sfx/explosion.mp3',
