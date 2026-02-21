@@ -9,6 +9,7 @@ import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/sounds/audio_manager.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/game_setup_settings.dart';
 import 'package:six_seven/pages/game/game_manager.dart';
 import 'package:six_seven/pages/game/overlays/leaderboard_widget.dart';
@@ -60,12 +61,15 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
   FutureOr<void> onLoad() async {
     super.onLoad();
 
+    // Set up audio manager
     await AudioManager.instance.init();
     _applyAudioSettings();
     print(AudioManager.instance.bgmVolume);
     print(AudioManager.instance.sfxVolume);
-
     await AudioManager.instance.playMusic('music.mp3');
+
+    // Set up sfx
+    await SfxController.instance.init();
 
     // causes letter boxing
     camera.viewport = FixedResolutionViewport(resolution: gameResolution);
