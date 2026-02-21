@@ -669,10 +669,10 @@ abstract class Player extends PositionComponent
   }
 
   // Starts rotating player around given path
-  void startRotation(
+  Future<void> startRotation(
     List<Path> rotationPaths, {
     double rotationDuration = 1.5,
-  }) {
+  }) async {
     // Only setup rotation if nextPlayerRotate effect is null (if it isn't it's still running)
     if (rotationPaths.isEmpty) return;
 
@@ -693,7 +693,7 @@ abstract class Player extends PositionComponent
           await setHandDraggable(enableDch: true, enableNch: true);
         },
       );
-      add(_nextPlayerRotateEffect!);
+      await add(_nextPlayerRotateEffect!);
     }
   }
 
