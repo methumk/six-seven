@@ -66,7 +66,7 @@ class GameScreen extends FlameGame with TapCallbacks, DragCallbacks {
     _applyAudioSettings();
     print(AudioManager.instance.bgmVolume);
     print(AudioManager.instance.sfxVolume);
-    await AudioManager.instance.playMusic('music.mp3');
+    await AudioManager.instance.playMusic('music/bgm.mp3');
 
     // Set up sfx
     await SfxController.instance.init();
