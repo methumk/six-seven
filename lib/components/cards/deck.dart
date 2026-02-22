@@ -520,13 +520,13 @@ class CardDeck extends PositionComponent
     c.setClickable(false);
 
     // Make sure it's face down before going back
-    if (!c.isFaceDown) {
-      await c.flip(duration: 0.3);
-    }
+    await c.flipDown(duration: 0.3);
 
-    // Scale and then move to deck position
-    c.scaleTo(Vector2.all(1.0), EffectController(duration: 0.3));
-    await c.moveTo(getDeckCardPosition(), EffectController(duration: 0.4));
+    // Flip, Scale and then move to deck position at the same time
+    await Future.wait([
+      c.scaleTo(Vector2.all(1.0), EffectController(duration: 0.3)),
+      c.moveTo(getDeckCardPosition(), EffectController(duration: 0.4)),
+    ]);
 
     // Make sure top deck card is visible (0 check cuz we are putting card in)
     if (deckListLength >= 0) {

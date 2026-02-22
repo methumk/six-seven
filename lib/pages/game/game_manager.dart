@@ -1579,7 +1579,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     // Rotate the players and disable hit/stay when running
-    _rotatePlayers();
+    await _rotatePlayers();
   }
 
   // Set up on hit pressed handler
@@ -1652,7 +1652,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     // Rotate the players and disable hit/stay when running
-    _rotatePlayers();
+    await _rotatePlayers();
   }
 
   // Set up on stay pressed handler
@@ -1695,7 +1695,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
 
     // Rotate the players and disable hit/stay when running
-    _rotatePlayers();
+    await _rotatePlayers();
   }
 
   // Set up on hit pressed handler
@@ -1754,7 +1754,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     }
     // calculateEVCumulative(getCurrentPlayer!);
     // Rotate the players and disable hit/stay when running
-    _rotatePlayers();
+    await _rotatePlayers();
   }
 
   Future<void> _rotatePlayers() async {
@@ -1798,8 +1798,12 @@ class GameManager extends Component with HasGameReference<GameScreen> {
         "p $i From ${p.position} | ${p.currSlot} to ${p.moveToSlot} takes ${steps} steps",
       );
 
+      // Do it again right before movement. Cards should not be draggable, but this should ensure correct possition, if user did quick drag before drag was disabled
+      await p.setHandDraggable(enableDch: false, enableNch: false);
+
+      // Determine rotation path
       var bzPath = determineBezierRotationPoints(p.currSlot, p.moveToSlot);
-      p.startRotation(bzPath);
+      await p.startRotation(bzPath);
     }
 
     // If human player we don't have offset so reset
@@ -2024,7 +2028,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
   }
 
   // Handle player rotation on update
-  void _rotatePlayersOnUpdate(double dt) {
+  Future<void> _rotatePlayersOnUpdate(double dt) async {
     if (animatePlayerRotation) {
       if (topPlayerPos != null &&
           bottomPlayerPos != null &&
@@ -2046,7 +2050,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
 
         // Check if all rotations finished
         if (playersFinished == totalPlayerCount) {
-          _onRotationFinished();
+          await _onRotationFinished();
         }
       }
     }
