@@ -19,8 +19,9 @@ class AudioManager {
     await FlameAudio.audioCache.loadAll([
       // 'music/menu.mp3',
       'music/bgm.mp3',
-      // 'sfx/jump.mp3',
-      // 'sfx/shoot.mp3',
+      'sfx/shuffle.mp3',
+      'sfx/card-hit.mp3',
+      'sfx/event-card-hit.mp3',
       // 'sfx/explosion.mp3',
       // 'sfx/coin.mp3',
     ]);

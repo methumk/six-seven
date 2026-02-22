@@ -28,6 +28,7 @@ import 'package:six_seven/components/players/human_player.dart';
 import 'package:six_seven/components/players/overlays.dart/text_animations.dart';
 import 'package:six_seven/components/players/player.dart';
 import 'package:six_seven/components/pot/pot.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/components/spinning_arrow_ring.dart';
 import 'package:six_seven/data/constants/game_setup_settings_constants.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
@@ -1208,6 +1209,7 @@ class GameManager extends Component with HasGameReference<GameScreen> {
     print("Got card: $card ${card.cardType}");
 
     if (card is! cd.EventActionCard) {
+      await SfxController.instance.play('sfx/card-hit.mp3');
       // Instant events or all other cards except event action
       await currentPlayer.onHit(card);
     } else {
@@ -1222,8 +1224,9 @@ class GameManager extends Component with HasGameReference<GameScreen> {
       await runningEvent!.drawEventCardAnimation(
         isInfinite: !currentPlayer.isCpu(),
       );
-      await runningEvent!.drawAnimation.wait();
 
+      await SfxController.instance.play('sfx/event-card-hit.mp3');
+      await runningEvent!.drawAnimation.wait();
       // Send event card to discard if not handEventAction
       if (runningEvent is cd.EventActionCard &&
           runningEvent is! cd.HandEventActionCard) {
