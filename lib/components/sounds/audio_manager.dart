@@ -23,6 +23,7 @@ class AudioManager {
       'sfx/card-hit.mp3',
       'sfx/event-card-hit.mp3',
       'sfx/die-rolling.mp3',
+      'sfx/freeze.mp3',
       // 'sfx/explosion.mp3',
       // 'sfx/coin.mp3',
     ]);

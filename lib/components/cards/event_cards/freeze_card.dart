@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class FreezeCard extends EventActionCard {
@@ -76,6 +77,7 @@ class FreezeCard extends EventActionCard {
     //The affectedPlayer has been chosen.
     //Make the affectedUser forced to stay
     print("Chosen player: ${affectedPlayer!.playerName}");
+    await SfxController.instance.play('sfx/freeze.mp3');
     await affectedPlayer!.handleStay();
     game.gameManager.donePlayers.add(affectedPlayer!);
     finishEventCompleter();
