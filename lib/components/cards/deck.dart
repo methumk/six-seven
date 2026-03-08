@@ -304,7 +304,6 @@ class CardDeck extends PositionComponent
       deckList.add(ThiefCard());
       deckList.add(ForecasterCard());
       deckList.add(IncomeTax());
-      // deckList.add(SalesTax());
       deckList.add(LuckyDieCard());
       deckList.add(SunkProphet());
       deckList.add(ChoiceDraw());
