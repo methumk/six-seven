@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/utils/dice_helper.dart';
 
 class SunkProphetWidget extends StatefulWidget {
@@ -164,7 +165,7 @@ class _SunkProphetWidgetState extends State<SunkProphetWidget>
     // pick a final face 1..7
     _finalValue = _random.nextInt(7) + 1;
     debugPrint("FINAL VALUE $_finalValue");
-
+    SfxController.instance.play('sfx/die-rolling.mp3');
     // reset drop animation and start showing random faces during drop
     _dropController.reset();
     // Create a completer to await the end of the timer logic
