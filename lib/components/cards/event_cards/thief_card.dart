@@ -8,6 +8,7 @@ import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/overlays.dart/event_announcement_text.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class ThiefCard extends EventActionCard {
@@ -105,6 +106,8 @@ class ThiefCard extends EventActionCard {
       return;
     }
 
+    //Play thief sfx
+    await SfxController.instance.play('sfx/thief.mp3');
     // Show chosen player as announcement
     await playerStealingAnnouncement.setGrowingText(
       "Player ${cardUser!.playerNum} stealing Player ${affectedPlayer!.playerNum} value cards!",

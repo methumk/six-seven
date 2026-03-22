@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/player.dart';
 
@@ -70,6 +71,8 @@ class DoubleChanceCard extends HandEventActionCard {
       }
       //If user is CPU, they already have an affectplayer, don't need a case for it
     }
+    //Play double chance sfx
+    await SfxController.instance.play('sfx/double-chance.mp3');
     //Give double chance to affected player
     affectedPlayer!.grantDoubleChance();
     await affectedPlayer?.onHit(this);

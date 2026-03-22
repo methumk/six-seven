@@ -6,6 +6,7 @@ import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class DiscarderCard extends EventActionCard {
@@ -172,6 +173,8 @@ class DiscarderCard extends EventActionCard {
       currPlayer.dch.setCardsClickable(false);
     }
 
+    //Play discarder sfx
+    await SfxController.instance.play('sfx/discarder.mp3');
     // Remove selected card and update the value
     print("Discarding card: ${selected}");
     switch (selected.eventEnum) {

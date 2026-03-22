@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:six_seven/components/cards/card.dart';
 import 'package:six_seven/components/players/player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class RedeemerCard extends HandEventActionCard {
@@ -76,6 +77,8 @@ class RedeemerCard extends HandEventActionCard {
       }
       //If user is CPU, they already have an affectplayer, don't need a case for it
     }
+    //play redeemer sound effect
+    await SfxController.instance.play('sfx/redeemer.mp3');
 
     //Give redeemer to affected player
     affectedPlayer!.grantRedeemer();
