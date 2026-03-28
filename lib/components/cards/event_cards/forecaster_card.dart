@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart' as mat;
 import 'package:six_seven/components/cards/card.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 
 class ForecasterCard extends EventActionCard {
@@ -109,6 +110,9 @@ class ForecasterCard extends EventActionCard {
       gameCenter,
       EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
     );
+
+    //Play card hit sfx when they are at center
+    await SfxController.instance.play('sfx/card-hit.mp3');
   }
 
   // Animates card spread

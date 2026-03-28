@@ -11,6 +11,7 @@ import 'package:six_seven/components/cards/value_action_cards/minus_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/mult_card.dart';
 import 'package:six_seven/components/cards/value_action_cards/plus_card.dart';
 import 'package:six_seven/components/players/cpu_player.dart';
+import 'package:six_seven/components/sounds/sfx_controller.dart';
 import 'package:six_seven/data/enums/event_cards.dart';
 import 'package:six_seven/components/players/player.dart';
 
@@ -238,6 +239,9 @@ class ChoiceDraw extends EventActionCard {
       gameCenter,
       EffectController(duration: 0.4, curve: mat.Curves.easeInOut),
     ); // custom tween helper
+
+    //Play card hit sfx when they are at center
+    await SfxController.instance.play('sfx/card-hit.mp3');
   }
 
   Future<void> _cardSpreadAnimation(
